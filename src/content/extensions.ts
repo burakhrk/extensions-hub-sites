@@ -1,4 +1,4 @@
-export type ExtensionSlug = 'deep-note' | 'drawing-office'
+export type ExtensionSlug = 'deep-note' | 'sketch-party'
 
 export type ExtensionRequiredPage = {
   key: 'landing' | 'login' | 'pricing' | 'payment' | 'privacy' | 'terms' | 'support' | 'leave'
@@ -122,66 +122,66 @@ export const extensions: ExtensionDefinition[] = [
     adminAnalyticsAppId: 'deep-note',
   },
   {
-    slug: 'drawing-office',
-    appId: 'drawing-office',
-    name: 'Drawing Office',
+    slug: 'sketch-party',
+    appId: 'sketch-party',
+    name: 'Sketch Party',
     category: 'Chrome extension',
     tagline: 'Live drawing, surprise effects, and lightweight social play between friends.',
-    summary: 'Drawing Office lets signed-in users sync once, see friends again later, and send visual moments with live drawing, effect drops, and playful sessions.',
-    iconPath: '/products/drawing-office/icon.svg',
+    summary: 'Sketch Party lets signed-in users connect once, see friends again later, and send playful visual moments with live drawing, effect drops, and surprise sessions.',
+    iconPath: '/products/sketch-party/icon.svg',
     heroBadge: 'Live social drawing.',
     heroTitle: 'A playful extension for sending drawings, effects, and little visual surprises.',
     heroBody:
-      'Drawing Office is an account-based Chrome extension where friends can reconnect, send quick effect drops, sketch together in live mode, and keep their preferences tied to the same identity.',
+      'Sketch Party is an account-based Chrome extension where friends can reconnect, send quick effect drops, sketch together in live mode, and keep their preferences tied to the same identity.',
     callouts: [
       'Google sign-in restores your profile, friend graph, and app-specific preferences.',
       'Quick-send effects make playful surprise moments possible without forcing a full session every time.',
       'Live mode turns the canvas into a shared back-and-forth space for social drawing.',
     ],
     steps: [
-      'Sign in with Google and let Drawing Office restore your app-scoped social state.',
+      'Sign in with Google and let Sketch Party restore your app-scoped social state.',
       'Add a friend once, then pick them from your list whenever you want to draw or send an effect.',
       'Choose between send mode, live mode, or a quick popup shortcut for faster interaction.',
     ],
-    pricingTitle: 'Drawing Office Free, Pro, and the 48-hour trial',
+    pricingTitle: 'Sketch Party Free, Pro, and the 48-hour trial',
     pricingBody:
-      'Every new Drawing Office account starts with a 48-hour Pro trial. After that, the extension falls back to Free unless the user upgrades on the website, keeping billing and upgrade messaging outside the extension.',
+      'Every new Sketch Party account starts with a 48-hour Pro trial. After that, the extension falls back to Free unless the user upgrades on the website, keeping billing and upgrade messaging outside the extension.',
     proFeatures: [
       'Live mode for real-time shared drawing sessions.',
       'Advanced effect packs like lightning, heart burst, bullet impact, and stickman drops.',
-      'Future premium creator packs and richer sendable animations tied only to drawing-office.',
+      'Future premium creator packs and richer sendable animations tied only to sketch-party.',
     ],
     supportBody:
-      'Use this route for Drawing Office installation help, login guidance, privacy explanations, and product-specific support.',
+      'Use this route for Sketch Party installation help, login guidance, privacy explanations, and product-specific support.',
     privacySummary: [
-      'Drawing Office uses account-based identity so the same user can restore profile and app preferences after reinstalling the extension.',
+      'Sketch Party uses account-based identity so the same user can restore profile and app preferences after reinstalling the extension.',
       'Analytics should stay interaction-only and must not include message content, drawing payloads, or private freeform content.',
-      'Product data is scoped to the drawing-office app_id even though the underlying Supabase project is shared across products.',
+      'Product data is scoped to the sketch-party app_id even though the underlying Supabase project is shared across products.',
     ],
     termsSummary: [
-      'Drawing Office is meant for playful, consensual interactions between connected users and should not be used to harass or mislead people.',
-      'The product may evolve quickly while account, legal, and privacy boundaries stay specific to drawing-office.',
+      'Sketch Party is meant for playful, consensual interactions between connected users and should not be used to harass or mislead people.',
+      'The product may evolve quickly while account, legal, and privacy boundaries stay specific to sketch-party.',
       'Shared infrastructure does not merge this extension\'s product obligations with other extensions on the same domain.',
     ],
     loginBody: [
-      'Drawing Office uses Google sign-in so the same user can restore profile name, friend graph, and app-specific preferences after reinstalling the extension.',
-      'Login belongs only to Drawing Office. Even though the Supabase project is shared, account data remains isolated through the fixed `drawing-office` app id.',
+      'Sketch Party uses Google sign-in so the same user can restore profile name, friend graph, and app-specific preferences after reinstalling the extension.',
+      'Login belongs only to Sketch Party. Even though the Supabase project is shared, account data remains isolated through the fixed `sketch-party` app id.',
       'The extension uses Chrome-compatible OAuth flow, so users should expect a browser-based Google handoff before returning to the extension.',
     ],
     paymentBody: [
-      'Drawing Office keeps upgrades on the website so the extension can stay simpler and more Chrome Web Store friendly.',
+      'Sketch Party keeps upgrades on the website so the extension can stay simpler and more Chrome Web Store friendly.',
       'Users get a 48-hour Pro trial first. When the trial ends, this page becomes the upgrade handoff for restoring Pro features.',
       'Free users can still send basic effects, but Pro is where live sessions, advanced effect drops, and future creator packs will live.',
-      'When checkout is connected, this route should become the single upgrade and billing handoff for drawing-office accounts.',
+      'When checkout is connected, this route should become the single upgrade and billing handoff for sketch-party accounts.',
     ],
-    requiredPages: buildRequiredPages('drawing-office'),
+    requiredPages: buildRequiredPages('sketch-party'),
     features: {
       leavePage: true,
       websiteBilling: true,
       loginPage: true,
       paymentPage: true,
     },
-    adminAnalyticsAppId: 'drawing-office',
+    adminAnalyticsAppId: 'sketch-party',
     installUrl: 'https://chrome.google.com/webstore',
   },
 ]

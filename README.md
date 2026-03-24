@@ -5,7 +5,7 @@ This repo is the shared public website layer for multiple Chrome extensions.
 Current apps:
 
 - `deep-note`
-- `drawing-office`
+- `sketch-party`
 
 The goal is to keep product websites separate from extension repos while still serving all products from one domain.
 
@@ -22,14 +22,14 @@ The goal is to keep product websites separate from extension repos while still s
 - `/deep-note/support`
 - `/deep-note/share/:slug`
 - `/deep-note/leave`
-- `/drawing-office`
-- `/drawing-office/login`
-- `/drawing-office/pricing`
-- `/drawing-office/payment`
-- `/drawing-office/privacy`
-- `/drawing-office/terms`
-- `/drawing-office/support`
-- `/drawing-office/leave`
+- `/sketch-party`
+- `/sketch-party/login`
+- `/sketch-party/pricing`
+- `/sketch-party/payment`
+- `/sketch-party/privacy`
+- `/sketch-party/terms`
+- `/sketch-party/support`
+- `/sketch-party/leave`
 
 ## Where to add a new extension
 
@@ -55,7 +55,7 @@ Every extension added to this hub should define its own:
 
 Share pages are optional and should be enabled only when the extension actually exposes public shared content.
 
-The key rule is: each route must stay product-scoped. A user opening `/drawing-office/leave` should never see Deep Note copy or behavior, and vice versa.
+The key rule is: each route must stay product-scoped. A user opening `/sketch-party/leave` should never see Deep Note copy or behavior, and vice versa.
 
 The detailed guide for what each page should contain lives here:
 

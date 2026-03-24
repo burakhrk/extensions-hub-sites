@@ -72,7 +72,8 @@ function parseRoute(pathname: string): { page: PageKey; extension: ExtensionDefi
   if (pathname === '/' || pathname === '') return { page: 'hub', extension: null, shareSlug: null }
   const parts = pathname.split('/').filter(Boolean)
   if (parts[0] === 'admin') return { page: 'admin', extension: null, shareSlug: null }
-  const first = parts[0] as ExtensionSlug | undefined
+  const normalizedFirst = parts[0] === 'drawing-office' ? 'sketch-party' : parts[0]
+  const first = normalizedFirst as ExtensionSlug | undefined
   const extension = first ? extensionMap.get(first) || null : null
   if (!extension) return { page: 'not-found', extension: null, shareSlug: null }
   if (parts.length === 1) return { page: 'product', extension, shareSlug: null }
