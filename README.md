@@ -36,6 +36,7 @@ The goal is to keep product websites separate from extension repos while still s
 Start here:
 
 - [src/content/extensions.ts](/C:/Users/burak/Desktop/Burakhrk/SideProjects/extensions-hub-sites/src/content/extensions.ts)
+- [docs/EXTENSION_PAGE_PLAYBOOK.md](/C:/Users/burak/Desktop/Burakhrk/SideProjects/extensions-hub-sites/docs/EXTENSION_PAGE_PLAYBOOK.md)
 
 That file is the main config surface.
 
@@ -55,6 +56,10 @@ Every extension added to this hub should define its own:
 Share pages are optional and should be enabled only when the extension actually exposes public shared content.
 
 The key rule is: each route must stay product-scoped. A user opening `/drawing-office/leave` should never see Deep Note copy or behavior, and vice versa.
+
+The detailed guide for what each page should contain lives here:
+
+- [docs/EXTENSION_PAGE_PLAYBOOK.md](/C:/Users/burak/Desktop/Burakhrk/SideProjects/extensions-hub-sites/docs/EXTENSION_PAGE_PLAYBOOK.md)
 
 ## Admin analytics
 
@@ -92,5 +97,6 @@ Read these files first:
 - [src/content/extensions.ts](/C:/Users/burak/Desktop/Burakhrk/SideProjects/extensions-hub-sites/src/content/extensions.ts)
 - [src/App.tsx](/C:/Users/burak/Desktop/Burakhrk/SideProjects/extensions-hub-sites/src/App.tsx)
 - [docs/ARCHITECTURE.md](/C:/Users/burak/Desktop/Burakhrk/SideProjects/extensions-hub-sites/docs/ARCHITECTURE.md)
+- [docs/EXTENSION_PAGE_PLAYBOOK.md](/C:/Users/burak/Desktop/Burakhrk/SideProjects/extensions-hub-sites/docs/EXTENSION_PAGE_PLAYBOOK.md)
 
 This project is config-driven on purpose. Do not hardcode Deep Note assumptions into shared layout/components unless the route is explicitly scoped to `/deep-note`.

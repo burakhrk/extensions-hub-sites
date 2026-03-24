@@ -53,6 +53,10 @@ When a new extension is added, it should not stop at only a landing page. The ex
 
 These should be declared in config so another agent can tell at a glance what the product still needs.
 
+For the actual content expectations of those pages, use:
+
+- [docs/EXTENSION_PAGE_PLAYBOOK.md](/C:/Users/burak/Desktop/Burakhrk/SideProjects/extensions-hub-sites/docs/EXTENSION_PAGE_PLAYBOOK.md)
+
 ## Admin isolation rule
 
 The hub can host a shared admin UI, but each extension must still own:
