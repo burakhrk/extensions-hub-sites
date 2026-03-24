@@ -58,6 +58,7 @@ These should be declared in config so another agent can tell at a glance what th
 The hub can host a shared admin UI, but each extension must still own:
 
 - its own analytics endpoint
+- its own `app_id` guard on every event and admin analytics query
 - its own passcode / auth requirement
 - its own event stream
 

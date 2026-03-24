@@ -41,6 +41,7 @@ export type ExtensionDefinition = {
   apiBase?: string
   adminApiBase?: string
   adminAnalyticsPath?: string
+  adminAnalyticsAppId?: string
   installUrl?: string
 }
 
@@ -118,6 +119,7 @@ export const extensions: ExtensionDefinition[] = [
     apiBase: deepNoteApi,
     adminApiBase: deepNoteApi,
     adminAnalyticsPath: '/api/admin/analytics',
+    adminAnalyticsAppId: 'deep-note',
   },
   {
     slug: 'drawing-office',
@@ -176,6 +178,7 @@ export const extensions: ExtensionDefinition[] = [
       loginPage: true,
       paymentPage: true,
     },
+    adminAnalyticsAppId: 'drawing-office',
     installUrl: 'https://chrome.google.com/webstore',
   },
 ]

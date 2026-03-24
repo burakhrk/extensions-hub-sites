@@ -492,6 +492,11 @@ function AdminPage() {
     window.localStorage.setItem('hub-admin-passcode', passcode)
   }, [passcode])
 
+  useEffect(() => {
+    setData(null)
+    setError(null)
+  }, [selectedSlug])
+
   const loadAnalytics = async () => {
     if (!extension.adminApiBase || !extension.adminAnalyticsPath) {
       setError('This extension does not have an admin analytics endpoint configured yet.')
@@ -508,8 +513,14 @@ function AdminPage() {
     setError(null)
 
     try {
-      const res = await fetch(`${extension.adminApiBase}${extension.adminAnalyticsPath}`, {
-        headers: { 'x-admin-passcode': passcode.trim() },
+      const query = new URLSearchParams()
+      if (extension.adminAnalyticsAppId) query.set('appId', extension.adminAnalyticsAppId)
+      const endpoint = `${extension.adminApiBase}${extension.adminAnalyticsPath}${query.toString() ? `?${query.toString()}` : ''}`
+      const res = await fetch(endpoint, {
+        headers: {
+          'x-admin-passcode': passcode.trim(),
+          'x-extension-app-id': extension.adminAnalyticsAppId || extension.appId,
+        },
       })
       const payload = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(payload.error || 'Admin analytics could not be loaded.')
@@ -548,7 +559,7 @@ function AdminPage() {
             </button>
             <p className="muted-copy">
               {extension.adminApiBase && extension.adminAnalyticsPath
-                ? `This extension is wired to ${extension.adminAnalyticsPath}.`
+                ? `This extension is wired to ${extension.adminAnalyticsPath} and loaded with app id ${extension.adminAnalyticsAppId || extension.appId}.`
                 : 'This extension still needs its own analytics endpoint config.'}
             </p>
             {error ? <p className="warning">{error}</p> : null}
