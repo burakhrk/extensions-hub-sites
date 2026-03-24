@@ -143,13 +143,13 @@ export const extensions: ExtensionDefinition[] = [
       'Add a friend once, then pick them from your list whenever you want to draw or send an effect.',
       'Choose between send mode, live mode, or a quick popup shortcut for faster interaction.',
     ],
-    pricingTitle: 'Drawing Office plans and future upgrades',
+    pricingTitle: 'Drawing Office Free, Pro, and the 48-hour trial',
     pricingBody:
-      'Drawing Office is structured so future premium plans, account-linked upgrades, and website billing can live outside the extension without breaking the in-extension flow.',
+      'Every new Drawing Office account starts with a 48-hour Pro trial. After that, the extension falls back to Free unless the user upgrades on the website, keeping billing and upgrade messaging outside the extension.',
     proFeatures: [
-      'Expanded effect packs and richer sendable animations.',
-      'Future account-linked perks that stay scoped to drawing-office only.',
-      'Website-driven upgrades that keep Chrome Web Store messaging cleaner.',
+      'Live mode for real-time shared drawing sessions.',
+      'Advanced effect packs like lightning, heart burst, bullet impact, and stickman drops.',
+      'Future premium creator packs and richer sendable animations tied only to drawing-office.',
     ],
     supportBody:
       'Use this route for Drawing Office installation help, login guidance, privacy explanations, and product-specific support.',
@@ -161,15 +161,18 @@ export const extensions: ExtensionDefinition[] = [
     termsSummary: [
       'Drawing Office is meant for playful, consensual interactions between connected users and should not be used to harass or mislead people.',
       'The product may evolve quickly while account, legal, and privacy boundaries stay specific to drawing-office.',
-      'Shared infrastructure does not merge this extension’s product obligations with other extensions on the same domain.',
+      'Shared infrastructure does not merge this extension\'s product obligations with other extensions on the same domain.',
     ],
     loginBody: [
-      'Drawing Office login should explain that Google sign-in restores the same profile, friend graph, and per-app preferences after reinstall.',
-      'If the extension uses Supabase Auth, the login page should mention Chrome-extension-compatible OAuth and the fact that account identity is scoped through app_id aware data access.',
+      'Drawing Office uses Google sign-in so the same user can restore profile name, friend graph, and app-specific preferences after reinstalling the extension.',
+      'Login belongs only to Drawing Office. Even though the Supabase project is shared, account data remains isolated through the fixed `drawing-office` app id.',
+      'The extension uses Chrome-compatible OAuth flow, so users should expect a browser-based Google handoff before returning to the extension.',
     ],
     paymentBody: [
-      'Drawing Office payment should live on the website so the extension can keep Chrome Web Store messaging cleaner.',
-      'Future checkout, billing portal, and account-linked upgrades should be routed through this page rather than embedded directly in the extension.',
+      'Drawing Office keeps upgrades on the website so the extension can stay simpler and more Chrome Web Store friendly.',
+      'Users get a 48-hour Pro trial first. When the trial ends, this page becomes the upgrade handoff for restoring Pro features.',
+      'Free users can still send basic effects, but Pro is where live sessions, advanced effect drops, and future creator packs will live.',
+      'When checkout is connected, this route should become the single upgrade and billing handoff for drawing-office accounts.',
     ],
     requiredPages: buildRequiredPages('drawing-office'),
     features: {
