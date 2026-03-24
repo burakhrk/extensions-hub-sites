@@ -25,6 +25,7 @@ export type ExtensionDefinition = {
     websiteBilling?: boolean
   }
   apiBase?: string
+  installUrl?: string
 }
 
 const deepNoteApi = import.meta.env.VITE_DEEP_NOTE_API_URL || 'https://notetaker-backend.notetaker-app-burak.workers.dev'
@@ -82,44 +83,47 @@ export const extensions: ExtensionDefinition[] = [
     appId: 'drawing-office',
     name: 'Drawing Office',
     category: 'Chrome extension',
-    tagline: 'A focused home for drawing workflows and visual capture.',
-    summary: 'Drawing Office gets its own route, legal pages, support, and future pricing surface without mixing product messaging with Deep Note.',
+    tagline: 'Live drawing, surprise effects, and lightweight social play between friends.',
+    summary: 'Drawing Office lets signed-in users sync once, see friends again later, and send visual moments with live drawing, effect drops, and playful sessions.',
     iconPath: '/products/drawing-office/icon.svg',
-    heroBadge: 'Visual workflow hub.',
-    heroTitle: 'A dedicated landing page for the Drawing Office extension.',
+    heroBadge: 'Live social drawing.',
+    heroTitle: 'A playful extension for sending drawings, effects, and little visual surprises.',
     heroBody:
-      'Drawing Office lives under the same domain, but it stays clearly separated from every other extension. Its copy, legal pages, and support routes are independent.',
+      'Drawing Office is an account-based Chrome extension where friends can reconnect, send quick effect drops, sketch together in live mode, and keep their preferences tied to the same identity.',
     callouts: [
-      'Separate product identity under the same domain.',
-      'Ready for future pricing, support, and account-linked flows.',
-      'Prepared to share the same Supabase project with app-specific isolation through app_id.',
+      'Google sign-in restores your profile, friend graph, and app-specific preferences.',
+      'Quick-send effects make playful surprise moments possible without forcing a full session every time.',
+      'Live mode turns the canvas into a shared back-and-forth space for social drawing.',
     ],
     steps: [
-      'Keep product copy and visuals scoped to Drawing Office only.',
-      'Attach future pricing and legal pages without touching other products.',
-      'Use the same shared site shell while staying brand-separated.',
+      'Sign in with Google and let Drawing Office restore your app-scoped social state.',
+      'Add a friend once, then pick them from your list whenever you want to draw or send an effect.',
+      'Choose between send mode, live mode, or a quick popup shortcut for faster interaction.',
     ],
-    pricingTitle: 'Drawing Office pricing placeholder',
+    pricingTitle: 'Drawing Office plans and future upgrades',
     pricingBody:
-      'This route is intentionally ready for future website billing or account flows, but it is kept separate from Deep Note.',
+      'Drawing Office is structured so future premium plans, account-linked upgrades, and website billing can live outside the extension without breaking the in-extension flow.',
     proFeatures: [
-      'Future premium workflows can be added here.',
-      'Any account-linked behavior can stay scoped to drawing-office.',
-      'This page exists so the multi-extension domain remains clean from day one.',
+      'Expanded effect packs and richer sendable animations.',
+      'Future account-linked perks that stay scoped to drawing-office only.',
+      'Website-driven upgrades that keep Chrome Web Store messaging cleaner.',
     ],
     supportBody:
-      'Use this route for Drawing Office-specific support, legal links, and future product announcements.',
+      'Use this route for Drawing Office installation help, login guidance, privacy explanations, and product-specific support.',
     privacySummary: [
-      'Drawing Office can define its own data behavior without inheriting Deep Note wording.',
-      'Keep all product disclosures extension-specific even though the domain is shared.',
+      'Drawing Office uses account-based identity so the same user can restore profile and app preferences after reinstalling the extension.',
+      'Analytics should stay interaction-only and must not include message content, drawing payloads, or private freeform content.',
+      'Product data is scoped to the drawing-office app_id even though the underlying Supabase project is shared across products.',
     ],
     termsSummary: [
-      'Drawing Office terms should be maintained separately from Deep Note terms.',
-      'Shared infrastructure does not mean shared product obligations.',
+      'Drawing Office is meant for playful, consensual interactions between connected users and should not be used to harass or mislead people.',
+      'The product may evolve quickly while account, legal, and privacy boundaries stay specific to drawing-office.',
+      'Shared infrastructure does not merge this extension’s product obligations with other extensions on the same domain.',
     ],
     features: {
-      websiteBilling: false,
+      websiteBilling: true,
     },
+    installUrl: 'https://chrome.google.com/webstore',
   },
 ]
 

@@ -113,6 +113,7 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
         </div>
         <p>{extension.heroBody}</p>
         <div className="cta-row">
+          {extension.installUrl ? <a className="primary-cta" href={extension.installUrl} target="_blank" rel="noreferrer">Install extension</a> : null}
           <a className="primary-cta" href={`/${extension.slug}/pricing`}>Pricing</a>
           <a className="secondary-cta" href={`/${extension.slug}/support`}>Support</a>
         </div>
