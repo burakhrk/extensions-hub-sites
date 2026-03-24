@@ -1,0 +1,137 @@
+:root {
+  color-scheme: light;
+  --bg: #f4f7f8;
+  --surface: #ffffff;
+  --surface-soft: #f8fafc;
+  --ink: #172126;
+  --muted: #5f6b76;
+  --line: #dbe2e8;
+  --accent: #0f766e;
+  --accent-soft: #dff7f4;
+  --shadow: 0 24px 80px rgba(15, 23, 42, 0.07);
+}
+
+* { box-sizing: border-box; }
+html, body, #root { min-height: 100%; }
+body {
+  margin: 0;
+  font-family: Inter, "Segoe UI", system-ui, sans-serif;
+  color: var(--ink);
+  background: linear-gradient(180deg, #ffffff 0%, var(--bg) 100%);
+}
+a, button, input, textarea { font: inherit; }
+a { color: inherit; }
+button { border: 0; cursor: pointer; }
+
+.site-shell { min-height: 100vh; padding: 24px; }
+.site-frame {
+  max-width: 1120px;
+  margin: 0 auto;
+  min-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+}
+.topbar {
+  display: flex; gap: 16px; align-items: center; justify-content: space-between;
+  padding: 16px 18px; border: 1px solid var(--line); border-radius: 999px;
+  background: rgba(255,255,255,.92); box-shadow: 0 16px 50px rgba(15,23,42,.06);
+}
+.brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+.brand-mark {
+  width: 42px; height: 42px; border-radius: 14px; display: grid; place-items: center;
+  background: #0f172a; color: white; font-size: 12px; font-weight: 800; letter-spacing: .18em;
+}
+.brand-title { font-size: .9rem; font-weight: 700; text-transform: uppercase; letter-spacing: .16em; }
+.brand-subtitle { color: var(--muted); font-size: .9rem; }
+.topnav { display: flex; flex-wrap: wrap; gap: 8px; }
+.topnav a { text-decoration: none; padding: 10px 14px; border-radius: 999px; color: var(--muted); }
+.topnav a:hover, .topnav a.is-active { background: #0f172a; color: white; }
+.main-content { flex: 1; padding: 32px 0; }
+.footer {
+  border-top: 1px solid var(--line); padding: 24px 4px 8px; color: var(--muted);
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-size: .95rem;
+}
+
+.stack-lg, .stack-md, .stack-sm { display: grid; }
+.stack-lg { gap: 24px; }
+.stack-md { gap: 16px; }
+.stack-sm { gap: 10px; }
+
+.hero-card, .info-card, .article-card, .product-card {
+  border: 1px solid var(--line); border-radius: 32px; background: var(--surface); box-shadow: var(--shadow);
+}
+.hero-card, .article-card { padding: 36px; }
+.info-card, .product-card { padding: 28px; }
+.compact-card { max-width: 820px; margin: 0 auto; }
+
+.pill, .eyebrow, .section-label, .accent-text {
+  text-transform: uppercase; letter-spacing: .18em; font-size: .72rem; font-weight: 800;
+}
+.pill {
+  display: inline-flex; padding: 8px 12px; border-radius: 999px;
+  background: var(--accent-soft); border: 1px solid #c4ede8; color: var(--accent);
+}
+.hero-card h1, .article-card h1 { margin: 18px 0 0; font-size: clamp(2.2rem, 4vw, 3.5rem); line-height: 1.05; }
+.hero-card p, .article-card p, .info-card p, .list-box, .simple-list, .step-list p {
+  color: var(--muted); line-height: 1.7;
+}
+.product-grid, .two-col { display: grid; gap: 24px; }
+.product-grid { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.two-col { grid-template-columns: 1.1fr .9fr; }
+
+.product-card { display: block; text-decoration: none; }
+.product-card:hover { transform: translateY(-2px); }
+.product-icon, .hero-icon { width: 56px; height: 56px; }
+.hero-icon { width: 64px; height: 64px; }
+.product-hero-head { display: flex; align-items: center; gap: 16px; margin-top: 18px; }
+.product-type {
+  margin-top: 16px; font-size: .8rem; color: var(--muted); text-transform: uppercase; letter-spacing: .16em; font-weight: 700;
+}
+.product-card h2 { margin: 10px 0; font-size: 1.55rem; }
+.product-link { display: inline-block; margin-top: 12px; color: var(--accent); font-weight: 700; }
+
+.cta-row { margin-top: 24px; display: flex; flex-wrap: wrap; gap: 12px; }
+.primary-cta, .secondary-cta, .button-cta {
+  display: inline-flex; align-items: center; justify-content: center; text-decoration: none;
+  border-radius: 999px; padding: 14px 18px; font-weight: 700;
+}
+.primary-cta, .button-cta { background: #0f172a; color: white; }
+.secondary-cta { border: 1px solid var(--line); background: white; }
+.inline-cta { width: fit-content; }
+
+.list-grid { display: grid; gap: 12px; margin-top: 18px; }
+.list-box { border-radius: 22px; padding: 16px 18px; border: 1px solid var(--line); background: var(--surface-soft); }
+.accent-card { background: linear-gradient(180deg, #eaf8f6 0%, #dff7f4 100%); border-color: #cdeee9; }
+.dark-box { background: #0f172a; color: #d8e3ea; border-color: #17253a; }
+.step-list { list-style: none; padding: 0; margin: 18px 0 0; display: grid; gap: 14px; }
+.step-list li { display: flex; align-items: flex-start; gap: 12px; }
+.step-list span {
+  width: 30px; height: 30px; flex: 0 0 30px; display: grid; place-items: center;
+  border-radius: 999px; background: #0f172a; color: white; font-size: .84rem; font-weight: 800;
+}
+.article-intro { margin-top: 12px; }
+.article-section { border-radius: 24px; padding: 18px 20px; border: 1px solid var(--line); background: var(--surface-soft); }
+.simple-list { margin: 12px 0 0; padding-left: 18px; }
+.simple-list li + li { margin-top: 8px; }
+.warning { color: #b45309; }
+.success { color: var(--accent); }
+
+.reason-grid { margin-top: 18px; display: grid; gap: 10px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.reason-card { padding: 14px 16px; border-radius: 20px; border: 1px solid var(--line); background: var(--surface-soft); text-align: left; }
+.reason-card.is-selected { border-color: #95ddd4; background: var(--accent-soft); }
+.feedback-box {
+  width: 100%; margin-top: 14px; border: 1px solid var(--line); border-radius: 20px;
+  background: var(--surface-soft); padding: 14px 16px; resize: vertical;
+}
+
+@media (max-width: 920px) {
+  .two-col { grid-template-columns: 1fr; }
+  .reason-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 720px) {
+  .site-shell { padding: 16px; }
+  .topbar { border-radius: 28px; padding: 16px; align-items: flex-start; flex-direction: column; }
+  .hero-card, .article-card, .info-card, .product-card { padding: 22px; border-radius: 24px; }
+  .reason-grid { grid-template-columns: 1fr; }
+}
