@@ -300,6 +300,10 @@ function LoginPage({ extension }: { extension: ExtensionDefinition }) {
       <div className="stack-md">
         {extension.loginBody.map((item) => <section key={item} className="article-section"><p>{item}</p></section>)}
       </div>
+      <div className="cta-row">
+        {extension.installUrl ? <a className="primary-cta" href={extension.installUrl} target="_blank" rel="noreferrer">Install extension</a> : null}
+        <a className="secondary-cta" href={`/${extension.slug}/support`}>Get support</a>
+      </div>
     </section>
   )
 }
@@ -315,6 +319,7 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
       </div>
       <div className="cta-row">
         <a className="primary-cta" href={`/${extension.slug}/pricing`}>Open pricing</a>
+        <a className="secondary-cta" href={`/${extension.slug}/support`}>Talk to support</a>
       </div>
     </section>
   )
@@ -349,6 +354,14 @@ function SupportPage({ extension }: { extension: ExtensionDefinition }) {
             <li>privacy and terms questions for this extension route</li>
             <li>uninstall feedback routing through its own leave page</li>
           </ul>
+        </section>
+        <section className="article-section">
+          <p>Useful links for a first support pass:</p>
+          <div className="cta-row">
+            {extension.installUrl ? <a className="primary-cta" href={extension.installUrl} target="_blank" rel="noreferrer">Install / open store</a> : null}
+            <a className="secondary-cta" href={`/${extension.slug}/login`}>Login help</a>
+            <a className="secondary-cta" href={`/${extension.slug}/pricing`}>Pricing</a>
+          </div>
         </section>
       </div>
     </section>
