@@ -1,5 +1,13 @@
 export type ExtensionSlug = 'deep-note' | 'drawing-office'
 
+export type ExtensionRequiredPage = {
+  key: 'landing' | 'login' | 'pricing' | 'payment' | 'privacy' | 'terms' | 'support' | 'leave'
+  label: string
+  path: string
+  required: boolean
+  note: string
+}
+
 export type ExtensionDefinition = {
   slug: ExtensionSlug
   appId: string
@@ -19,16 +27,35 @@ export type ExtensionDefinition = {
   supportBody: string
   privacySummary: string[]
   termsSummary: string[]
+  loginBody: string[]
+  paymentBody: string[]
+  requiredPages: ExtensionRequiredPage[]
   features: {
     sharePage?: boolean
     leavePage?: boolean
     websiteBilling?: boolean
+    loginPage?: boolean
+    paymentPage?: boolean
+    adminAnalytics?: boolean
   }
   apiBase?: string
+  adminApiBase?: string
+  adminAnalyticsPath?: string
   installUrl?: string
 }
 
 const deepNoteApi = import.meta.env.VITE_DEEP_NOTE_API_URL || 'https://notetaker-backend.notetaker-app-burak.workers.dev'
+
+const buildRequiredPages = (slug: ExtensionSlug): ExtensionRequiredPage[] => [
+  { key: 'landing', label: 'Landing page', path: `/${slug}`, required: true, note: 'Product-specific overview page with clear install and support handoff.' },
+  { key: 'login', label: 'Login page', path: `/${slug}/login`, required: true, note: 'Explain Google sign-in, account restore, and app-scoped identity.' },
+  { key: 'pricing', label: 'Pricing page', path: `/${slug}/pricing`, required: true, note: 'Public pricing copy and plan comparison for this extension only.' },
+  { key: 'payment', label: 'Payment page', path: `/${slug}/payment`, required: true, note: 'Website checkout / billing handoff page kept outside the extension.' },
+  { key: 'privacy', label: 'Privacy policy', path: `/${slug}/privacy`, required: true, note: 'Public privacy page scoped to this extension and its data flows.' },
+  { key: 'terms', label: 'Terms of use', path: `/${slug}/terms`, required: true, note: 'Public terms page specific to this extension and its obligations.' },
+  { key: 'support', label: 'Support page', path: `/${slug}/support`, required: true, note: 'Public support route for install, billing, and product-specific issues.' },
+  { key: 'leave', label: 'Why are you leaving page', path: `/${slug}/leave`, required: true, note: 'Uninstall feedback page opened by the extension removal flow for that product.' },
+]
 
 export const extensions: ExtensionDefinition[] = [
   {
@@ -71,12 +98,26 @@ export const extensions: ExtensionDefinition[] = [
       'Deep Note is provided as-is during active iteration.',
       'Users are responsible for the material they save, organize, and share.',
     ],
+    loginBody: [
+      'Deep Note login should always explain that Google sign-in restores cloud-linked note state, billing state, and account-linked features.',
+      'The login page should make it obvious that auth belongs to Deep Note only and does not sign the user into unrelated extensions on the same domain.',
+    ],
+    paymentBody: [
+      'Deep Note payment should stay on the website, not inside the extension.',
+      'The payment route should be the handoff page for checkout, account-linked upgrades, and future billing portal access.',
+    ],
+    requiredPages: buildRequiredPages('deep-note'),
     features: {
       sharePage: true,
       leavePage: true,
       websiteBilling: true,
+      loginPage: true,
+      paymentPage: true,
+      adminAnalytics: true,
     },
     apiBase: deepNoteApi,
+    adminApiBase: deepNoteApi,
+    adminAnalyticsPath: '/api/admin/analytics',
   },
   {
     slug: 'drawing-office',
@@ -120,8 +161,20 @@ export const extensions: ExtensionDefinition[] = [
       'The product may evolve quickly while account, legal, and privacy boundaries stay specific to drawing-office.',
       'Shared infrastructure does not merge this extension’s product obligations with other extensions on the same domain.',
     ],
+    loginBody: [
+      'Drawing Office login should explain that Google sign-in restores the same profile, friend graph, and per-app preferences after reinstall.',
+      'If the extension uses Supabase Auth, the login page should mention Chrome-extension-compatible OAuth and the fact that account identity is scoped through app_id aware data access.',
+    ],
+    paymentBody: [
+      'Drawing Office payment should live on the website so the extension can keep Chrome Web Store messaging cleaner.',
+      'Future checkout, billing portal, and account-linked upgrades should be routed through this page rather than embedded directly in the extension.',
+    ],
+    requiredPages: buildRequiredPages('drawing-office'),
     features: {
+      leavePage: true,
       websiteBilling: true,
+      loginPage: true,
+      paymentPage: true,
     },
     installUrl: 'https://chrome.google.com/webstore',
   },

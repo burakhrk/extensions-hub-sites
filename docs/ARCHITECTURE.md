@@ -21,18 +21,47 @@ The rule is:
 Every extension can have:
 
 - home
+- login
 - pricing
+- payment
 - privacy
 - terms
 - support
+- leave
 
 ## Special pages
 
 Special routes are opt-in:
 
-- Deep Note currently enables `share` and `leave`
+- shared note pages like `/deep-note/share/:slug`
+- extension analytics integration through `/admin`
 
 If another extension needs custom pages later, add a route-scoped component and keep the logic tied to that product slug only.
+
+## Extension launch checklist inside the hub
+
+When a new extension is added, it should not stop at only a landing page. The expected public surface is:
+
+- landing page
+- login page
+- pricing page
+- payment page
+- privacy page
+- terms page
+- support page
+- uninstall feedback page
+
+These should be declared in config so another agent can tell at a glance what the product still needs.
+
+## Admin isolation rule
+
+The hub can host a shared admin UI, but each extension must still own:
+
+- its own analytics endpoint
+- its own passcode / auth requirement
+- its own event stream
+
+The admin page should help select an extension, not merge products together.
 
 ## Product isolation rule
 

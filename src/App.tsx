@@ -1,7 +1,20 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { extensionMap, extensions, type ExtensionDefinition, type ExtensionSlug } from './content/extensions'
 
-type PageKey = 'hub' | 'product' | 'pricing' | 'privacy' | 'terms' | 'support' | 'share' | 'leave' | 'not-found'
+type PageKey =
+  | 'hub'
+  | 'product'
+  | 'login'
+  | 'pricing'
+  | 'payment'
+  | 'privacy'
+  | 'terms'
+  | 'support'
+  | 'share'
+  | 'leave'
+  | 'admin'
+  | 'not-found'
+
 type BillingState = {
   plan: 'basic' | 'pro'
   trialStartedAt: number | null
@@ -14,6 +27,7 @@ type BillingState = {
   checkoutUrl?: string | null
   portalUrl?: string | null
 }
+
 type SharedNote = {
   title?: string
   createdAt?: number
@@ -22,17 +36,50 @@ type SharedNote = {
   text?: string
   opinion?: string
 }
-type LeaveFeedbackReason = 'too-noisy' | 'missing-feature' | 'too-buggy' | 'too-expensive' | 'using-something-else' | 'temporary-break' | 'other'
+
+type LeaveFeedbackReason =
+  | 'too-noisy'
+  | 'missing-feature'
+  | 'too-buggy'
+  | 'too-expensive'
+  | 'using-something-else'
+  | 'temporary-break'
+  | 'other'
+
+type AdminAnalyticsResponse = {
+  summary?: Record<string, number>
+  aiUsage?: Record<string, number>
+  funnels?: Record<string, number>
+  topEvents?: Array<{ eventName: string; count: number }>
+  screenCounts?: Array<{ screen: string; count: number }>
+  recentEvents?: Array<{
+    eventName: string
+    timestamp: number
+    clientId?: string
+    accountEmail?: string | null
+    accountId?: string | null
+    properties?: Record<string, unknown>
+  }>
+  uninstallFeedback?: Array<{
+    createdAt?: number
+    accountEmail?: string | null
+    reason?: string
+    details?: string | null
+  }>
+}
 
 function parseRoute(pathname: string): { page: PageKey; extension: ExtensionDefinition | null; shareSlug: string | null } {
   if (pathname === '/' || pathname === '') return { page: 'hub', extension: null, shareSlug: null }
   const parts = pathname.split('/').filter(Boolean)
+  if (parts[0] === 'admin') return { page: 'admin', extension: null, shareSlug: null }
   const first = parts[0] as ExtensionSlug | undefined
   const extension = first ? extensionMap.get(first) || null : null
   if (!extension) return { page: 'not-found', extension: null, shareSlug: null }
   if (parts.length === 1) return { page: 'product', extension, shareSlug: null }
   const second = parts[1]
+  if (second === 'login' && extension.features.loginPage) return { page: 'login', extension, shareSlug: null }
   if (second === 'pricing') return { page: 'pricing', extension, shareSlug: null }
+  if (second === 'payment' && extension.features.paymentPage) return { page: 'payment', extension, shareSlug: null }
   if (second === 'privacy') return { page: 'privacy', extension, shareSlug: null }
   if (second === 'terms') return { page: 'terms', extension, shareSlug: null }
   if (second === 'support') return { page: 'support', extension, shareSlug: null }
@@ -55,10 +102,13 @@ function AppShell({ children, extension, page }: { children: ReactNode; extensio
           </a>
           <nav className="topnav">
             <a className={!extension && page === 'hub' ? 'is-active' : ''} href="/">Home</a>
+            <a className={page === 'admin' ? 'is-active' : ''} href="/admin">Admin</a>
             {extension ? (
               <>
                 <a className={page === 'product' ? 'is-active' : ''} href={`/${extension.slug}`}>Overview</a>
+                <a className={page === 'login' ? 'is-active' : ''} href={`/${extension.slug}/login`}>Login</a>
                 <a className={page === 'pricing' ? 'is-active' : ''} href={`/${extension.slug}/pricing`}>Pricing</a>
+                <a className={page === 'payment' ? 'is-active' : ''} href={`/${extension.slug}/payment`}>Payment</a>
                 <a className={page === 'privacy' ? 'is-active' : ''} href={`/${extension.slug}/privacy`}>Privacy</a>
                 <a className={page === 'terms' ? 'is-active' : ''} href={`/${extension.slug}/terms`}>Terms</a>
                 <a className={page === 'support' ? 'is-active' : ''} href={`/${extension.slug}/support`}>Support</a>
@@ -69,7 +119,7 @@ function AppShell({ children, extension, page }: { children: ReactNode; extensio
         <main className="main-content">{children}</main>
         <footer className="footer">
           <span>One domain, many extensions.</span>
-          <span>{extension ? `${extension.name} stays scoped to its own route.` : 'Each extension gets separate product pages.'}</span>
+          <span>{extension ? `${extension.name} stays scoped to its own route.` : 'Each extension gets separate product pages and extension-scoped admin analytics.'}</span>
         </footer>
       </div>
     </div>
@@ -82,7 +132,7 @@ function HubPage() {
       <section className="hero-card">
         <div className="pill">Extensions hub</div>
         <h1>One domain for multiple extension websites.</h1>
-        <p>Each extension gets its own public landing page, pricing page, legal pages, and support route without sharing product copy.</p>
+        <p>Each extension gets its own landing page, login page, payment handoff, privacy policy, terms, support route, and uninstall feedback page without sharing product copy.</p>
       </section>
       <section className="product-grid">
         {extensions.map((extension) => (
@@ -135,6 +185,21 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
               </li>
             ))}
           </ol>
+        </div>
+      </section>
+      <section className="info-card">
+        <div className="section-label">Required public pages</div>
+        <div className="required-page-grid">
+          {extension.requiredPages.map((page) => (
+            <div key={page.path} className="required-page-card">
+              <div className="required-page-top">
+                <strong>{page.label}</strong>
+                <span className="mini-pill">{page.required ? 'Required' : 'Optional'}</span>
+              </div>
+              <code>{page.path}</code>
+              <p>{page.note}</p>
+            </div>
+          ))}
         </div>
       </section>
     </div>
@@ -226,6 +291,35 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
   )
 }
 
+function LoginPage({ extension }: { extension: ExtensionDefinition }) {
+  return (
+    <section className="article-card">
+      <div className="pill">Login</div>
+      <h1>{extension.name} login</h1>
+      <p className="article-intro">This login route belongs only to {extension.name}. It should explain account restore, Google sign-in, and extension-scoped identity clearly.</p>
+      <div className="stack-md">
+        {extension.loginBody.map((item) => <section key={item} className="article-section"><p>{item}</p></section>)}
+      </div>
+    </section>
+  )
+}
+
+function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
+  return (
+    <section className="article-card">
+      <div className="pill">Payment</div>
+      <h1>{extension.name} payment handoff</h1>
+      <p className="article-intro">Every extension on this hub should keep checkout and billing handoff on its own website route instead of embedding payment directly inside the extension.</p>
+      <div className="stack-md">
+        {extension.paymentBody.map((item) => <section key={item} className="article-section"><p>{item}</p></section>)}
+      </div>
+      <div className="cta-row">
+        <a className="primary-cta" href={`/${extension.slug}/pricing`}>Open pricing</a>
+      </div>
+    </section>
+  )
+}
+
 function ArticlePage({ extension, title, eyebrow, items }: { extension: ExtensionDefinition; title: string; eyebrow: string; items: string[] }) {
   return (
     <section className="article-card">
@@ -253,6 +347,7 @@ function SupportPage({ extension }: { extension: ExtensionDefinition }) {
             <li>billing and pricing questions for this extension only</li>
             <li>product-specific bug reports</li>
             <li>privacy and terms questions for this extension route</li>
+            <li>uninstall feedback routing through its own leave page</li>
           </ul>
         </section>
       </div>
@@ -325,7 +420,7 @@ function LeavePage({ extension }: { extension: ExtensionDefinition }) {
   const submit = async () => {
     if (!extension.apiBase || !clientId) {
       setStatus('error')
-      setMessage('Feedback link is missing the extension context.')
+      setMessage('Connect an uninstall feedback endpoint for this extension to collect responses here.')
       return
     }
     setStatus('sending')
@@ -350,7 +445,7 @@ function LeavePage({ extension }: { extension: ExtensionDefinition }) {
     <section className="article-card compact-card">
       <div className="pill">Quick feedback</div>
       <h1>Why are you leaving {extension.name}?</h1>
-      <p className="article-intro">This page is scoped only to {extension.name}. It does not affect the other extension pages on this domain.</p>
+      <p className="article-intro">Each extension on this hub should own its own uninstall feedback page. This route is scoped only to {extension.name}.</p>
       <div className="reason-grid">
         {reasons.map((item) => (
           <button key={item.value} className={`reason-card ${reason === item.value ? 'is-selected' : ''}`} onClick={() => setReason(item.value)}>
@@ -368,6 +463,168 @@ function LeavePage({ extension }: { extension: ExtensionDefinition }) {
   )
 }
 
+function MetricGrid({ title, data }: { title: string; data: Record<string, number> }) {
+  return (
+    <section className="info-card">
+      <div className="section-label">{title}</div>
+      <div className="metric-grid">
+        {Object.entries(data).map(([key, value]) => (
+          <div key={key} className="metric-card">
+            <strong>{value}</strong>
+            <span>{key}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function AdminPage() {
+  const [selectedSlug, setSelectedSlug] = useState<ExtensionSlug>('deep-note')
+  const [passcode, setPasscode] = useState(() => window.localStorage.getItem('hub-admin-passcode') || '')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [data, setData] = useState<AdminAnalyticsResponse | null>(null)
+
+  const extension = extensionMap.get(selectedSlug) || extensions[0]
+
+  useEffect(() => {
+    window.localStorage.setItem('hub-admin-passcode', passcode)
+  }, [passcode])
+
+  const loadAnalytics = async () => {
+    if (!extension.adminApiBase || !extension.adminAnalyticsPath) {
+      setError('This extension does not have an admin analytics endpoint configured yet.')
+      setData(null)
+      return
+    }
+    if (!passcode.trim()) {
+      setError('Enter the admin passcode first.')
+      setData(null)
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      const res = await fetch(`${extension.adminApiBase}${extension.adminAnalyticsPath}`, {
+        headers: { 'x-admin-passcode': passcode.trim() },
+      })
+      const payload = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(payload.error || 'Admin analytics could not be loaded.')
+      setData(payload as AdminAnalyticsResponse)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Admin analytics could not be loaded.')
+      setData(null)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="stack-lg">
+      <section className="hero-card">
+        <div className="pill">Admin analytics</div>
+        <h1>View extension events from one hub panel.</h1>
+        <p>Select an extension, enter its admin passcode, and load summary metrics plus recent events without mixing products together.</p>
+      </section>
+      <section className="two-col">
+        <div className="info-card">
+          <div className="section-label">Extension selector</div>
+          <div className="stack-md">
+            <label className="field">
+              <span>Extension</span>
+              <select value={selectedSlug} onChange={(event) => setSelectedSlug(event.target.value as ExtensionSlug)}>
+                {extensions.map((item) => <option key={item.slug} value={item.slug}>{item.name}</option>)}
+              </select>
+            </label>
+            <label className="field">
+              <span>Admin passcode</span>
+              <input type="password" value={passcode} onChange={(event) => setPasscode(event.target.value)} placeholder="Enter passcode" />
+            </label>
+            <button className="button-cta inline-cta" onClick={() => void loadAnalytics()} disabled={loading}>
+              {loading ? 'Loading...' : 'Load events'}
+            </button>
+            <p className="muted-copy">
+              {extension.adminApiBase && extension.adminAnalyticsPath
+                ? `This extension is wired to ${extension.adminAnalyticsPath}.`
+                : 'This extension still needs its own analytics endpoint config.'}
+            </p>
+            {error ? <p className="warning">{error}</p> : null}
+          </div>
+        </div>
+        <div className="info-card accent-card">
+          <div className="section-label accent-text">Per-extension rule</div>
+          <div className="stack-sm">
+            <p>Every extension should expose its own analytics endpoint and keep product events separate even if the UI hub is shared.</p>
+            <p>This page should never merge different extension event streams into one shared table.</p>
+          </div>
+        </div>
+      </section>
+      {data?.summary ? <MetricGrid title="Summary" data={data.summary} /> : null}
+      {data?.funnels ? <MetricGrid title="Funnels" data={data.funnels} /> : null}
+      {data?.aiUsage ? <MetricGrid title="AI usage" data={data.aiUsage} /> : null}
+      {data?.topEvents?.length ? (
+        <section className="info-card">
+          <div className="section-label">Top events</div>
+          <div className="table-list">
+            {data.topEvents.map((item) => (
+              <div key={item.eventName} className="table-row">
+                <span>{item.eventName}</span>
+                <strong>{item.count}</strong>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+      {data?.recentEvents?.length ? (
+        <section className="info-card">
+          <div className="section-label">Recent events</div>
+          <div className="event-feed">
+            {data.recentEvents.slice(0, 60).map((event, index) => {
+              const screen = typeof event.properties?.screen === 'string' ? event.properties.screen : ''
+              const surface = typeof event.properties?.surface === 'string' ? event.properties.surface : ''
+              return (
+                <div key={`${event.eventName}-${event.timestamp}-${index}`} className="event-card">
+                  <div className="event-top">
+                    <strong>{event.eventName}</strong>
+                    <span>{new Date(event.timestamp).toLocaleString()}</span>
+                  </div>
+                  <div className="event-meta">
+                    <span>{event.accountEmail || event.accountId || event.clientId || 'Anonymous user'}</span>
+                    {screen ? <span>screen: {screen}</span> : null}
+                    {surface ? <span>surface: {surface}</span> : null}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      ) : null}
+      {data?.uninstallFeedback?.length ? (
+        <section className="info-card">
+          <div className="section-label">Uninstall feedback</div>
+          <div className="event-feed">
+            {data.uninstallFeedback.map((item, index) => (
+              <div key={`${item.createdAt || 0}-${index}`} className="event-card">
+                <div className="event-top">
+                  <strong>{item.reason || 'unknown'}</strong>
+                  <span>{item.createdAt ? new Date(item.createdAt).toLocaleString() : 'No date'}</span>
+                </div>
+                <div className="event-meta">
+                  <span>{item.accountEmail || 'Anonymous user'}</span>
+                </div>
+                {item.details ? <p className="event-detail">{item.details}</p> : null}
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+    </div>
+  )
+}
+
 function NotFoundPage() {
   return <section className="article-card"><div className="pill">Not found</div><h1>This page does not belong to a configured extension.</h1><p className="article-intro">Go back to the hub and open one of the configured product routes.</p><a className="primary-cta inline-cta" href="/">Back to hub</a></section>
 }
@@ -378,12 +635,15 @@ export default function App() {
     <AppShell extension={route.extension} page={route.page}>
       {route.page === 'hub' ? <HubPage /> : null}
       {route.page === 'product' && route.extension ? <ProductHome extension={route.extension} /> : null}
+      {route.page === 'login' && route.extension ? <LoginPage extension={route.extension} /> : null}
       {route.page === 'pricing' && route.extension ? <PricingPage extension={route.extension} /> : null}
+      {route.page === 'payment' && route.extension ? <PaymentPage extension={route.extension} /> : null}
       {route.page === 'privacy' && route.extension ? <ArticlePage extension={route.extension} title={`${route.extension.name} privacy`} eyebrow="Privacy" items={route.extension.privacySummary} /> : null}
       {route.page === 'terms' && route.extension ? <ArticlePage extension={route.extension} title={`${route.extension.name} terms`} eyebrow="Terms" items={route.extension.termsSummary} /> : null}
       {route.page === 'support' && route.extension ? <SupportPage extension={route.extension} /> : null}
       {route.page === 'share' && route.extension && route.shareSlug ? <SharedNotePage extension={route.extension} slug={route.shareSlug} /> : null}
       {route.page === 'leave' && route.extension ? <LeavePage extension={route.extension} /> : null}
+      {route.page === 'admin' ? <AdminPage /> : null}
       {route.page === 'not-found' ? <NotFoundPage /> : null}
     </AppShell>
   )

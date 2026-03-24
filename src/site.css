@@ -20,6 +20,7 @@ body {
   background: linear-gradient(180deg, #ffffff 0%, var(--bg) 100%);
 }
 a, button, input, textarea { font: inherit; }
+select { font: inherit; }
 a { color: inherit; }
 button { border: 0; cursor: pointer; }
 
@@ -115,6 +116,42 @@ button { border: 0; cursor: pointer; }
 .simple-list li + li { margin-top: 8px; }
 .warning { color: #b45309; }
 .success { color: var(--accent); }
+.muted-copy { color: var(--muted); }
+
+.required-page-grid, .metric-grid { display: grid; gap: 14px; }
+.required-page-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-top: 18px; }
+.required-page-card, .metric-card, .event-card {
+  border-radius: 22px; padding: 16px 18px; border: 1px solid var(--line); background: var(--surface-soft);
+}
+.required-page-top, .event-top, .table-row, .event-meta { display: flex; gap: 12px; }
+.required-page-top, .event-top, .table-row { justify-content: space-between; align-items: center; }
+.required-page-card code {
+  display: inline-block; margin: 10px 0; padding: 6px 10px; border-radius: 999px;
+  background: #eef2f7; color: #334155;
+}
+.mini-pill {
+  padding: 5px 8px; border-radius: 999px; background: #e2f3f1; color: var(--accent);
+  font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+}
+.metric-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin-top: 16px; }
+.metric-card strong { display: block; font-size: 1.7rem; }
+.metric-card span { color: var(--muted); font-size: .92rem; }
+.table-list, .event-feed { display: grid; gap: 12px; margin-top: 16px; }
+.table-row {
+  border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px; background: var(--surface-soft);
+}
+.event-feed { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.event-top span, .event-meta span, .event-detail { color: var(--muted); }
+.event-meta { flex-wrap: wrap; margin-top: 8px; font-size: .92rem; }
+.event-detail { margin: 10px 0 0; line-height: 1.6; }
+
+.field { display: grid; gap: 8px; }
+.field span {
+  text-transform: uppercase; letter-spacing: .14em; font-size: .72rem; font-weight: 800; color: var(--muted);
+}
+.field input, .field select {
+  width: 100%; border: 1px solid var(--line); border-radius: 18px; background: var(--surface-soft); padding: 14px 16px;
+}
 
 .reason-grid { margin-top: 18px; display: grid; gap: 10px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .reason-card { padding: 14px 16px; border-radius: 20px; border: 1px solid var(--line); background: var(--surface-soft); text-align: left; }
