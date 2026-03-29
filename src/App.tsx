@@ -356,30 +356,27 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
         </div>
       </section>
       <section className="info-card">
-        <div className="section-label">Helpful links</div>
+        <div className="section-label">Where to go next</div>
         <div className="required-page-grid">
           <a className="required-page-card" href={`/${extension.slug}/login`}>
             <div className="required-page-top">
-              <strong>Login and restore</strong>
+              <strong>Restore your account</strong>
               <span className="mini-pill">Account</span>
             </div>
-            <code>/{extension.slug}/login</code>
-            <p>Check sign-in status, restore the right account, and keep the website in sync with the extension.</p>
+            <p>Check sign-in status, reconnect the right Google account, and keep the website in sync with the extension.</p>
           </a>
           <a className="required-page-card" href={`/${extension.slug}/pricing`}>
             <div className="required-page-top">
-              <strong>Pricing and upgrades</strong>
+              <strong>See plans and upgrades</strong>
               <span className="mini-pill">Plans</span>
             </div>
-            <code>/{extension.slug}/pricing</code>
-            <p>See plans, trial state, and upgrade from the matching product website instead of inside the extension.</p>
+            <p>Review plans, trial status, and any website-based upgrade flow without getting pushed into the extension UI.</p>
           </a>
           <a className="required-page-card" href={`/${extension.slug}/support`}>
             <div className="required-page-top">
-              <strong>Support and help</strong>
+              <strong>Get support</strong>
               <span className="mini-pill">Help</span>
             </div>
-            <code>/{extension.slug}/support</code>
             <p>Find install guidance, billing help, and product-specific troubleshooting without leaving this product route.</p>
           </a>
           <a className="required-page-card" href={`/${extension.slug}/privacy`}>
@@ -387,8 +384,7 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
               <strong>Privacy and terms</strong>
               <span className="mini-pill">Legal</span>
             </div>
-            <code>/{extension.slug}/privacy</code>
-            <p>Review the legal and privacy details for this extension only.</p>
+            <p>Review the product-specific legal and privacy details for this extension before you install or upgrade.</p>
           </a>
         </div>
       </section>
