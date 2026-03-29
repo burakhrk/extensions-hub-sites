@@ -116,7 +116,7 @@ type WebsiteHandoffIdentity = {
   email: string
 }
 
-type AdminDatePreset = 'today' | 'yesterday' | 'last7' | 'last30' | 'custom'
+type AdminDatePreset = 'all' | 'today' | 'yesterday' | 'last7' | 'last30' | 'custom'
 
 type AdminJourney = {
   userKey: string
@@ -185,6 +185,14 @@ function getLocalDateLabel(date: Date): string {
 function getDatePresetRange(preset: AdminDatePreset, customDate: string): { start: string | null; end: string | null; label: string } {
   const now = new Date()
   const today = getLocalDateLabel(now)
+
+  if (preset === 'all') {
+    return {
+      start: null,
+      end: null,
+      label: 'all time',
+    }
+  }
 
   if (preset === 'custom') {
     return {
@@ -259,7 +267,7 @@ function parseRoute(pathname: string): { page: PageKey; extension: ExtensionDefi
 function AppShell({ children, extension, page }: { children: ReactNode; extension: ExtensionDefinition | null; page: PageKey }) {
   return (
     <div className="site-shell">
-      <div className="site-frame">
+      <div className={`site-frame ${page === 'admin' ? 'site-frame-admin' : ''}`}>
         <header className="topbar">
           <a className="brand" href="/">
             <div className="brand-mark">BH</div>
@@ -1082,6 +1090,7 @@ function AdminPage() {
                   <span>Date range</span>
                   <div className="preset-grid">
                     {[
+                      { value: 'all', label: 'All Time' },
                       { value: 'today', label: 'Today' },
                       { value: 'yesterday', label: 'Yesterday' },
                       { value: 'last7', label: 'Last 7 Days' },

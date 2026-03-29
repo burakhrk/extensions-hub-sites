@@ -32,6 +32,9 @@ button { border: 0; cursor: pointer; }
   display: flex;
   flex-direction: column;
 }
+.site-frame-admin {
+  max-width: 1560px;
+}
 .topbar {
   display: flex; gap: 16px; align-items: center; justify-content: space-between;
   padding: 16px 18px; border: 1px solid var(--line); border-radius: 999px;
@@ -120,7 +123,7 @@ button { border: 0; cursor: pointer; }
 
 .required-page-grid, .metric-grid { display: grid; gap: 14px; }
 .required-page-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-top: 18px; }
-.admin-layout { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 24px; align-items: start; }
+.admin-layout { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 24px; align-items: start; }
 .admin-sidebar { position: sticky; top: 24px; }
 .admin-main { min-width: 0; }
 .admin-lead-card {
@@ -197,11 +200,11 @@ button { border: 0; cursor: pointer; }
 }
 .admin-analysis-grid {
   display: grid;
-  grid-template-columns: 1.3fr .9fr;
+  grid-template-columns: 1.55fr 1fr;
   gap: 18px;
 }
 .admin-summary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
-.admin-detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.admin-detail-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
 .funnel-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; margin-top: 16px; }
 .funnel-card, .journey-card {
   border-radius: 22px;
@@ -225,7 +228,7 @@ button { border: 0; cursor: pointer; }
 .journey-grid { display: grid; gap: 14px; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 16px; }
 .admin-user-workspace {
   display: grid;
-  grid-template-columns: 360px minmax(0, 1fr);
+  grid-template-columns: 420px minmax(0, 1fr);
   gap: 18px;
 }
 .user-list {
@@ -380,7 +383,24 @@ button { border: 0; cursor: pointer; }
 .table-row {
   border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px; background: var(--surface-soft);
 }
-.event-feed { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.event-feed { grid-template-columns: 1fr; }
+.admin-main .event-card {
+  display: grid;
+  grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+.admin-main .event-top {
+  flex-direction: column;
+  align-items: flex-start;
+}
+.admin-main .event-top span {
+  font-size: .86rem;
+}
+.admin-main .event-meta {
+  margin-top: 0;
+  align-content: start;
+}
 .event-top span, .event-meta span, .event-detail { color: var(--muted); }
 .event-meta { flex-wrap: wrap; margin-top: 8px; font-size: .92rem; }
 .event-detail { margin: 10px 0 0; line-height: 1.6; }
@@ -442,6 +462,7 @@ button { border: 0; cursor: pointer; }
   .funnel-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .journey-grid { grid-template-columns: 1fr; }
   .selected-user-grid { grid-template-columns: 1fr; }
+  .admin-main .event-card { grid-template-columns: 1fr; }
   .reason-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
