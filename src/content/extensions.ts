@@ -42,6 +42,7 @@ export type ExtensionDefinition = {
   adminApiBase?: string
   adminAnalyticsPath?: string
   adminAnalyticsAppId?: string
+  adminSubscriptionPath?: string
   installUrl?: string
 }
 
@@ -120,6 +121,7 @@ export const extensions: ExtensionDefinition[] = [
     adminApiBase: deepNoteApi,
     adminAnalyticsPath: '/api/admin/analytics',
     adminAnalyticsAppId: 'deep-note',
+    adminSubscriptionPath: '/api/admin/subscription',
   },
   {
     slug: 'sketch-party',

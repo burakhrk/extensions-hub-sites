@@ -53,6 +53,43 @@ type AdminAnalyticsResponse = {
   funnels?: Record<string, number>
   topEvents?: Array<{ eventName: string; count: number }>
   screenCounts?: Array<{ screen: string; count: number }>
+  promoCodes?: string[]
+  users?: Array<{
+    appId?: string
+    clientId: string
+    accountId?: string | null
+    accountEmail?: string | null
+    firstSeenAt: number
+    lastSeenAt: number
+    lastActiveDay: string
+    activeDays: number
+    totalEvents: number
+    currentPlan: 'basic' | 'pro'
+    subscriptionKind: 'basic' | 'trial' | 'promo' | 'pro'
+    trialEndsAt?: number | null
+    promoCodeApplied?: string | null
+    lastEventName?: string
+    linkedClientIds?: string[]
+    aiUsage?: {
+      total?: number
+      totalRequests?: number
+      summary?: number
+      chat?: number
+      tagSuggestions?: number
+      folderSuggestions?: number
+      lastUsedAt?: number | null
+    }
+  }>
+  userJourneys?: Array<{
+    clientId: string
+    accountId?: string | null
+    accountEmail?: string | null
+    currentPlan: 'basic' | 'pro'
+    subscriptionKind: 'basic' | 'trial' | 'promo' | 'pro'
+    activeDays: number
+    lastSeenAt: number
+    events: Array<{ eventName: string; timestamp: number; screen: string | null }>
+  }>
   recentEvents?: Array<{
     eventName: string
     timestamp: number
@@ -89,6 +126,25 @@ type AdminJourney = {
   lastSeen: number
   path: string[]
   screens: string[]
+}
+
+type AdminUserSummary = {
+  userKey: string
+  label: string
+  clientId: string | null
+  accountId: string | null
+  accountEmail: string | null
+  totalEvents: number
+  firstSeen: number
+  lastSeen: number
+  activeDays: number
+  currentPlan: 'basic' | 'pro'
+  subscriptionKind: 'basic' | 'trial' | 'promo' | 'pro'
+  lastEventName: string | null
+  linkedClientIds: string[]
+  aiRequests: number
+  trialEndsAt: number | null
+  promoCodeApplied: string | null
 }
 
 function readWebsiteHandoff(extension: ExtensionDefinition, scope: 'login' | 'pricing' | 'leave'): WebsiteHandoffIdentity {
@@ -168,6 +224,15 @@ function formatMetricLabel(label: string): string {
 function formatPercent(value: number, total: number): string {
   if (!total) return '0%'
   return `${Math.round((value / total) * 100)}%`
+}
+
+function buildUserKey(accountId?: string | null, clientId?: string | null): string {
+  if (accountId) return `account:${accountId}`
+  return `client:${clientId || 'anonymous'}`
+}
+
+function getUserLabel(user: { accountEmail?: string | null; accountId?: string | null; clientId?: string | null }): string {
+  return user.accountEmail || user.accountId || user.clientId || 'Anonymous user'
 }
 
 function parseRoute(pathname: string): { page: PageKey; extension: ExtensionDefinition | null; shareSlug: string | null } {
@@ -619,12 +684,16 @@ function AdminPage() {
   const [datePreset, setDatePreset] = useState<AdminDatePreset>('today')
   const [customDate, setCustomDate] = useState('')
   const [loading, setLoading] = useState(false)
+  const [actionLoading, setActionLoading] = useState(false)
+  const [actionStatus, setActionStatus] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [data, setData] = useState<AdminAnalyticsResponse | null>(null)
+  const [selectedUserKey, setSelectedUserKey] = useState<string | null>(null)
 
   const extension = extensionMap.get(selectedSlug) || extensions[0]
   const selectedAppId = extension.adminAnalyticsAppId || extension.appId
   const dateRange = useMemo(() => getDatePresetRange(datePreset, customDate), [datePreset, customDate])
+  const supportsSubscriptionActions = Boolean(extension.adminApiBase && extension.adminSubscriptionPath)
 
   useEffect(() => {
     window.localStorage.setItem('hub-admin-passcode', passcode)
@@ -637,6 +706,8 @@ function AdminPage() {
   useEffect(() => {
     setData(null)
     setError(null)
+    setActionStatus(null)
+    setSelectedUserKey(null)
   }, [selectedSlug])
 
   useEffect(() => {
@@ -693,17 +764,22 @@ function AdminPage() {
     setIsAuthenticated(false)
     setData(null)
     setError(null)
+    setActionStatus(null)
     window.localStorage.removeItem('hub-admin-authenticated')
+  }
+
+  const isWithinRange = (timestamp?: number | null) => {
+    if (!timestamp) return false
+    if (!dateRange.start || !dateRange.end) return true
+    const value = new Date(timestamp).toISOString().split('T')[0]
+    return value >= dateRange.start && value <= dateRange.end
   }
 
   const filteredRecentEvents = useMemo(() => {
     const events = data?.recentEvents || []
     return events.filter((event) => {
       const matchesApp = !event.appId || event.appId === selectedAppId
-      if (!matchesApp) return false
-      if (!dateRange.start || !dateRange.end) return true
-      const eventDate = new Date(event.timestamp).toISOString().split('T')[0]
-      return eventDate >= dateRange.start && eventDate <= dateRange.end
+      return matchesApp && isWithinRange(event.timestamp)
     })
   }, [data?.recentEvents, dateRange.end, dateRange.start, selectedAppId])
 
@@ -711,16 +787,11 @@ function AdminPage() {
     const items = data?.uninstallFeedback || []
     return items.filter((item) => {
       const matchesApp = !item.appId || item.appId === selectedAppId
-      if (!matchesApp) return false
-      if (!dateRange.start || !dateRange.end) return true
-      if (!item.createdAt) return false
-      const itemDate = new Date(item.createdAt).toISOString().split('T')[0]
-      return itemDate >= dateRange.start && itemDate <= dateRange.end
+      return matchesApp && isWithinRange(item.createdAt)
     })
   }, [data?.uninstallFeedback, dateRange.end, dateRange.start, selectedAppId])
 
   const derivedTopScreens = useMemo(() => {
-    if (data?.screenCounts?.length) return data.screenCounts
     const counts = new Map<string, number>()
     filteredRecentEvents.forEach((event) => {
       const screen = typeof event.properties?.screen === 'string' ? event.properties.screen : 'unknown'
@@ -730,10 +801,9 @@ function AdminPage() {
       .map(([screen, count]) => ({ screen, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 8)
-  }, [data?.screenCounts, filteredRecentEvents])
+  }, [filteredRecentEvents])
 
   const derivedTopEvents = useMemo(() => {
-    if (data?.topEvents?.length) return data.topEvents
     const counts = new Map<string, number>()
     filteredRecentEvents.forEach((event) => {
       counts.set(event.eventName, (counts.get(event.eventName) || 0) + 1)
@@ -742,7 +812,7 @@ function AdminPage() {
       .map(([eventName, count]) => ({ eventName, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 10)
-  }, [data?.topEvents, filteredRecentEvents])
+  }, [filteredRecentEvents])
 
   const journeyRows = useMemo<AdminJourney[]>(() => {
     const grouped = new Map<string, AdminJourney>()
@@ -750,13 +820,13 @@ function AdminPage() {
       .slice()
       .sort((a, b) => a.timestamp - b.timestamp)
       .forEach((event) => {
-        const userKey = event.accountId ? `account:${event.accountId}` : `client:${event.clientId || 'anonymous'}`
+        const userKey = buildUserKey(event.accountId, event.clientId)
         const existing = grouped.get(userKey)
         const screen = typeof event.properties?.screen === 'string' ? event.properties.screen : ''
         if (!existing) {
           grouped.set(userKey, {
             userKey,
-            label: event.accountEmail || event.accountId || event.clientId || 'Anonymous user',
+            label: getUserLabel(event),
             totalEvents: 1,
             firstSeen: event.timestamp,
             lastSeen: event.timestamp,
@@ -781,6 +851,102 @@ function AdminPage() {
       .slice(0, 12)
   }, [filteredRecentEvents])
 
+  const derivedUsers = useMemo<AdminUserSummary[]>(() => {
+    const byKey = new Map<string, AdminUserSummary>()
+
+    data?.users?.forEach((user) => {
+      const key = buildUserKey(user.accountId, user.clientId)
+      byKey.set(key, {
+        userKey: key,
+        label: getUserLabel(user),
+        clientId: user.clientId || null,
+        accountId: user.accountId || null,
+        accountEmail: user.accountEmail || null,
+        totalEvents: user.totalEvents,
+        firstSeen: user.firstSeenAt,
+        lastSeen: user.lastSeenAt,
+        activeDays: user.activeDays,
+        currentPlan: user.currentPlan,
+        subscriptionKind: user.subscriptionKind,
+        lastEventName: user.lastEventName || null,
+        linkedClientIds: user.linkedClientIds || [],
+        aiRequests: user.aiUsage?.total ?? user.aiUsage?.totalRequests ?? 0,
+        trialEndsAt: user.trialEndsAt ?? null,
+        promoCodeApplied: user.promoCodeApplied ?? null,
+      })
+    })
+
+    filteredRecentEvents.forEach((event) => {
+      const key = buildUserKey(event.accountId, event.clientId)
+      const existing = byKey.get(key)
+      if (!existing) {
+        byKey.set(key, {
+          userKey: key,
+          label: getUserLabel(event),
+          clientId: event.clientId || null,
+          accountId: event.accountId || null,
+          accountEmail: event.accountEmail || null,
+          totalEvents: 1,
+          firstSeen: event.timestamp,
+          lastSeen: event.timestamp,
+          activeDays: 1,
+          currentPlan: 'basic',
+          subscriptionKind: 'basic',
+          lastEventName: event.eventName,
+          linkedClientIds: event.clientId ? [event.clientId] : [],
+          aiRequests: 0,
+          trialEndsAt: null,
+          promoCodeApplied: null,
+        })
+        return
+      }
+
+      existing.totalEvents += 1
+      existing.firstSeen = Math.min(existing.firstSeen, event.timestamp)
+      existing.lastSeen = Math.max(existing.lastSeen, event.timestamp)
+      existing.lastEventName = event.eventName
+      if (event.clientId && !existing.linkedClientIds.includes(event.clientId)) {
+        existing.linkedClientIds.push(event.clientId)
+      }
+    })
+
+    return Array.from(byKey.values()).sort((a, b) => b.lastSeen - a.lastSeen)
+  }, [data?.users, filteredRecentEvents])
+
+  useEffect(() => {
+    if (!derivedUsers.length) {
+      setSelectedUserKey(null)
+      return
+    }
+
+    if (!selectedUserKey || !derivedUsers.some((user) => user.userKey === selectedUserKey)) {
+      setSelectedUserKey(derivedUsers[0].userKey)
+    }
+  }, [derivedUsers, selectedUserKey])
+
+  const selectedUser = useMemo(
+    () => derivedUsers.find((user) => user.userKey === selectedUserKey) || null,
+    [derivedUsers, selectedUserKey],
+  )
+
+  const selectedJourney = useMemo(
+    () => (selectedUser ? journeyRows.find((journey) => journey.userKey === selectedUser.userKey) || null : null),
+    [journeyRows, selectedUser],
+  )
+
+  const selectedUserEvents = useMemo(() => {
+    if (!selectedUser) return filteredRecentEvents.slice().sort((a, b) => b.timestamp - a.timestamp)
+    return filteredRecentEvents
+      .filter((event) => buildUserKey(event.accountId, event.clientId) === selectedUser.userKey)
+      .slice()
+      .sort((a, b) => b.timestamp - a.timestamp)
+  }, [filteredRecentEvents, selectedUser])
+
+  const selectedUserFeedback = useMemo(() => {
+    if (!selectedUser) return filteredUninstallFeedback
+    return filteredUninstallFeedback.filter((item) => Boolean(selectedUser.accountEmail && item.accountEmail && item.accountEmail === selectedUser.accountEmail))
+  }, [filteredUninstallFeedback, selectedUser])
+
   const derivedFunnel = useMemo(() => {
     if (data?.funnels && Object.keys(data.funnels).length) {
       return Object.entries(data.funnels).map(([key, count], index, items) => ({
@@ -798,7 +964,7 @@ function AdminPage() {
     const checkoutUsers = new Set<string>()
 
     filteredRecentEvents.forEach((event) => {
-      const userKey = event.accountId ? `account:${event.accountId}` : `client:${event.clientId || 'anonymous'}`
+      const userKey = buildUserKey(event.accountId, event.clientId)
       uniqueUsers.add(userKey)
       if (['Dashboard Opened', 'Opened Dashboard'].includes(event.eventName)) openedDashboard.add(userKey)
       if (event.eventName.toLowerCase().includes('save')) savedNotes.add(userKey)
@@ -815,6 +981,64 @@ function AdminPage() {
       { key: 'checkoutUsers', label: 'Checkout Intent', count: checkoutUsers.size, rate: formatPercent(checkoutUsers.size, firstStep) },
     ]
   }, [data?.funnels, filteredRecentEvents])
+
+  const overviewCards = useMemo(() => {
+    const summary = data?.summary || {}
+    const aiUsageTotal = Object.entries(data?.aiUsage || {}).reduce((total, [key, value]) => {
+      if (key === 'activeUsers') return total
+      return total + (typeof value === 'number' ? value : 0)
+    }, 0)
+
+    return [
+      { label: 'Tracked Users', value: summary.totalUsers ?? derivedUsers.length, tone: 'default' },
+      { label: 'Events in Range', value: filteredRecentEvents.length, tone: 'default' },
+      { label: 'Pro / Trial / Promo', value: (summary.proUsers || 0) + (summary.trialUsers || 0) + (summary.promoUsers || 0), tone: 'accent' },
+      { label: 'Checkout Intent', value: derivedFunnel.find((item) => item.key === 'checkoutUsers')?.count || 0, tone: 'warm' },
+      { label: 'AI Requests', value: summary.totalAiRequests ?? aiUsageTotal, tone: 'default' },
+      { label: 'Uninstall Signals', value: filteredUninstallFeedback.length, tone: 'danger' },
+    ]
+  }, [data?.aiUsage, data?.summary, derivedFunnel, derivedUsers.length, filteredRecentEvents.length, filteredUninstallFeedback.length])
+
+  const runSubscriptionAction = async (action: 'grant_pro' | 'revoke_pro') => {
+    if (!supportsSubscriptionActions || !selectedUser || !extension.adminApiBase || !extension.adminSubscriptionPath) {
+      setActionStatus('This extension does not expose admin subscription actions yet.')
+      return
+    }
+    if (!passcode.trim()) {
+      setActionStatus('Enter the admin password again before running this action.')
+      return
+    }
+    if (!selectedUser.accountId && !selectedUser.clientId) {
+      setActionStatus('Pick a user with an account or client id first.')
+      return
+    }
+
+    setActionLoading(true)
+    setActionStatus(null)
+
+    try {
+      const res = await fetch(`${extension.adminApiBase}${extension.adminSubscriptionPath}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-passcode': passcode.trim(),
+        },
+        body: JSON.stringify({
+          clientId: selectedUser.accountId ? null : selectedUser.clientId,
+          accountId: selectedUser.accountId,
+          action,
+        }),
+      })
+      const payload = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(payload.error || 'Admin action failed.')
+      setActionStatus(action === 'grant_pro' ? 'Pro granted for the selected user.' : 'Pro removed for the selected user.')
+      await loadAnalytics()
+    } catch (err) {
+      setActionStatus(err instanceof Error ? err.message : 'Admin action failed.')
+    } finally {
+      setActionLoading(false)
+    }
+  }
 
   return (
     <div className="stack-lg">
@@ -850,7 +1074,7 @@ function AdminPage() {
         <>
           <section className="admin-layout">
             <aside className="admin-sidebar info-card">
-              <div className="section-label">Dashboard controls</div>
+              <div className="section-label">Workspace controls</div>
               <div className="stack-md">
                 <label className="field">
                   <span>Extension</span>
@@ -880,7 +1104,7 @@ function AdminPage() {
                 </div>
                 {datePreset === 'custom' ? (
                   <label className="field">
-                    <span>Select custom day</span>
+                    <span>Select custom date</span>
                     <input type="date" value={customDate} onChange={(event) => setCustomDate(event.target.value)} />
                   </label>
                 ) : null}
@@ -888,46 +1112,101 @@ function AdminPage() {
                   <strong>Viewing:</strong>
                   <span>{dateRange.label}</span>
                 </div>
+                <div className="info-inline-card">
+                  <strong>App ID:</strong>
+                  <span>{selectedAppId}</span>
+                </div>
                 <div className="cta-row">
                   <button className="button-cta inline-cta" onClick={() => void loadAnalytics()} disabled={loading}>
-                    {loading ? 'Loading...' : 'Load stats'}
+                    {loading ? 'Loading...' : 'Refresh workspace'}
                   </button>
                   <button className="secondary-cta" onClick={handleSignOut}>Sign out</button>
                 </div>
                 <p className="muted-copy">
                   {extension.adminApiBase && extension.adminAnalyticsPath
-                    ? `This extension is wired to ${extension.adminAnalyticsPath} and loaded with app id ${selectedAppId}.`
+                    ? `This extension is wired to ${extension.adminAnalyticsPath} and filtered with app id ${selectedAppId}.`
                     : 'This extension still needs its own analytics endpoint config.'}
                 </p>
+                {data?.promoCodes?.length ? (
+                  <div className="stack-sm">
+                    <span className="field-label-inline">Promo codes</span>
+                    <div className="journey-path">
+                      {data.promoCodes.slice(0, 6).map((code) => <span key={code} className="journey-pill">{code}</span>)}
+                    </div>
+                  </div>
+                ) : null}
                 {error ? <p className="warning">{error}</p> : null}
               </div>
             </aside>
             <div className="admin-main stack-lg">
-              <section className="info-card accent-card">
-                <div className="section-label accent-text">Per-extension rule</div>
-                <div className="stack-sm">
-                  <p>Every extension should expose its own analytics endpoint and keep product events separate even if the UI hub is shared.</p>
-                  <p>This page should never merge different extension event streams into one shared table.</p>
+              <section className="admin-lead-card">
+                <div>
+                  <div className="section-label accent-text">Executive view</div>
+                  <h2>{extension.name}</h2>
+                  <p>Audit the funnel first, then trace one user at a time with ids, screens, plan state, and churn signals.</p>
+                </div>
+                <div className="admin-lead-meta">
+                  <div className="admin-mini-stat">
+                    <span>Tracked range</span>
+                    <strong>{dateRange.label}</strong>
+                  </div>
+                  <div className="admin-mini-stat">
+                    <span>Selected extension</span>
+                    <strong>{extension.name}</strong>
+                  </div>
+                  <div className="admin-mini-stat">
+                    <span>Isolated app id</span>
+                    <strong>{selectedAppId}</strong>
+                  </div>
                 </div>
               </section>
-              <section className="admin-summary-grid">
+
+              <section className="admin-overview-grid">
+                {overviewCards.map((card) => (
+                  <div key={card.label} className={`overview-card tone-${card.tone}`}>
+                    <span>{card.label}</span>
+                    <strong>{card.value}</strong>
+                  </div>
+                ))}
+              </section>
+
+              <section className="admin-analysis-grid">
+                <section className="info-card">
+                  <div className="section-label">Funnel analysis</div>
+                  <div className="funnel-grid">
+                    {derivedFunnel.map((step, index) => (
+                      <div key={step.key} className="funnel-card">
+                        <div className="funnel-step">Step {index + 1}</div>
+                        <strong>{step.label}</strong>
+                        <div className="funnel-count">{step.count}</div>
+                        <span>{step.rate} of starting cohort</span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+                <section className="info-card">
+                  <div className="section-label">Behavior summary</div>
+                  <div className="table-list">
+                    {derivedTopEvents.slice(0, 5).map((item) => (
+                      <div key={item.eventName} className="table-row">
+                        <span>{item.eventName}</span>
+                        <strong>{item.count}</strong>
+                      </div>
+                    ))}
+                    {derivedTopScreens.slice(0, 3).map((item) => (
+                      <div key={item.screen} className="table-row">
+                        <span>Screen: {item.screen}</span>
+                        <strong>{item.count}</strong>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="muted-copy">This is the quick read before dropping into a single user journey.</p>
+                </section>
+              </section>
+
+              <section className="admin-detail-grid">
                 {data?.summary ? <MetricGrid title="Summary" data={data.summary} /> : null}
                 {data?.aiUsage ? <MetricGrid title="AI usage" data={data.aiUsage} /> : null}
-              </section>
-              <section className="info-card">
-                <div className="section-label">Funnel analysis</div>
-                <div className="funnel-grid">
-                  {derivedFunnel.map((step, index) => (
-                    <div key={step.key} className="funnel-card">
-                      <div className="funnel-step">Step {index + 1}</div>
-                      <strong>{step.label}</strong>
-                      <div className="funnel-count">{step.count}</div>
-                      <span>{step.rate} of starting cohort</span>
-                    </div>
-                  ))}
-                </div>
-              </section>
-              <section className="admin-detail-grid">
                 {derivedTopEvents.length ? (
                   <section className="info-card">
                     <div className="section-label">Top events</div>
@@ -979,12 +1258,104 @@ function AdminPage() {
                   </div>
                 </section>
               ) : null}
+              <section className="admin-user-workspace">
+                <section className="info-card">
+                  <div className="section-label">Tracked users</div>
+                  <p className="muted-copy">Pick a user to inspect account id, client id, plan state, and AI usage.</p>
+                  <div className="user-list">
+                    {derivedUsers.map((user) => (
+                      <button
+                        key={user.userKey}
+                        className={`user-row-card ${selectedUser?.userKey === user.userKey ? 'is-active' : ''}`}
+                        onClick={() => setSelectedUserKey(user.userKey)}
+                      >
+                        <div className="user-row-head">
+                          <strong>{user.label}</strong>
+                          <span>{user.totalEvents} events</span>
+                        </div>
+                        <div className="user-row-meta">
+                          <span>{user.accountId || user.clientId || 'No id yet'}</span>
+                          <span>{user.currentPlan} / {user.subscriptionKind}</span>
+                        </div>
+                        <div className="user-row-foot">
+                          <span>Last seen {new Date(user.lastSeen).toLocaleString()}</span>
+                          <span>{user.activeDays} active days</span>
+                        </div>
+                      </button>
+                    ))}
+                    {!derivedUsers.length ? <p className="muted-copy">No users found in this range yet.</p> : null}
+                  </div>
+                </section>
+                <section className="info-card">
+                  <div className="section-label">Selected user</div>
+                  {selectedUser ? (
+                    <div className="stack-md">
+                      <div className="selected-user-hero">
+                        <div>
+                          <h3>{selectedUser.label}</h3>
+                          <p>{selectedUser.accountEmail || selectedUser.accountId || selectedUser.clientId || 'Anonymous identity'}</p>
+                        </div>
+                        <div className={`admin-plan-badge tone-${selectedUser.currentPlan === 'pro' || selectedUser.subscriptionKind !== 'basic' ? 'accent' : 'default'}`}>
+                          {selectedUser.currentPlan} / {selectedUser.subscriptionKind}
+                        </div>
+                      </div>
+                      <div className="selected-user-grid">
+                        <div className="mini-detail-card">
+                          <span>User ID</span>
+                          <strong>{selectedUser.accountId || 'No account id yet'}</strong>
+                        </div>
+                        <div className="mini-detail-card">
+                          <span>Client ID</span>
+                          <strong>{selectedUser.clientId || 'No client id'}</strong>
+                        </div>
+                        <div className="mini-detail-card">
+                          <span>Last event</span>
+                          <strong>{selectedUser.lastEventName || 'No recent event'}</strong>
+                        </div>
+                        <div className="mini-detail-card">
+                          <span>AI requests</span>
+                          <strong>{selectedUser.aiRequests}</strong>
+                        </div>
+                      </div>
+                      {selectedJourney ? (
+                        <div className="mini-detail-card">
+                          <span>Journey snapshot</span>
+                          <strong>{selectedJourney.path.slice(0, 4).join(' -> ')}</strong>
+                        </div>
+                      ) : null}
+                      {supportsSubscriptionActions ? (
+                        <div className="admin-action-panel">
+                          <div>
+                            <div className="section-label">Quick actions</div>
+                            <p className="muted-copy">Grant or revoke Pro from the same analytics workspace using the selected ids.</p>
+                          </div>
+                          <div className="cta-row">
+                            <button className="button-cta inline-cta" onClick={() => void runSubscriptionAction('grant_pro')} disabled={actionLoading}>
+                              {actionLoading ? 'Working...' : 'Grant Pro'}
+                            </button>
+                            <button className="secondary-cta" onClick={() => void runSubscriptionAction('revoke_pro')} disabled={actionLoading}>
+                              Revoke Pro
+                            </button>
+                          </div>
+                          {actionStatus ? <p className="muted-copy">{actionStatus}</p> : null}
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : (
+                    <p className="muted-copy">Select a user from the list to inspect their journey.</p>
+                  )}
+                </section>
+              </section>
               {filteredRecentEvents.length ? (
                 <section className="info-card">
-                  <div className="section-label">Recent events</div>
-                  <p className="muted-copy">Showing {filteredRecentEvents.length} events for app id {selectedAppId} during {dateRange.label}.</p>
+                  <div className="section-label">Event stream</div>
+                  <p className="muted-copy">
+                    {selectedUser
+                      ? `Showing ${selectedUserEvents.length} events for ${selectedUser.label} during ${dateRange.label}.`
+                      : `Showing ${filteredRecentEvents.length} events for app id ${selectedAppId} during ${dateRange.label}.`}
+                  </p>
                   <div className="event-feed">
-                    {filteredRecentEvents.slice(0, 60).map((event, index) => {
+                    {(selectedUser ? selectedUserEvents : filteredRecentEvents).slice(0, 60).map((event, index) => {
                       const screen = typeof event.properties?.screen === 'string' ? event.properties.screen : ''
                       const surface = typeof event.properties?.surface === 'string' ? event.properties.surface : ''
                       return (
@@ -994,7 +1365,9 @@ function AdminPage() {
                             <span>{new Date(event.timestamp).toLocaleString()}</span>
                           </div>
                           <div className="event-meta">
-                            <span>{event.accountEmail || event.accountId || event.clientId || 'Anonymous user'}</span>
+                            <span>{getUserLabel(event)}</span>
+                            {event.accountId ? <span>userId: {event.accountId}</span> : null}
+                            {event.clientId ? <span>clientId: {event.clientId}</span> : null}
                             {event.appId ? <span>appId: {event.appId}</span> : null}
                             {screen ? <span>screen: {screen}</span> : null}
                             {surface ? <span>surface: {surface}</span> : null}
@@ -1005,12 +1378,16 @@ function AdminPage() {
                   </div>
                 </section>
               ) : null}
-              {filteredUninstallFeedback.length ? (
+              {(selectedUser ? selectedUserFeedback : filteredUninstallFeedback).length ? (
                 <section className="info-card">
                   <div className="section-label">Uninstall feedback</div>
-                  <p className="muted-copy">Showing {filteredUninstallFeedback.length} uninstall entries for app id {selectedAppId} during {dateRange.label}.</p>
+                  <p className="muted-copy">
+                    {selectedUser
+                      ? `Showing ${selectedUserFeedback.length} uninstall entries linked to ${selectedUser.label}.`
+                      : `Showing ${filteredUninstallFeedback.length} uninstall entries for app id ${selectedAppId} during ${dateRange.label}.`}
+                  </p>
                   <div className="event-feed">
-                    {filteredUninstallFeedback.map((item, index) => (
+                    {(selectedUser ? selectedUserFeedback : filteredUninstallFeedback).map((item, index) => (
                       <div key={`${item.createdAt || 0}-${index}`} className="event-card">
                         <div className="event-top">
                           <strong>{item.reason || 'unknown'}</strong>
