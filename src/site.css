@@ -120,6 +120,10 @@ button { border: 0; cursor: pointer; }
 
 .required-page-grid, .metric-grid { display: grid; gap: 14px; }
 .required-page-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-top: 18px; }
+.admin-layout { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 24px; align-items: start; }
+.admin-sidebar { position: sticky; top: 24px; }
+.admin-main { min-width: 0; }
+.admin-summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
 .required-page-card, .metric-card, .event-card {
   border-radius: 22px; padding: 16px 18px; border: 1px solid var(--line); background: var(--surface-soft);
 }
@@ -152,6 +156,34 @@ button { border: 0; cursor: pointer; }
 .field input, .field select {
   width: 100%; border: 1px solid var(--line); border-radius: 18px; background: var(--surface-soft); padding: 14px 16px;
 }
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.preset-chip {
+  border: 1px solid var(--line);
+  background: var(--surface-soft);
+  color: var(--ink);
+  border-radius: 16px;
+  padding: 12px 14px;
+  font-weight: 700;
+  text-align: left;
+}
+.preset-chip.is-active {
+  background: #0f172a;
+  color: white;
+  border-color: #0f172a;
+}
+.info-inline-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: var(--surface-soft);
+}
 
 .reason-grid { margin-top: 18px; display: grid; gap: 10px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .reason-card { padding: 14px 16px; border-radius: 20px; border: 1px solid var(--line); background: var(--surface-soft); text-align: left; }
@@ -163,6 +195,9 @@ button { border: 0; cursor: pointer; }
 
 @media (max-width: 920px) {
   .two-col { grid-template-columns: 1fr; }
+  .admin-layout { grid-template-columns: 1fr; }
+  .admin-sidebar { position: static; }
+  .admin-summary-grid { grid-template-columns: 1fr; }
   .reason-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 

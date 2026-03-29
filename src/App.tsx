@@ -79,6 +79,8 @@ type WebsiteHandoffIdentity = {
   email: string
 }
 
+type AdminDatePreset = 'today' | 'yesterday' | 'last7' | 'last30' | 'custom'
+
 function readWebsiteHandoff(extension: ExtensionDefinition, scope: 'login' | 'pricing' | 'leave'): WebsiteHandoffIdentity {
   const params = new URLSearchParams(window.location.search)
   const storageKey = `${extension.slug}:${scope}-identity`
@@ -105,6 +107,45 @@ function readWebsiteHandoff(extension: ExtensionDefinition, scope: 'login' | 'pr
   }
 
   return identity
+}
+
+function getLocalDateLabel(date: Date): string {
+  const year = date.getFullYear()
+  const month = `${date.getMonth() + 1}`.padStart(2, '0')
+  const day = `${date.getDate()}`.padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+function getDatePresetRange(preset: AdminDatePreset, customDate: string): { start: string | null; end: string | null; label: string } {
+  const now = new Date()
+  const today = getLocalDateLabel(now)
+
+  if (preset === 'custom') {
+    return {
+      start: customDate || null,
+      end: customDate || null,
+      label: customDate ? customDate : 'any time',
+    }
+  }
+
+  if (preset === 'today') {
+    return { start: today, end: today, label: 'today' }
+  }
+
+  if (preset === 'yesterday') {
+    const yesterday = new Date(now)
+    yesterday.setDate(yesterday.getDate() - 1)
+    const value = getLocalDateLabel(yesterday)
+    return { start: value, end: value, label: 'yesterday' }
+  }
+
+  const startDate = new Date(now)
+  startDate.setDate(startDate.getDate() - (preset === 'last7' ? 6 : 29))
+  return {
+    start: getLocalDateLabel(startDate),
+    end: today,
+    label: preset === 'last7' ? 'last 7 days' : 'last 30 days',
+  }
 }
 
 function parseRoute(pathname: string): { page: PageKey; extension: ExtensionDefinition | null; shareSlug: string | null } {
@@ -553,13 +594,15 @@ function AdminPage() {
   const [selectedSlug, setSelectedSlug] = useState<ExtensionSlug>('deep-note')
   const [passcode, setPasscode] = useState(() => window.localStorage.getItem('hub-admin-passcode') || '')
   const [isAuthenticated, setIsAuthenticated] = useState(() => window.localStorage.getItem('hub-admin-authenticated') === 'true')
-  const [dateFilter, setDateFilter] = useState('')
+  const [datePreset, setDatePreset] = useState<AdminDatePreset>('today')
+  const [customDate, setCustomDate] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [data, setData] = useState<AdminAnalyticsResponse | null>(null)
 
   const extension = extensionMap.get(selectedSlug) || extensions[0]
   const selectedAppId = extension.adminAnalyticsAppId || extension.appId
+  const dateRange = useMemo(() => getDatePresetRange(datePreset, customDate), [datePreset, customDate])
 
   useEffect(() => {
     window.localStorage.setItem('hub-admin-passcode', passcode)
@@ -636,21 +679,23 @@ function AdminPage() {
     return events.filter((event) => {
       const matchesApp = !event.appId || event.appId === selectedAppId
       if (!matchesApp) return false
-      if (!dateFilter) return true
-      return new Date(event.timestamp).toISOString().split('T')[0] === dateFilter
+      if (!dateRange.start || !dateRange.end) return true
+      const eventDate = new Date(event.timestamp).toISOString().split('T')[0]
+      return eventDate >= dateRange.start && eventDate <= dateRange.end
     })
-  }, [data?.recentEvents, dateFilter, selectedAppId])
+  }, [data?.recentEvents, dateRange.end, dateRange.start, selectedAppId])
 
   const filteredUninstallFeedback = useMemo(() => {
     const items = data?.uninstallFeedback || []
     return items.filter((item) => {
       const matchesApp = !item.appId || item.appId === selectedAppId
       if (!matchesApp) return false
-      if (!dateFilter) return true
+      if (!dateRange.start || !dateRange.end) return true
       if (!item.createdAt) return false
-      return new Date(item.createdAt).toISOString().split('T')[0] === dateFilter
+      const itemDate = new Date(item.createdAt).toISOString().split('T')[0]
+      return itemDate >= dateRange.start && itemDate <= dateRange.end
     })
-  }, [data?.uninstallFeedback, dateFilter, selectedAppId])
+  }, [data?.uninstallFeedback, dateRange.end, dateRange.start, selectedAppId])
 
   return (
     <div className="stack-lg">
@@ -684,8 +729,8 @@ function AdminPage() {
         </section>
       ) : (
         <>
-          <section className="two-col">
-            <div className="info-card">
+          <section className="admin-layout">
+            <aside className="admin-sidebar info-card">
               <div className="section-label">Dashboard controls</div>
               <div className="stack-md">
                 <label className="field">
@@ -694,10 +739,36 @@ function AdminPage() {
                     {extensions.map((item) => <option key={item.slug} value={item.slug}>{item.name}</option>)}
                   </select>
                 </label>
-                <label className="field">
-                  <span>Filter day</span>
-                  <input type="date" value={dateFilter} onChange={(event) => setDateFilter(event.target.value)} />
-                </label>
+                <div className="field">
+                  <span>Date range</span>
+                  <div className="preset-grid">
+                    {[
+                      { value: 'today', label: 'Today' },
+                      { value: 'yesterday', label: 'Yesterday' },
+                      { value: 'last7', label: 'Last 7 Days' },
+                      { value: 'last30', label: 'Last 30 Days' },
+                      { value: 'custom', label: 'Custom' },
+                    ].map((option) => (
+                      <button
+                        key={option.value}
+                        className={`preset-chip ${datePreset === option.value ? 'is-active' : ''}`}
+                        onClick={() => setDatePreset(option.value as AdminDatePreset)}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {datePreset === 'custom' ? (
+                  <label className="field">
+                    <span>Select custom day</span>
+                    <input type="date" value={customDate} onChange={(event) => setCustomDate(event.target.value)} />
+                  </label>
+                ) : null}
+                <div className="info-inline-card">
+                  <strong>Viewing:</strong>
+                  <span>{dateRange.label}</span>
+                </div>
                 <div className="cta-row">
                   <button className="button-cta inline-cta" onClick={() => void loadAnalytics()} disabled={loading}>
                     {loading ? 'Loading...' : 'Load stats'}
@@ -711,78 +782,82 @@ function AdminPage() {
                 </p>
                 {error ? <p className="warning">{error}</p> : null}
               </div>
-            </div>
-            <div className="info-card accent-card">
-              <div className="section-label accent-text">Per-extension rule</div>
-              <div className="stack-sm">
-                <p>Every extension should expose its own analytics endpoint and keep product events separate even if the UI hub is shared.</p>
-                <p>This page should never merge different extension event streams into one shared table.</p>
-              </div>
+            </aside>
+            <div className="admin-main stack-lg">
+              <section className="info-card accent-card">
+                <div className="section-label accent-text">Per-extension rule</div>
+                <div className="stack-sm">
+                  <p>Every extension should expose its own analytics endpoint and keep product events separate even if the UI hub is shared.</p>
+                  <p>This page should never merge different extension event streams into one shared table.</p>
+                </div>
+              </section>
+              <section className="admin-summary-grid">
+                {data?.summary ? <MetricGrid title="Summary" data={data.summary} /> : null}
+                {data?.funnels ? <MetricGrid title="Funnels" data={data.funnels} /> : null}
+                {data?.aiUsage ? <MetricGrid title="AI usage" data={data.aiUsage} /> : null}
+              </section>
+              {data?.topEvents?.length ? (
+                <section className="info-card">
+                  <div className="section-label">Top events</div>
+                  <div className="table-list">
+                    {data.topEvents.map((item) => (
+                      <div key={item.eventName} className="table-row">
+                        <span>{item.eventName}</span>
+                        <strong>{item.count}</strong>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              ) : null}
+              {filteredRecentEvents.length ? (
+                <section className="info-card">
+                  <div className="section-label">Recent events</div>
+                  <p className="muted-copy">Showing {filteredRecentEvents.length} events for app id {selectedAppId} during {dateRange.label}.</p>
+                  <div className="event-feed">
+                    {filteredRecentEvents.slice(0, 60).map((event, index) => {
+                      const screen = typeof event.properties?.screen === 'string' ? event.properties.screen : ''
+                      const surface = typeof event.properties?.surface === 'string' ? event.properties.surface : ''
+                      return (
+                        <div key={`${event.eventName}-${event.timestamp}-${index}`} className="event-card">
+                          <div className="event-top">
+                            <strong>{event.eventName}</strong>
+                            <span>{new Date(event.timestamp).toLocaleString()}</span>
+                          </div>
+                          <div className="event-meta">
+                            <span>{event.accountEmail || event.accountId || event.clientId || 'Anonymous user'}</span>
+                            {event.appId ? <span>appId: {event.appId}</span> : null}
+                            {screen ? <span>screen: {screen}</span> : null}
+                            {surface ? <span>surface: {surface}</span> : null}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </section>
+              ) : null}
+              {filteredUninstallFeedback.length ? (
+                <section className="info-card">
+                  <div className="section-label">Uninstall feedback</div>
+                  <p className="muted-copy">Showing {filteredUninstallFeedback.length} uninstall entries for app id {selectedAppId} during {dateRange.label}.</p>
+                  <div className="event-feed">
+                    {filteredUninstallFeedback.map((item, index) => (
+                      <div key={`${item.createdAt || 0}-${index}`} className="event-card">
+                        <div className="event-top">
+                          <strong>{item.reason || 'unknown'}</strong>
+                          <span>{item.createdAt ? new Date(item.createdAt).toLocaleString() : 'No date'}</span>
+                        </div>
+                        <div className="event-meta">
+                          <span>{item.accountEmail || 'Anonymous user'}</span>
+                          {item.appId ? <span>appId: {item.appId}</span> : null}
+                        </div>
+                        {item.details ? <p className="event-detail">{item.details}</p> : null}
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              ) : null}
             </div>
           </section>
-          {data?.summary ? <MetricGrid title="Summary" data={data.summary} /> : null}
-          {data?.funnels ? <MetricGrid title="Funnels" data={data.funnels} /> : null}
-          {data?.aiUsage ? <MetricGrid title="AI usage" data={data.aiUsage} /> : null}
-          {data?.topEvents?.length ? (
-            <section className="info-card">
-              <div className="section-label">Top events</div>
-              <div className="table-list">
-                {data.topEvents.map((item) => (
-                  <div key={item.eventName} className="table-row">
-                    <span>{item.eventName}</span>
-                    <strong>{item.count}</strong>
-                  </div>
-                ))}
-              </div>
-            </section>
-          ) : null}
-          {filteredRecentEvents.length ? (
-            <section className="info-card">
-              <div className="section-label">Recent events</div>
-              <p className="muted-copy">Showing {filteredRecentEvents.length} events for app id {selectedAppId}{dateFilter ? ` on ${dateFilter}` : ''}.</p>
-              <div className="event-feed">
-                {filteredRecentEvents.slice(0, 60).map((event, index) => {
-                  const screen = typeof event.properties?.screen === 'string' ? event.properties.screen : ''
-                  const surface = typeof event.properties?.surface === 'string' ? event.properties.surface : ''
-                  return (
-                    <div key={`${event.eventName}-${event.timestamp}-${index}`} className="event-card">
-                      <div className="event-top">
-                        <strong>{event.eventName}</strong>
-                        <span>{new Date(event.timestamp).toLocaleString()}</span>
-                      </div>
-                      <div className="event-meta">
-                        <span>{event.accountEmail || event.accountId || event.clientId || 'Anonymous user'}</span>
-                        {event.appId ? <span>appId: {event.appId}</span> : null}
-                        {screen ? <span>screen: {screen}</span> : null}
-                        {surface ? <span>surface: {surface}</span> : null}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </section>
-          ) : null}
-          {filteredUninstallFeedback.length ? (
-            <section className="info-card">
-              <div className="section-label">Uninstall feedback</div>
-              <p className="muted-copy">Showing {filteredUninstallFeedback.length} uninstall entries for app id {selectedAppId}{dateFilter ? ` on ${dateFilter}` : ''}.</p>
-              <div className="event-feed">
-                {filteredUninstallFeedback.map((item, index) => (
-                  <div key={`${item.createdAt || 0}-${index}`} className="event-card">
-                    <div className="event-top">
-                      <strong>{item.reason || 'unknown'}</strong>
-                      <span>{item.createdAt ? new Date(item.createdAt).toLocaleString() : 'No date'}</span>
-                    </div>
-                    <div className="event-meta">
-                      <span>{item.accountEmail || 'Anonymous user'}</span>
-                      {item.appId ? <span>appId: {item.appId}</span> : null}
-                    </div>
-                    {item.details ? <p className="event-detail">{item.details}</p> : null}
-                  </div>
-                ))}
-              </div>
-            </section>
-          ) : null}
         </>
       )}
     </div>
