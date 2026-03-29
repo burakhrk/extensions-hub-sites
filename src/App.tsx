@@ -67,8 +67,44 @@ type AdminAnalyticsResponse = {
     appId?: string
     accountEmail?: string | null
     reason?: string
-    details?: string | null
+  details?: string | null
   }>
+}
+
+type WebsiteHandoffIdentity = {
+  source: string
+  appId: string
+  clientId: string
+  accountId: string
+  email: string
+}
+
+function readWebsiteHandoff(extension: ExtensionDefinition, scope: 'login' | 'pricing' | 'leave'): WebsiteHandoffIdentity {
+  const params = new URLSearchParams(window.location.search)
+  const storageKey = `${extension.slug}:${scope}-identity`
+  const stored = window.localStorage.getItem(storageKey)
+  let saved: Partial<WebsiteHandoffIdentity> | null = null
+  if (stored) {
+    try {
+      saved = JSON.parse(stored) as Partial<WebsiteHandoffIdentity>
+    } catch {
+      saved = null
+    }
+  }
+
+  const identity: WebsiteHandoffIdentity = {
+    source: params.get('source') || saved?.source || '',
+    appId: params.get('appId') || saved?.appId || extension.appId,
+    clientId: params.get('clientId') || saved?.clientId || '',
+    accountId: params.get('accountId') || saved?.accountId || '',
+    email: params.get('email') || saved?.email || '',
+  }
+
+  if (identity.clientId || identity.accountId || identity.email) {
+    window.localStorage.setItem(storageKey, JSON.stringify(identity))
+  }
+
+  return identity
 }
 
 function parseRoute(pathname: string): { page: PageKey; extension: ExtensionDefinition | null; shareSlug: string | null } {
@@ -235,27 +271,10 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
 function PricingPage({ extension }: { extension: ExtensionDefinition }) {
   const params = new URLSearchParams(window.location.search)
   const mode = params.get('mode') === 'manage' ? 'manage' : 'upgrade'
-  const [identity] = useState(() => {
-    const storageKey = `${extension.slug}:pricing-identity`
-    const stored = window.localStorage.getItem(storageKey)
-    let saved: { clientId: string; accountId: string; email: string } | null = null
-    if (stored) {
-      try { saved = JSON.parse(stored) as { clientId: string; accountId: string; email: string } } catch { saved = null }
-    }
-    return {
-      clientId: params.get('clientId') || saved?.clientId || '',
-      accountId: params.get('accountId') || saved?.accountId || '',
-      email: params.get('email') || saved?.email || '',
-    }
-  })
+  const [identity] = useState(() => readWebsiteHandoff(extension, 'pricing'))
   const [state, setState] = useState<BillingState | null>(null)
   const [loading, setLoading] = useState(Boolean(extension.apiBase && identity.clientId && identity.accountId))
   const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (!identity.clientId || !identity.accountId) return
-    window.localStorage.setItem(`${extension.slug}:pricing-identity`, JSON.stringify(identity))
-  }, [extension.slug, identity])
 
   useEffect(() => {
     let cancelled = false
@@ -295,6 +314,7 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
           <div className="section-label">Current state</div>
           <div className="stack-sm">
             <p><strong>Google account:</strong> {identity.email || state?.accountEmail || 'Sign in from the extension first'}</p>
+            {identity.source ? <p><strong>Opened from:</strong> {identity.source}</p> : null}
             {loading ? <p>Loading billing state...</p> : null}
             {error ? <p className="warning">{error}</p> : null}
             {!loading && state?.isTrialActive ? <p><strong>Trial active.</strong> {trialEndsLabel ? ` Ends ${trialEndsLabel}.` : ''}</p> : null}
@@ -318,24 +338,7 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
 }
 
 function LoginPage({ extension }: { extension: ExtensionDefinition }) {
-  const params = new URLSearchParams(window.location.search)
-  const [identity] = useState(() => {
-    const storageKey = `${extension.slug}:login-identity`
-    const stored = window.localStorage.getItem(storageKey)
-    let saved: { accountId: string; email: string } | null = null
-    if (stored) {
-      try { saved = JSON.parse(stored) as { accountId: string; email: string } } catch { saved = null }
-    }
-    return {
-      accountId: params.get('accountId') || saved?.accountId || '',
-      email: params.get('email') || saved?.email || '',
-    }
-  })
-
-  useEffect(() => {
-    if (!identity.accountId && !identity.email) return
-    window.localStorage.setItem(`${extension.slug}:login-identity`, JSON.stringify(identity))
-  }, [extension.slug, identity])
+  const [identity] = useState(() => readWebsiteHandoff(extension, 'login'))
 
   return (
     <section className="article-card">
@@ -346,6 +349,7 @@ function LoginPage({ extension }: { extension: ExtensionDefinition }) {
         <section className="article-section">
           <p><strong>Detected account:</strong> {identity.email || identity.accountId}</p>
           <p>This page picked up the same identity handoff used by the extension, so you can continue with the right account context.</p>
+          {identity.source ? <p><strong>Opened from:</strong> {identity.source}</p> : null}
         </section>
       ) : null}
       <div className="stack-md">
@@ -464,10 +468,10 @@ function SharedNotePage({ extension, slug }: { extension: ExtensionDefinition; s
 }
 
 function LeavePage({ extension }: { extension: ExtensionDefinition }) {
-  const params = new URLSearchParams(window.location.search)
-  const clientId = params.get('clientId') || ''
-  const accountId = params.get('accountId') || ''
-  const accountEmail = params.get('email') || ''
+  const [identity] = useState(() => readWebsiteHandoff(extension, 'leave'))
+  const clientId = identity.clientId
+  const accountId = identity.accountId
+  const accountEmail = identity.email
   const [reason, setReason] = useState<LeaveFeedbackReason>('too-noisy')
   const [details, setDetails] = useState('')
   const [status, setStatus] = useState<'idle' | 'sending' | 'done' | 'error'>('idle')
@@ -511,6 +515,7 @@ function LeavePage({ extension }: { extension: ExtensionDefinition }) {
       <div className="pill">Quick feedback</div>
       <h1>Why are you leaving {extension.name}?</h1>
       <p className="article-intro">A quick answer helps improve {extension.name} without turning this into a long exit survey.</p>
+      {identity.email ? <p className="muted-copy">Signed-in account: {identity.email}</p> : null}
       <div className="reason-grid">
         {reasons.map((item) => (
           <button key={item.value} className={`reason-card ${reason === item.value ? 'is-selected' : ''}`} onClick={() => setReason(item.value)}>

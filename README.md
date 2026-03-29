@@ -57,6 +57,14 @@ Share pages are optional and should be enabled only when the extension actually 
 
 The key rule is: each route must stay product-scoped. A user opening `/sketch-party/leave` should never see Deep Note copy or behavior, and vice versa.
 
+When an extension opens website routes directly, prefer a shared handoff query shape so the website can stay in sync with the extension account context:
+
+- `source=chrome-extension`
+- `appId=<extension-app-id>`
+- `clientId=<extension-client-id>`
+- `accountId=<signed-in-account-id>`
+- `email=<signed-in-email>`
+
 The detailed guide for what each page should contain lives here:
 
 - [docs/EXTENSION_PAGE_PLAYBOOK.md](/C:/Users/burak/Desktop/Burakhrk/SideProjects/extensions-hub-sites/docs/EXTENSION_PAGE_PLAYBOOK.md)
