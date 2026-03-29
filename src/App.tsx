@@ -103,6 +103,8 @@ type AdminAnalyticsResponse = {
   uninstallFeedback?: Array<{
     createdAt?: number
     appId?: string
+    clientId?: string | null
+    accountId?: string | null
     accountEmail?: string | null
     reason?: string
   details?: string | null
@@ -467,19 +469,23 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
   const auth = useWebsiteAuthState()
   const [state, setState] = useState<BillingState | null>(null)
   const [authError, setAuthError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(Boolean(extension.apiBase && identity.clientId && identity.accountId))
+  const [loading, setLoading] = useState(Boolean(extension.apiBase && (identity.clientId || auth.user?.id)))
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
     const load = async () => {
-      if (!extension.apiBase || !identity.clientId || !identity.accountId) {
+      const effectiveClientId = identity.clientId || identity.accountId || auth.user?.id || ''
+      const effectiveAccountId = identity.accountId || auth.user?.id || ''
+      const effectiveEmail = identity.email || auth.user?.email || ''
+
+      if (!extension.apiBase || !effectiveClientId || !effectiveAccountId) {
         setLoading(false)
         return
       }
       try {
-        const query = new URLSearchParams({ clientId: identity.clientId, accountId: identity.accountId })
-        if (identity.email) query.set('email', identity.email)
+        const query = new URLSearchParams({ clientId: effectiveClientId, accountId: effectiveAccountId })
+        if (effectiveEmail) query.set('email', effectiveEmail)
         const res = await fetch(`${extension.apiBase}/api/billing/state?${query.toString()}`)
         const data = await res.json().catch(() => ({}))
         if (!res.ok) throw new Error(data.error || 'Billing state could not be loaded.')
@@ -492,7 +498,7 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
     }
     void load()
     return () => { cancelled = true }
-  }, [extension.apiBase, identity])
+  }, [auth.user?.email, auth.user?.id, extension.apiBase, identity])
 
   const trialEndsLabel = state?.trialEndsAt ? new Date(state.trialEndsAt).toLocaleString() : null
   const identityEmail = identity.email || state?.accountEmail || ''
@@ -1094,7 +1100,12 @@ function AdminPage() {
 
   const selectedUserFeedback = useMemo(() => {
     if (!selectedUser) return filteredUninstallFeedback
-    return filteredUninstallFeedback.filter((item) => Boolean(selectedUser.accountEmail && item.accountEmail && item.accountEmail === selectedUser.accountEmail))
+    return filteredUninstallFeedback.filter((item) => {
+      if (selectedUser.accountId && item.accountId && item.accountId === selectedUser.accountId) return true
+      if (selectedUser.clientId && item.clientId && item.clientId === selectedUser.clientId) return true
+      if (selectedUser.accountEmail && item.accountEmail && item.accountEmail === selectedUser.accountEmail) return true
+      return false
+    })
   }, [filteredUninstallFeedback, selectedUser])
 
   const derivedFunnel = useMemo(() => {
@@ -1191,12 +1202,12 @@ function AdminPage() {
   }
 
   return (
-    <div className="stack-lg">
-      <section className="hero-card">
-        <div className="pill">Admin analytics</div>
-        <h1>{isAuthenticated ? 'Extension analytics overview' : 'Admin sign in'}</h1>
-        <p>{isAuthenticated ? 'View extension events from one hub panel without mixing products together.' : 'Enter the admin password to unlock the analytics dashboard for your extensions.'}</p>
-      </section>
+      <div className="stack-lg">
+        <section className="hero-card">
+          <div className="pill">Admin analytics</div>
+        <h1>{isAuthenticated ? 'Professional extension analytics workspace' : 'Admin sign in'}</h1>
+        <p>{isAuthenticated ? 'Read the funnel first, then inspect user-level journeys, ids, and plan status without mixing extension streams together.' : 'Enter the admin password to unlock the analytics workspace for your extensions.'}</p>
+        </section>
       {!isAuthenticated ? (
         <section className="two-col">
           <div className="info-card">
