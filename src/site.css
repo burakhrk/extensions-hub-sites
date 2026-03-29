@@ -115,6 +115,29 @@ button { border: 0; cursor: pointer; }
 }
 .article-intro { margin-top: 12px; }
 .article-section { border-radius: 24px; padding: 18px 20px; border: 1px solid var(--line); background: var(--surface-soft); }
+.auth-inline-box {
+  padding: 16px 18px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: white;
+}
+.sync-status-card {
+  padding: 16px 18px;
+  border-radius: 20px;
+  border: 1px solid #cfe6e2;
+  background: #f7fffd;
+}
+.sync-status-card.is-success {
+  border-color: #bce6dd;
+  background: linear-gradient(180deg, #f4fffd 0%, #e8faf6 100%);
+}
+.sync-status-card.is-warning {
+  border-color: #f2d7a6;
+  background: linear-gradient(180deg, #fffaf0 0%, #fff1d9 100%);
+}
+.compact-cta-row {
+  margin-top: 12px;
+}
 .simple-list { margin: 12px 0 0; padding-left: 18px; }
 .simple-list li + li { margin-top: 8px; }
 .warning { color: #b45309; }

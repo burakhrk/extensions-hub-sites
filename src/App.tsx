@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { extensionMap, extensions, type ExtensionDefinition, type ExtensionSlug } from './content/extensions'
+import { getSupabaseWebClient, getWebsiteUser, isSupabaseConfigured, signInOnWebsiteWithGoogle, signOutOnWebsite } from './lib/supabaseWeb'
 
 type PageKey =
   | 'hub'
@@ -116,6 +117,15 @@ type WebsiteHandoffIdentity = {
   email: string
 }
 
+type WebsiteAuthState = {
+  loading: boolean
+  configured: boolean
+  user: {
+    id: string
+    email: string | null
+  } | null
+}
+
 type AdminDatePreset = 'all' | 'today' | 'yesterday' | 'last7' | 'last30' | 'custom'
 
 type AdminJourney = {
@@ -173,6 +183,56 @@ function readWebsiteHandoff(extension: ExtensionDefinition, scope: 'login' | 'pr
   }
 
   return identity
+}
+
+function useWebsiteAuthState(): WebsiteAuthState {
+  const [state, setState] = useState<WebsiteAuthState>({
+    loading: isSupabaseConfigured(),
+    configured: isSupabaseConfigured(),
+    user: null,
+  })
+
+  useEffect(() => {
+    if (!isSupabaseConfigured()) {
+      setState({
+        loading: false,
+        configured: false,
+        user: null,
+      })
+      return
+    }
+
+    let cancelled = false
+    const supabase = getSupabaseWebClient()
+
+    const load = async () => {
+      const user = await getWebsiteUser()
+      if (cancelled) return
+      setState({
+        loading: false,
+        configured: true,
+        user: user ? { id: user.id, email: user.email ?? null } : null,
+      })
+    }
+
+    void load()
+
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (cancelled) return
+      setState({
+        loading: false,
+        configured: true,
+        user: session?.user ? { id: session.user.id, email: session.user.email ?? null } : null,
+      })
+    })
+
+    return () => {
+      cancelled = true
+      data.subscription.unsubscribe()
+    }
+  }, [])
+
+  return state
 }
 
 function getLocalDateLabel(date: Date): string {
@@ -404,7 +464,9 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
   const params = new URLSearchParams(window.location.search)
   const mode = params.get('mode') === 'manage' ? 'manage' : 'upgrade'
   const [identity] = useState(() => readWebsiteHandoff(extension, 'pricing'))
+  const auth = useWebsiteAuthState()
   const [state, setState] = useState<BillingState | null>(null)
+  const [authError, setAuthError] = useState<string | null>(null)
   const [loading, setLoading] = useState(Boolean(extension.apiBase && identity.clientId && identity.accountId))
   const [error, setError] = useState<string | null>(null)
 
@@ -433,6 +495,9 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
   }, [extension.apiBase, identity])
 
   const trialEndsLabel = state?.trialEndsAt ? new Date(state.trialEndsAt).toLocaleString() : null
+  const identityEmail = identity.email || state?.accountEmail || ''
+  const isSyncedUser = Boolean(auth.user && identity.accountId && auth.user.id === identity.accountId)
+  const isDifferentUser = Boolean(auth.user && identity.accountId && auth.user.id !== identity.accountId)
 
   return (
     <div className="stack-lg">
@@ -441,16 +506,45 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
         <h1>{extension.pricingTitle}</h1>
         <p>{extension.pricingBody}</p>
       </section>
-      <section className="two-col">
-        <div className="info-card">
-          <div className="section-label">Current state</div>
-          <div className="stack-sm">
-            <p><strong>Google account:</strong> {identity.email || state?.accountEmail || 'Sign in from the extension first'}</p>
-            {identity.source ? <p><strong>Opened from:</strong> {identity.source}</p> : null}
-            {loading ? <p>Loading billing state...</p> : null}
-            {error ? <p className="warning">{error}</p> : null}
-            {!loading && state?.isTrialActive ? <p><strong>Trial active.</strong> {trialEndsLabel ? ` Ends ${trialEndsLabel}.` : ''}</p> : null}
-            {!loading && state && !state.isTrialActive ? <p><strong>Current plan:</strong> {state.plan}</p> : null}
+        <section className="two-col">
+          <div className="info-card">
+            <div className="section-label">Current state</div>
+            <div className="stack-sm">
+              <p><strong>Google account:</strong> {auth.user?.email || identityEmail || 'Sign in from the extension first'}</p>
+              {identity.source ? <p><strong>Opened from:</strong> {identity.source}</p> : null}
+              {auth.loading ? <p>Checking website session...</p> : null}
+              {auth.configured && !auth.user ? (
+                <div className="auth-inline-box">
+                  <p>Sign in on the website with the same Google account you use in the extension.</p>
+                  <button
+                    className="button-cta inline-cta"
+                    onClick={() => {
+                      setAuthError(null)
+                      void signInOnWebsiteWithGoogle(window.location.href).catch((err) => setAuthError(err instanceof Error ? err.message : 'Website sign-in failed.'))
+                    }}
+                  >
+                    Sign in with Google
+                  </button>
+                </div>
+              ) : null}
+              {auth.user ? (
+                <div className={`sync-status-card ${isDifferentUser ? 'is-warning' : 'is-success'}`}>
+                  <strong>{isDifferentUser ? 'Different account detected' : isSyncedUser ? 'Website and extension are synced' : 'Website session active'}</strong>
+                  <p>
+                    {isDifferentUser
+                      ? `Website: ${auth.user.email || auth.user.id} | Extension: ${identityEmail || identity.accountId}`
+                      : auth.user.email || auth.user.id}
+                  </p>
+                  <div className="cta-row compact-cta-row">
+                    <button className="secondary-cta" onClick={() => void signOutOnWebsite().catch((err) => setAuthError(err instanceof Error ? err.message : 'Sign out failed.'))}>Sign out</button>
+                  </div>
+                </div>
+              ) : null}
+              {loading ? <p>Loading billing state...</p> : null}
+              {authError ? <p className="warning">{authError}</p> : null}
+              {error ? <p className="warning">{error}</p> : null}
+              {!loading && state?.isTrialActive ? <p><strong>Trial active.</strong> {trialEndsLabel ? ` Ends ${trialEndsLabel}.` : ''}</p> : null}
+              {!loading && state && !state.isTrialActive ? <p><strong>Current plan:</strong> {state.plan}</p> : null}
             {mode === 'manage'
               ? <p>{state?.portalUrl ? 'Billing portal is available below.' : 'Billing portal will appear here once it is connected.'}</p>
               : <p>{state?.checkoutUrl ? 'Checkout is available below.' : 'This page is ready for website billing once the provider is connected.'}</p>}
@@ -471,12 +565,57 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
 
 function LoginPage({ extension }: { extension: ExtensionDefinition }) {
   const [identity] = useState(() => readWebsiteHandoff(extension, 'login'))
+  const auth = useWebsiteAuthState()
+  const [authError, setAuthError] = useState<string | null>(null)
+  const isSyncedUser = Boolean(auth.user && identity.accountId && auth.user.id === identity.accountId)
+  const isDifferentUser = Boolean(auth.user && identity.accountId && auth.user.id !== identity.accountId)
 
   return (
     <section className="article-card">
       <div className="pill">Login</div>
       <h1>{extension.name} login</h1>
       <p className="article-intro">Use the same Google account you use inside {extension.name} so your website access, billing state, and extension identity stay in sync.</p>
+      <section className="article-section">
+        <div className="stack-sm">
+          <p><strong>Website session:</strong> {auth.loading ? 'Checking...' : auth.user?.email || 'Not signed in'}</p>
+          {auth.user ? (
+            <div className={`sync-status-card ${isDifferentUser ? 'is-warning' : 'is-success'}`}>
+              <strong>{isDifferentUser ? 'This is not the same account as the extension handoff' : isSyncedUser ? 'Same account on website and extension' : 'Website session active'}</strong>
+              <p>
+                {isDifferentUser
+                  ? `Website: ${auth.user.email || auth.user.id} | Extension: ${identity.email || identity.accountId}`
+                  : auth.user.email || auth.user.id}
+              </p>
+            </div>
+          ) : null}
+          <div className="cta-row compact-cta-row">
+            {auth.user ? (
+              <button
+                className="secondary-cta"
+                onClick={() => {
+                  setAuthError(null)
+                  void signOutOnWebsite().catch((err) => setAuthError(err instanceof Error ? err.message : 'Website sign-out failed.'))
+                }}
+              >
+                Sign out on website
+              </button>
+            ) : (
+              <button
+                className="button-cta inline-cta"
+                onClick={() => {
+                  setAuthError(null)
+                  void signInOnWebsiteWithGoogle(window.location.href).catch((err) => setAuthError(err instanceof Error ? err.message : 'Website sign-in failed.'))
+                }}
+                disabled={!auth.configured}
+              >
+                Sign in with Google
+              </button>
+            )}
+          </div>
+          {!auth.configured ? <p className="warning">Supabase website auth is not configured yet. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` on this site.</p> : null}
+          {authError ? <p className="warning">{authError}</p> : null}
+        </div>
+      </section>
       {identity.email || identity.accountId ? (
         <section className="article-section">
           <p><strong>Detected account:</strong> {identity.email || identity.accountId}</p>
@@ -497,11 +636,18 @@ function LoginPage({ extension }: { extension: ExtensionDefinition }) {
 }
 
 function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
+  const auth = useWebsiteAuthState()
   return (
     <section className="article-card">
       <div className="pill">Payment</div>
       <h1>{extension.name} payment handoff</h1>
       <p className="article-intro">Checkout for {extension.name} should happen here on the website, with the same account context carried over from the extension.</p>
+      {auth.user ? (
+        <section className="article-section">
+          <p><strong>Website account:</strong> {auth.user.email || auth.user.id}</p>
+          <p>This checkout handoff is now tied to the same Supabase account system used by the extension.</p>
+        </section>
+      ) : null}
       <div className="stack-md">
         {extension.paymentBody.map((item) => <section key={item} className="article-section"><p>{item}</p></section>)}
       </div>
