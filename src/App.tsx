@@ -81,6 +81,16 @@ type WebsiteHandoffIdentity = {
 
 type AdminDatePreset = 'today' | 'yesterday' | 'last7' | 'last30' | 'custom'
 
+type AdminJourney = {
+  userKey: string
+  label: string
+  totalEvents: number
+  firstSeen: number
+  lastSeen: number
+  path: string[]
+  screens: string[]
+}
+
 function readWebsiteHandoff(extension: ExtensionDefinition, scope: 'login' | 'pricing' | 'leave'): WebsiteHandoffIdentity {
   const params = new URLSearchParams(window.location.search)
   const storageKey = `${extension.slug}:${scope}-identity`
@@ -146,6 +156,18 @@ function getDatePresetRange(preset: AdminDatePreset, customDate: string): { star
     end: today,
     label: preset === 'last7' ? 'last 7 days' : 'last 30 days',
   }
+}
+
+function formatMetricLabel(label: string): string {
+  return label
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase())
+}
+
+function formatPercent(value: number, total: number): string {
+  if (!total) return '0%'
+  return `${Math.round((value / total) * 100)}%`
 }
 
 function parseRoute(pathname: string): { page: PageKey; extension: ExtensionDefinition | null; shareSlug: string | null } {
@@ -697,6 +719,103 @@ function AdminPage() {
     })
   }, [data?.uninstallFeedback, dateRange.end, dateRange.start, selectedAppId])
 
+  const derivedTopScreens = useMemo(() => {
+    if (data?.screenCounts?.length) return data.screenCounts
+    const counts = new Map<string, number>()
+    filteredRecentEvents.forEach((event) => {
+      const screen = typeof event.properties?.screen === 'string' ? event.properties.screen : 'unknown'
+      counts.set(screen, (counts.get(screen) || 0) + 1)
+    })
+    return Array.from(counts.entries())
+      .map(([screen, count]) => ({ screen, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8)
+  }, [data?.screenCounts, filteredRecentEvents])
+
+  const derivedTopEvents = useMemo(() => {
+    if (data?.topEvents?.length) return data.topEvents
+    const counts = new Map<string, number>()
+    filteredRecentEvents.forEach((event) => {
+      counts.set(event.eventName, (counts.get(event.eventName) || 0) + 1)
+    })
+    return Array.from(counts.entries())
+      .map(([eventName, count]) => ({ eventName, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10)
+  }, [data?.topEvents, filteredRecentEvents])
+
+  const journeyRows = useMemo<AdminJourney[]>(() => {
+    const grouped = new Map<string, AdminJourney>()
+    filteredRecentEvents
+      .slice()
+      .sort((a, b) => a.timestamp - b.timestamp)
+      .forEach((event) => {
+        const userKey = event.accountId ? `account:${event.accountId}` : `client:${event.clientId || 'anonymous'}`
+        const existing = grouped.get(userKey)
+        const screen = typeof event.properties?.screen === 'string' ? event.properties.screen : ''
+        if (!existing) {
+          grouped.set(userKey, {
+            userKey,
+            label: event.accountEmail || event.accountId || event.clientId || 'Anonymous user',
+            totalEvents: 1,
+            firstSeen: event.timestamp,
+            lastSeen: event.timestamp,
+            path: [event.eventName],
+            screens: screen ? [screen] : [],
+          })
+          return
+        }
+
+        existing.totalEvents += 1
+        existing.lastSeen = event.timestamp
+        if (existing.path[existing.path.length - 1] !== event.eventName) {
+          existing.path.push(event.eventName)
+        }
+        if (screen && existing.screens[existing.screens.length - 1] !== screen) {
+          existing.screens.push(screen)
+        }
+      })
+
+    return Array.from(grouped.values())
+      .sort((a, b) => b.lastSeen - a.lastSeen)
+      .slice(0, 12)
+  }, [filteredRecentEvents])
+
+  const derivedFunnel = useMemo(() => {
+    if (data?.funnels && Object.keys(data.funnels).length) {
+      return Object.entries(data.funnels).map(([key, count], index, items) => ({
+        key,
+        label: formatMetricLabel(key),
+        count,
+        rate: index === 0 ? '100%' : formatPercent(count, items[0]?.[1] || 0),
+      }))
+    }
+
+    const uniqueUsers = new Set<string>()
+    const openedDashboard = new Set<string>()
+    const savedNotes = new Set<string>()
+    const engagedUsers = new Set<string>()
+    const checkoutUsers = new Set<string>()
+
+    filteredRecentEvents.forEach((event) => {
+      const userKey = event.accountId ? `account:${event.accountId}` : `client:${event.clientId || 'anonymous'}`
+      uniqueUsers.add(userKey)
+      if (['Dashboard Opened', 'Opened Dashboard'].includes(event.eventName)) openedDashboard.add(userKey)
+      if (event.eventName.toLowerCase().includes('save')) savedNotes.add(userKey)
+      if (['Opened Checkout', 'Opened Billing Portal', 'Opened Knowledge Chat', 'Generated Share Link'].includes(event.eventName)) engagedUsers.add(userKey)
+      if (event.eventName === 'Opened Checkout') checkoutUsers.add(userKey)
+    })
+
+    const firstStep = uniqueUsers.size
+    return [
+      { key: 'activeUsers', label: 'Active Users', count: firstStep, rate: '100%' },
+      { key: 'openedDashboardUsers', label: 'Opened Dashboard', count: openedDashboard.size, rate: formatPercent(openedDashboard.size, firstStep) },
+      { key: 'savedNoteUsers', label: 'Saved Notes', count: savedNotes.size, rate: formatPercent(savedNotes.size, firstStep) },
+      { key: 'engagedUsers', label: 'Engaged Users', count: engagedUsers.size, rate: formatPercent(engagedUsers.size, firstStep) },
+      { key: 'checkoutUsers', label: 'Checkout Intent', count: checkoutUsers.size, rate: formatPercent(checkoutUsers.size, firstStep) },
+    ]
+  }, [data?.funnels, filteredRecentEvents])
+
   return (
     <div className="stack-lg">
       <section className="hero-card">
@@ -793,17 +912,68 @@ function AdminPage() {
               </section>
               <section className="admin-summary-grid">
                 {data?.summary ? <MetricGrid title="Summary" data={data.summary} /> : null}
-                {data?.funnels ? <MetricGrid title="Funnels" data={data.funnels} /> : null}
                 {data?.aiUsage ? <MetricGrid title="AI usage" data={data.aiUsage} /> : null}
               </section>
-              {data?.topEvents?.length ? (
+              <section className="info-card">
+                <div className="section-label">Funnel analysis</div>
+                <div className="funnel-grid">
+                  {derivedFunnel.map((step, index) => (
+                    <div key={step.key} className="funnel-card">
+                      <div className="funnel-step">Step {index + 1}</div>
+                      <strong>{step.label}</strong>
+                      <div className="funnel-count">{step.count}</div>
+                      <span>{step.rate} of starting cohort</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+              <section className="admin-detail-grid">
+                {derivedTopEvents.length ? (
+                  <section className="info-card">
+                    <div className="section-label">Top events</div>
+                    <div className="table-list">
+                      {derivedTopEvents.map((item) => (
+                        <div key={item.eventName} className="table-row">
+                          <span>{item.eventName}</span>
+                          <strong>{item.count}</strong>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
+                {derivedTopScreens.length ? (
+                  <section className="info-card">
+                    <div className="section-label">Top screens</div>
+                    <div className="table-list">
+                      {derivedTopScreens.map((item) => (
+                        <div key={item.screen} className="table-row">
+                          <span>{item.screen}</span>
+                          <strong>{item.count}</strong>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
+              </section>
+              {journeyRows.length ? (
                 <section className="info-card">
-                  <div className="section-label">Top events</div>
-                  <div className="table-list">
-                    {data.topEvents.map((item) => (
-                      <div key={item.eventName} className="table-row">
-                        <span>{item.eventName}</span>
-                        <strong>{item.count}</strong>
+                  <div className="section-label">User paths</div>
+                  <div className="journey-grid">
+                    {journeyRows.map((journey) => (
+                      <div key={journey.userKey} className="journey-card">
+                        <div className="event-top">
+                          <strong>{journey.label}</strong>
+                          <span>{journey.totalEvents} events</span>
+                        </div>
+                        <p className="muted-copy">Last seen {new Date(journey.lastSeen).toLocaleString()}</p>
+                        <div className="journey-path">
+                          {journey.path.slice(0, 6).map((step, index) => (
+                            <span key={`${journey.userKey}-${step}-${index}`} className="journey-pill">{step}</span>
+                          ))}
+                        </div>
+                        {journey.screens.length ? (
+                          <p className="muted-copy">Screens: {journey.screens.slice(0, 4).join(' → ')}</p>
+                        ) : null}
                       </div>
                     ))}
                   </div>
