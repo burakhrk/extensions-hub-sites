@@ -552,6 +552,7 @@ function MetricGrid({ title, data }: { title: string; data: Record<string, numbe
 function AdminPage() {
   const [selectedSlug, setSelectedSlug] = useState<ExtensionSlug>('deep-note')
   const [passcode, setPasscode] = useState(() => window.localStorage.getItem('hub-admin-passcode') || '')
+  const [isAuthenticated, setIsAuthenticated] = useState(() => window.localStorage.getItem('hub-admin-authenticated') === 'true')
   const [dateFilter, setDateFilter] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -565,11 +566,20 @@ function AdminPage() {
   }, [passcode])
 
   useEffect(() => {
+    window.localStorage.setItem('hub-admin-authenticated', isAuthenticated ? 'true' : 'false')
+  }, [isAuthenticated])
+
+  useEffect(() => {
     setData(null)
     setError(null)
   }, [selectedSlug])
 
-  const loadAnalytics = async () => {
+  useEffect(() => {
+    if (!isAuthenticated || data || loading) return
+    void loadAnalytics()
+  }, [isAuthenticated, selectedSlug])
+
+  const loadAnalytics = async (authenticateOnly = false) => {
     if (!extension.adminApiBase || !extension.adminAnalyticsPath) {
       setError('This extension does not have an admin analytics endpoint configured yet.')
       setData(null)
@@ -596,13 +606,29 @@ function AdminPage() {
       })
       const payload = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(payload.error || 'Admin analytics could not be loaded.')
-      setData(payload as AdminAnalyticsResponse)
+      setIsAuthenticated(true)
+      if (!authenticateOnly) {
+        setData(payload as AdminAnalyticsResponse)
+      }
     } catch (err) {
+      setIsAuthenticated(false)
       setError(err instanceof Error ? err.message : 'Admin analytics could not be loaded.')
       setData(null)
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleAuthenticate = async () => {
+    setData(null)
+    await loadAnalytics()
+  }
+
+  const handleSignOut = () => {
+    setIsAuthenticated(false)
+    setData(null)
+    setError(null)
+    window.localStorage.removeItem('hub-admin-authenticated')
   }
 
   const filteredRecentEvents = useMemo(() => {
@@ -630,109 +656,135 @@ function AdminPage() {
     <div className="stack-lg">
       <section className="hero-card">
         <div className="pill">Admin analytics</div>
-        <h1>View extension events from one hub panel.</h1>
-        <p>Select an extension, enter its admin passcode, and load summary metrics plus recent events without mixing products together.</p>
+        <h1>{isAuthenticated ? 'Extension analytics overview' : 'Admin sign in'}</h1>
+        <p>{isAuthenticated ? 'View extension events from one hub panel without mixing products together.' : 'Enter the admin password to unlock the analytics dashboard for your extensions.'}</p>
       </section>
-      <section className="two-col">
-        <div className="info-card">
-          <div className="section-label">Extension selector</div>
-          <div className="stack-md">
-            <label className="field">
-              <span>Extension</span>
-              <select value={selectedSlug} onChange={(event) => setSelectedSlug(event.target.value as ExtensionSlug)}>
-                {extensions.map((item) => <option key={item.slug} value={item.slug}>{item.name}</option>)}
-              </select>
-            </label>
-            <label className="field">
-              <span>Admin passcode</span>
-              <input type="password" value={passcode} onChange={(event) => setPasscode(event.target.value)} placeholder="Enter passcode" />
-            </label>
-            <label className="field">
-              <span>Filter day</span>
-              <input type="date" value={dateFilter} onChange={(event) => setDateFilter(event.target.value)} />
-            </label>
-            <button className="button-cta inline-cta" onClick={() => void loadAnalytics()} disabled={loading}>
-              {loading ? 'Loading...' : 'Load events'}
-            </button>
-            <p className="muted-copy">
-              {extension.adminApiBase && extension.adminAnalyticsPath
-                ? `This extension is wired to ${extension.adminAnalyticsPath} and loaded with app id ${selectedAppId}.`
-                : 'This extension still needs its own analytics endpoint config.'}
-            </p>
-            {error ? <p className="warning">{error}</p> : null}
+      {!isAuthenticated ? (
+        <section className="two-col">
+          <div className="info-card">
+            <div className="section-label">Enter password</div>
+            <div className="stack-md">
+              <label className="field">
+                <span>Admin password</span>
+                <input type="password" value={passcode} onChange={(event) => setPasscode(event.target.value)} placeholder="Enter password" />
+              </label>
+              <button className="button-cta inline-cta" onClick={() => void handleAuthenticate()} disabled={loading}>
+                {loading ? 'Checking...' : 'Sign in'}
+              </button>
+              {error ? <p className="warning">{error}</p> : null}
+            </div>
           </div>
-        </div>
-        <div className="info-card accent-card">
-          <div className="section-label accent-text">Per-extension rule</div>
-          <div className="stack-sm">
-            <p>Every extension should expose its own analytics endpoint and keep product events separate even if the UI hub is shared.</p>
-            <p>This page should never merge different extension event streams into one shared table.</p>
+          <div className="info-card accent-card">
+            <div className="section-label accent-text">Private route</div>
+            <div className="stack-sm">
+              <p>This page is intentionally URL-only and stays outside the public website navigation.</p>
+              <p>Analytics remain separated by extension app id even after sign-in.</p>
+            </div>
           </div>
-        </div>
-      </section>
-      {data?.summary ? <MetricGrid title="Summary" data={data.summary} /> : null}
-      {data?.funnels ? <MetricGrid title="Funnels" data={data.funnels} /> : null}
-      {data?.aiUsage ? <MetricGrid title="AI usage" data={data.aiUsage} /> : null}
-      {data?.topEvents?.length ? (
-        <section className="info-card">
-          <div className="section-label">Top events</div>
-          <div className="table-list">
-            {data.topEvents.map((item) => (
-              <div key={item.eventName} className="table-row">
-                <span>{item.eventName}</span>
-                <strong>{item.count}</strong>
+        </section>
+      ) : (
+        <>
+          <section className="two-col">
+            <div className="info-card">
+              <div className="section-label">Dashboard controls</div>
+              <div className="stack-md">
+                <label className="field">
+                  <span>Extension</span>
+                  <select value={selectedSlug} onChange={(event) => setSelectedSlug(event.target.value as ExtensionSlug)}>
+                    {extensions.map((item) => <option key={item.slug} value={item.slug}>{item.name}</option>)}
+                  </select>
+                </label>
+                <label className="field">
+                  <span>Filter day</span>
+                  <input type="date" value={dateFilter} onChange={(event) => setDateFilter(event.target.value)} />
+                </label>
+                <div className="cta-row">
+                  <button className="button-cta inline-cta" onClick={() => void loadAnalytics()} disabled={loading}>
+                    {loading ? 'Loading...' : 'Load stats'}
+                  </button>
+                  <button className="secondary-cta" onClick={handleSignOut}>Sign out</button>
+                </div>
+                <p className="muted-copy">
+                  {extension.adminApiBase && extension.adminAnalyticsPath
+                    ? `This extension is wired to ${extension.adminAnalyticsPath} and loaded with app id ${selectedAppId}.`
+                    : 'This extension still needs its own analytics endpoint config.'}
+                </p>
+                {error ? <p className="warning">{error}</p> : null}
               </div>
-            ))}
-          </div>
-        </section>
-      ) : null}
-      {filteredRecentEvents.length ? (
-        <section className="info-card">
-          <div className="section-label">Recent events</div>
-          <p className="muted-copy">Showing {filteredRecentEvents.length} events for app id {selectedAppId}{dateFilter ? ` on ${dateFilter}` : ''}.</p>
-          <div className="event-feed">
-            {filteredRecentEvents.slice(0, 60).map((event, index) => {
-              const screen = typeof event.properties?.screen === 'string' ? event.properties.screen : ''
-              const surface = typeof event.properties?.surface === 'string' ? event.properties.surface : ''
-              return (
-                <div key={`${event.eventName}-${event.timestamp}-${index}`} className="event-card">
-                  <div className="event-top">
-                    <strong>{event.eventName}</strong>
-                    <span>{new Date(event.timestamp).toLocaleString()}</span>
-                  </div>
-                  <div className="event-meta">
-                    <span>{event.accountEmail || event.accountId || event.clientId || 'Anonymous user'}</span>
-                    {event.appId ? <span>appId: {event.appId}</span> : null}
-                    {screen ? <span>screen: {screen}</span> : null}
-                    {surface ? <span>surface: {surface}</span> : null}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </section>
-      ) : null}
-      {filteredUninstallFeedback.length ? (
-        <section className="info-card">
-          <div className="section-label">Uninstall feedback</div>
-          <p className="muted-copy">Showing {filteredUninstallFeedback.length} uninstall entries for app id {selectedAppId}{dateFilter ? ` on ${dateFilter}` : ''}.</p>
-          <div className="event-feed">
-            {filteredUninstallFeedback.map((item, index) => (
-              <div key={`${item.createdAt || 0}-${index}`} className="event-card">
-                <div className="event-top">
-                  <strong>{item.reason || 'unknown'}</strong>
-                  <span>{item.createdAt ? new Date(item.createdAt).toLocaleString() : 'No date'}</span>
-                </div>
-                <div className="event-meta">
-                  <span>{item.accountEmail || 'Anonymous user'}</span>
-                  {item.appId ? <span>appId: {item.appId}</span> : null}
-                </div>
-                {item.details ? <p className="event-detail">{item.details}</p> : null}
+            </div>
+            <div className="info-card accent-card">
+              <div className="section-label accent-text">Per-extension rule</div>
+              <div className="stack-sm">
+                <p>Every extension should expose its own analytics endpoint and keep product events separate even if the UI hub is shared.</p>
+                <p>This page should never merge different extension event streams into one shared table.</p>
               </div>
-            ))}
-          </div>
-        </section>
-      ) : null}
+            </div>
+          </section>
+          {data?.summary ? <MetricGrid title="Summary" data={data.summary} /> : null}
+          {data?.funnels ? <MetricGrid title="Funnels" data={data.funnels} /> : null}
+          {data?.aiUsage ? <MetricGrid title="AI usage" data={data.aiUsage} /> : null}
+          {data?.topEvents?.length ? (
+            <section className="info-card">
+              <div className="section-label">Top events</div>
+              <div className="table-list">
+                {data.topEvents.map((item) => (
+                  <div key={item.eventName} className="table-row">
+                    <span>{item.eventName}</span>
+                    <strong>{item.count}</strong>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : null}
+          {filteredRecentEvents.length ? (
+            <section className="info-card">
+              <div className="section-label">Recent events</div>
+              <p className="muted-copy">Showing {filteredRecentEvents.length} events for app id {selectedAppId}{dateFilter ? ` on ${dateFilter}` : ''}.</p>
+              <div className="event-feed">
+                {filteredRecentEvents.slice(0, 60).map((event, index) => {
+                  const screen = typeof event.properties?.screen === 'string' ? event.properties.screen : ''
+                  const surface = typeof event.properties?.surface === 'string' ? event.properties.surface : ''
+                  return (
+                    <div key={`${event.eventName}-${event.timestamp}-${index}`} className="event-card">
+                      <div className="event-top">
+                        <strong>{event.eventName}</strong>
+                        <span>{new Date(event.timestamp).toLocaleString()}</span>
+                      </div>
+                      <div className="event-meta">
+                        <span>{event.accountEmail || event.accountId || event.clientId || 'Anonymous user'}</span>
+                        {event.appId ? <span>appId: {event.appId}</span> : null}
+                        {screen ? <span>screen: {screen}</span> : null}
+                        {surface ? <span>surface: {surface}</span> : null}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </section>
+          ) : null}
+          {filteredUninstallFeedback.length ? (
+            <section className="info-card">
+              <div className="section-label">Uninstall feedback</div>
+              <p className="muted-copy">Showing {filteredUninstallFeedback.length} uninstall entries for app id {selectedAppId}{dateFilter ? ` on ${dateFilter}` : ''}.</p>
+              <div className="event-feed">
+                {filteredUninstallFeedback.map((item, index) => (
+                  <div key={`${item.createdAt || 0}-${index}`} className="event-card">
+                    <div className="event-top">
+                      <strong>{item.reason || 'unknown'}</strong>
+                      <span>{item.createdAt ? new Date(item.createdAt).toLocaleString() : 'No date'}</span>
+                    </div>
+                    <div className="event-meta">
+                      <span>{item.accountEmail || 'Anonymous user'}</span>
+                      {item.appId ? <span>appId: {item.appId}</span> : null}
+                    </div>
+                    {item.details ? <p className="event-detail">{item.details}</p> : null}
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : null}
+        </>
+      )}
     </div>
   )
 }
