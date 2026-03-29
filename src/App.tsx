@@ -101,12 +101,11 @@ function AppShell({ children, extension, page }: { children: ReactNode; extensio
             <div className="brand-mark">BH</div>
             <div>
               <div className="brand-title">Extensions Hub</div>
-              <div className="brand-subtitle">{extension ? `${extension.name} public pages` : 'Multi-extension public site'}</div>
+              <div className="brand-subtitle">{extension ? `${extension.name} on the web` : 'Discover browser tools built for real workflows'}</div>
             </div>
           </a>
           <nav className="topnav">
             <a className={!extension && page === 'hub' ? 'is-active' : ''} href="/">Home</a>
-            <a className={page === 'admin' ? 'is-active' : ''} href="/admin">Admin</a>
             {extension ? (
               <>
                 <a className={page === 'product' ? 'is-active' : ''} href={`/${extension.slug}`}>Overview</a>
@@ -123,7 +122,7 @@ function AppShell({ children, extension, page }: { children: ReactNode; extensio
         <main className="main-content">{children}</main>
         <footer className="footer">
           <span>One domain, many extensions.</span>
-          <span>{extension ? `${extension.name} stays scoped to its own route.` : 'Each extension gets separate product pages and extension-scoped admin analytics.'}</span>
+          <span>{extension ? `${extension.name} stays scoped to its own route.` : 'Each product keeps its own website, support flow, and account handoff.'}</span>
         </footer>
       </div>
     </div>
@@ -134,9 +133,9 @@ function HubPage() {
   return (
     <div className="stack-lg">
       <section className="hero-card">
-        <div className="pill">Extensions hub</div>
-        <h1>One domain for multiple extension websites.</h1>
-        <p>Each extension gets its own landing page, login page, payment handoff, privacy policy, terms, support route, and uninstall feedback page without sharing product copy.</p>
+        <div className="pill">Browser tools</div>
+        <h1>Useful extensions, each with its own clear home on the web.</h1>
+        <p>Explore products, install the ones you need, and open the matching support, pricing, privacy, and account pages without getting dropped into the wrong app.</p>
       </section>
       <section className="product-grid">
         {extensions.map((extension) => (
@@ -168,19 +167,20 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
         <p>{extension.heroBody}</p>
         <div className="cta-row">
           {extension.installUrl ? <a className="primary-cta" href={extension.installUrl} target="_blank" rel="noreferrer">Install extension</a> : null}
+          <a className="secondary-cta" href={`/${extension.slug}/login`}>Account</a>
           <a className="primary-cta" href={`/${extension.slug}/pricing`}>Pricing</a>
           <a className="secondary-cta" href={`/${extension.slug}/support`}>Support</a>
         </div>
       </section>
       <section className="two-col">
         <div className="info-card">
-          <div className="section-label">What this page is for</div>
+          <div className="section-label">Why people use it</div>
           <div className="list-grid">
             {extension.callouts.map((item) => <div key={item} className="list-box">{item}</div>)}
           </div>
         </div>
         <div className="info-card accent-card">
-          <div className="section-label accent-text">Simple route logic</div>
+          <div className="section-label accent-text">Get started</div>
           <ol className="step-list">
             {extension.steps.map((step, index) => (
               <li key={step}>
@@ -192,18 +192,40 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
         </div>
       </section>
       <section className="info-card">
-        <div className="section-label">Required public pages</div>
+        <div className="section-label">Helpful links</div>
         <div className="required-page-grid">
-          {extension.requiredPages.map((page) => (
-            <div key={page.path} className="required-page-card">
-              <div className="required-page-top">
-                <strong>{page.label}</strong>
-                <span className="mini-pill">{page.required ? 'Required' : 'Optional'}</span>
-              </div>
-              <code>{page.path}</code>
-              <p>{page.note}</p>
+          <a className="required-page-card" href={`/${extension.slug}/login`}>
+            <div className="required-page-top">
+              <strong>Login and restore</strong>
+              <span className="mini-pill">Account</span>
             </div>
-          ))}
+            <code>/{extension.slug}/login</code>
+            <p>Check sign-in status, restore the right account, and keep the website in sync with the extension.</p>
+          </a>
+          <a className="required-page-card" href={`/${extension.slug}/pricing`}>
+            <div className="required-page-top">
+              <strong>Pricing and upgrades</strong>
+              <span className="mini-pill">Plans</span>
+            </div>
+            <code>/{extension.slug}/pricing</code>
+            <p>See plans, trial state, and upgrade from the matching product website instead of inside the extension.</p>
+          </a>
+          <a className="required-page-card" href={`/${extension.slug}/support`}>
+            <div className="required-page-top">
+              <strong>Support and help</strong>
+              <span className="mini-pill">Help</span>
+            </div>
+            <code>/{extension.slug}/support</code>
+            <p>Find install guidance, billing help, and product-specific troubleshooting without leaving this product route.</p>
+          </a>
+          <a className="required-page-card" href={`/${extension.slug}/privacy`}>
+            <div className="required-page-top">
+              <strong>Privacy and terms</strong>
+              <span className="mini-pill">Legal</span>
+            </div>
+            <code>/{extension.slug}/privacy</code>
+            <p>Review the legal and privacy details for this extension only.</p>
+          </a>
         </div>
       </section>
     </div>
@@ -296,16 +318,42 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
 }
 
 function LoginPage({ extension }: { extension: ExtensionDefinition }) {
+  const params = new URLSearchParams(window.location.search)
+  const [identity] = useState(() => {
+    const storageKey = `${extension.slug}:login-identity`
+    const stored = window.localStorage.getItem(storageKey)
+    let saved: { accountId: string; email: string } | null = null
+    if (stored) {
+      try { saved = JSON.parse(stored) as { accountId: string; email: string } } catch { saved = null }
+    }
+    return {
+      accountId: params.get('accountId') || saved?.accountId || '',
+      email: params.get('email') || saved?.email || '',
+    }
+  })
+
+  useEffect(() => {
+    if (!identity.accountId && !identity.email) return
+    window.localStorage.setItem(`${extension.slug}:login-identity`, JSON.stringify(identity))
+  }, [extension.slug, identity])
+
   return (
     <section className="article-card">
       <div className="pill">Login</div>
       <h1>{extension.name} login</h1>
-      <p className="article-intro">This login route belongs only to {extension.name}. It should explain account restore, Google sign-in, and extension-scoped identity clearly.</p>
+      <p className="article-intro">Use the same Google account you use inside {extension.name} so your website access, billing state, and extension identity stay in sync.</p>
+      {identity.email || identity.accountId ? (
+        <section className="article-section">
+          <p><strong>Detected account:</strong> {identity.email || identity.accountId}</p>
+          <p>This page picked up the same identity handoff used by the extension, so you can continue with the right account context.</p>
+        </section>
+      ) : null}
       <div className="stack-md">
         {extension.loginBody.map((item) => <section key={item} className="article-section"><p>{item}</p></section>)}
       </div>
       <div className="cta-row">
         {extension.installUrl ? <a className="primary-cta" href={extension.installUrl} target="_blank" rel="noreferrer">Install extension</a> : null}
+        <a className="secondary-cta" href={`/${extension.slug}/pricing`}>Open pricing</a>
         <a className="secondary-cta" href={`/${extension.slug}/support`}>Get support</a>
       </div>
     </section>
@@ -317,7 +365,7 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
     <section className="article-card">
       <div className="pill">Payment</div>
       <h1>{extension.name} payment handoff</h1>
-      <p className="article-intro">Every extension on this hub should keep checkout and billing handoff on its own website route instead of embedding payment directly inside the extension.</p>
+      <p className="article-intro">Checkout for {extension.name} should happen here on the website, with the same account context carried over from the extension.</p>
       <div className="stack-md">
         {extension.paymentBody.map((item) => <section key={item} className="article-section"><p>{item}</p></section>)}
       </div>
@@ -462,7 +510,7 @@ function LeavePage({ extension }: { extension: ExtensionDefinition }) {
     <section className="article-card compact-card">
       <div className="pill">Quick feedback</div>
       <h1>Why are you leaving {extension.name}?</h1>
-      <p className="article-intro">Each extension on this hub should own its own uninstall feedback page. This route is scoped only to {extension.name}.</p>
+      <p className="article-intro">A quick answer helps improve {extension.name} without turning this into a long exit survey.</p>
       <div className="reason-grid">
         {reasons.map((item) => (
           <button key={item.value} className={`reason-card ${reason === item.value ? 'is-selected' : ''}`} onClick={() => setReason(item.value)}>
