@@ -47,6 +47,7 @@ type LeaveFeedbackReason =
   | 'other'
 
 type AdminAnalyticsResponse = {
+  appId?: string
   summary?: Record<string, number>
   aiUsage?: Record<string, number>
   funnels?: Record<string, number>
@@ -55,6 +56,7 @@ type AdminAnalyticsResponse = {
   recentEvents?: Array<{
     eventName: string
     timestamp: number
+    appId?: string
     clientId?: string
     accountEmail?: string | null
     accountId?: string | null
@@ -62,6 +64,7 @@ type AdminAnalyticsResponse = {
   }>
   uninstallFeedback?: Array<{
     createdAt?: number
+    appId?: string
     accountEmail?: string | null
     reason?: string
     details?: string | null
@@ -496,11 +499,13 @@ function MetricGrid({ title, data }: { title: string; data: Record<string, numbe
 function AdminPage() {
   const [selectedSlug, setSelectedSlug] = useState<ExtensionSlug>('deep-note')
   const [passcode, setPasscode] = useState(() => window.localStorage.getItem('hub-admin-passcode') || '')
+  const [dateFilter, setDateFilter] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [data, setData] = useState<AdminAnalyticsResponse | null>(null)
 
   const extension = extensionMap.get(selectedSlug) || extensions[0]
+  const selectedAppId = extension.adminAnalyticsAppId || extension.appId
 
   useEffect(() => {
     window.localStorage.setItem('hub-admin-passcode', passcode)
@@ -528,12 +533,12 @@ function AdminPage() {
 
     try {
       const query = new URLSearchParams()
-      if (extension.adminAnalyticsAppId) query.set('appId', extension.adminAnalyticsAppId)
+      if (selectedAppId) query.set('appId', selectedAppId)
       const endpoint = `${extension.adminApiBase}${extension.adminAnalyticsPath}${query.toString() ? `?${query.toString()}` : ''}`
       const res = await fetch(endpoint, {
         headers: {
           'x-admin-passcode': passcode.trim(),
-          'x-extension-app-id': extension.adminAnalyticsAppId || extension.appId,
+          'x-extension-app-id': selectedAppId,
         },
       })
       const payload = await res.json().catch(() => ({}))
@@ -546,6 +551,27 @@ function AdminPage() {
       setLoading(false)
     }
   }
+
+  const filteredRecentEvents = useMemo(() => {
+    const events = data?.recentEvents || []
+    return events.filter((event) => {
+      const matchesApp = !event.appId || event.appId === selectedAppId
+      if (!matchesApp) return false
+      if (!dateFilter) return true
+      return new Date(event.timestamp).toISOString().split('T')[0] === dateFilter
+    })
+  }, [data?.recentEvents, dateFilter, selectedAppId])
+
+  const filteredUninstallFeedback = useMemo(() => {
+    const items = data?.uninstallFeedback || []
+    return items.filter((item) => {
+      const matchesApp = !item.appId || item.appId === selectedAppId
+      if (!matchesApp) return false
+      if (!dateFilter) return true
+      if (!item.createdAt) return false
+      return new Date(item.createdAt).toISOString().split('T')[0] === dateFilter
+    })
+  }, [data?.uninstallFeedback, dateFilter, selectedAppId])
 
   return (
     <div className="stack-lg">
@@ -568,12 +594,16 @@ function AdminPage() {
               <span>Admin passcode</span>
               <input type="password" value={passcode} onChange={(event) => setPasscode(event.target.value)} placeholder="Enter passcode" />
             </label>
+            <label className="field">
+              <span>Filter day</span>
+              <input type="date" value={dateFilter} onChange={(event) => setDateFilter(event.target.value)} />
+            </label>
             <button className="button-cta inline-cta" onClick={() => void loadAnalytics()} disabled={loading}>
               {loading ? 'Loading...' : 'Load events'}
             </button>
             <p className="muted-copy">
               {extension.adminApiBase && extension.adminAnalyticsPath
-                ? `This extension is wired to ${extension.adminAnalyticsPath} and loaded with app id ${extension.adminAnalyticsAppId || extension.appId}.`
+                ? `This extension is wired to ${extension.adminAnalyticsPath} and loaded with app id ${selectedAppId}.`
                 : 'This extension still needs its own analytics endpoint config.'}
             </p>
             {error ? <p className="warning">{error}</p> : null}
@@ -603,11 +633,12 @@ function AdminPage() {
           </div>
         </section>
       ) : null}
-      {data?.recentEvents?.length ? (
+      {filteredRecentEvents.length ? (
         <section className="info-card">
           <div className="section-label">Recent events</div>
+          <p className="muted-copy">Showing {filteredRecentEvents.length} events for app id {selectedAppId}{dateFilter ? ` on ${dateFilter}` : ''}.</p>
           <div className="event-feed">
-            {data.recentEvents.slice(0, 60).map((event, index) => {
+            {filteredRecentEvents.slice(0, 60).map((event, index) => {
               const screen = typeof event.properties?.screen === 'string' ? event.properties.screen : ''
               const surface = typeof event.properties?.surface === 'string' ? event.properties.surface : ''
               return (
@@ -618,6 +649,7 @@ function AdminPage() {
                   </div>
                   <div className="event-meta">
                     <span>{event.accountEmail || event.accountId || event.clientId || 'Anonymous user'}</span>
+                    {event.appId ? <span>appId: {event.appId}</span> : null}
                     {screen ? <span>screen: {screen}</span> : null}
                     {surface ? <span>surface: {surface}</span> : null}
                   </div>
@@ -627,11 +659,12 @@ function AdminPage() {
           </div>
         </section>
       ) : null}
-      {data?.uninstallFeedback?.length ? (
+      {filteredUninstallFeedback.length ? (
         <section className="info-card">
           <div className="section-label">Uninstall feedback</div>
+          <p className="muted-copy">Showing {filteredUninstallFeedback.length} uninstall entries for app id {selectedAppId}{dateFilter ? ` on ${dateFilter}` : ''}.</p>
           <div className="event-feed">
-            {data.uninstallFeedback.map((item, index) => (
+            {filteredUninstallFeedback.map((item, index) => (
               <div key={`${item.createdAt || 0}-${index}`} className="event-card">
                 <div className="event-top">
                   <strong>{item.reason || 'unknown'}</strong>
@@ -639,6 +672,7 @@ function AdminPage() {
                 </div>
                 <div className="event-meta">
                   <span>{item.accountEmail || 'Anonymous user'}</span>
+                  {item.appId ? <span>appId: {item.appId}</span> : null}
                 </div>
                 {item.details ? <p className="event-detail">{item.details}</p> : null}
               </div>

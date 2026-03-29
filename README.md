@@ -74,6 +74,7 @@ For a new extension:
 - wire its own admin analytics endpoint in [src/content/extensions.ts](/C:/Users/burak/Desktop/Burakhrk/SideProjects/extensions-hub-sites/src/content/extensions.ts)
 - always send and enforce the extension `app_id` in analytics events and admin analytics queries
 - do not reuse another extension's analytics backend unless that is explicitly intended
+- prefer an admin analytics contract like `GET /api/admin/analytics?appId=...` with item-level `appId` fields in the response
 
 ## Local development
 
