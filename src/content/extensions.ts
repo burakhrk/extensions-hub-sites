@@ -129,37 +129,34 @@ export const extensions: ExtensionDefinition[] = [
     name: 'Sketch Party',
     category: 'Chrome extension',
     tagline: 'Live drawing, surprise effects, and lightweight social play between friends.',
-    summary: 'Sketch Party lets friends send playful drawings and visual effects in Chrome, with guest mode for quick use and account sign-in for saved connections.',
+    summary: 'Sketch Party lets friends send playful drawings and visual effects in Chrome, with guest mode for quick use and Patreon-based account sign-in for saved connections and future Pro access.',
     iconPath: '/products/sketch-party/icon.svg',
     heroBadge: 'Draw. Drop. Surprise.',
     heroTitle: 'A playful extension for sending drawings, effects, and little visual surprises.',
     heroBody:
-      'Sketch Party is a playful Chrome extension for sending drawings, lightweight messages, and visual surprise effects between friends while they browse. You can jump in quickly as a guest, or sign in to keep your profile and saved connections.',
+      'Sketch Party is a playful Chrome extension for sending drawings, lightweight messages, and visual surprise effects between friends while they browse. You can jump in quickly as a guest, or use account-linked access when you want saved connections and subscription-based features.',
     callouts: [
       'Guest mode gives each installation a stable party code for quick temporary sessions.',
-      'Account sign-in restores saved friends, preferences, and your profile on reinstall.',
+      'Patreon-based account sign-in is the planned path for saved profiles, subscriptions, and restored connections.',
       'Playful effects, live drawing, and page overlays stay optional and user-controlled.',
     ],
     steps: [
-      'Open the board and copy your party code or sign in to restore your saved profile.',
+      'Open the board and copy your party code, or sign in when you want a saved profile and subscription-linked access.',
       'Connect with a friend, select who you want to send to, and sketch or choose an effect.',
       'The other person sees the drawing or effect on the page they are actively viewing in Chrome.',
     ],
-    pricingTitle: 'Sketch Party is launching free first',
+    pricingTitle: 'Sketch Party Free and Patreon-based Pro',
     pricingBody:
-      'Sketch Party is being prepared for a free launch with the core drawing and friend-to-friend experience available in the extension. Premium plans may be introduced later on the website when billing is ready.',
+      'Sketch Party is preparing a free core experience in the extension, while Patreon-based account login and Patreon subscriptions are the planned path for Pro access, premium effects, and future paid features.',
     proFeatures: [
       'Expanded effect packs and richer animated surprises.',
       'Future premium creator packs and advanced visual drop types.',
-      'Possible account-linked premium upgrades managed on the website when billing is enabled.',
+      'Patreon-linked Pro access that can be restored with the same account later.',
     ],
     supportBody:
-      'Use this route for Sketch Party installation help, privacy questions, party code issues, and product-specific support.',
+      'Use this route for Sketch Party installation help, Patreon login questions, privacy questions, party code issues, and product-specific support.',
     privacySummary: [
-      'Sketch Party stores local extension settings such as onboarding state, guest party code, and user preferences on the device so the extension can restore its own setup between sessions.',
-      'If a user signs in, Sketch Party processes account identity, authentication state, saved friends, and profile preferences so the same account can be restored after reinstalling the extension.',
-      'Sketch Party can transmit friend messages, drawing payloads, and effect events only as part of the real-time features the user actively uses.',
-      'Some page effects temporarily inspect visible page text or page layout locally in the browser so the selected effect can be rendered on the current tab. Sketch Party is not designed to sell browsing data or build browsing history profiles.',
+      'Sketch Party is a Chrome extension built for friend-to-friend drawing, playful visual effects, lightweight messaging, and optional page overlay experiences inside Chrome. To make those features work, Sketch Party stores certain extension settings locally on the device, such as onboarding state, guest party code, effect preferences, online visibility, and other product controls, so the extension can remember its own setup between sessions without asking the user to reconfigure everything every time the browser opens.\n\nWhen a user chooses to use an account-linked version of Sketch Party, the product may process account identity, authentication state, subscription state, saved profile details, saved friends, and account preferences so the same profile and entitlement can be restored after reinstalling the extension or switching sessions. Under the current product direction, paid access and Pro entitlements are intended to be tied to Patreon-based login and Patreon subscription status. That means Sketch Party may process Patreon-linked identity and membership state when needed to determine whether a user should receive account-linked features or paid plan access.\n\nSketch Party also processes realtime product data only as part of the features the user actively triggers. This can include friend messages, drawing payloads, effect events, session identifiers, and related delivery state needed to send a drawing, run a live session, or display a selected visual effect on a friend’s current Chrome tab. Sketch Party is not designed to sell personal data, sell browsing history, or create unrelated advertising profiles from user browsing behavior.\n\nBecause one of Sketch Party’s core features is rendering optional friend-sent drawings and playful overlays on the page the recipient is currently viewing, the extension may temporarily inspect visible page text, layout structure, or current page presentation locally in the browser so a selected effect can be positioned and rendered correctly. This access is feature-driven and user-controlled. Users can choose whether they appear online, whether they receive drawings, and whether surprise effects are allowed, and they can change those settings from the extension at any time.\n\nSketch Party is intended for playful, consensual use between connected users. If you contact support, submit uninstall feedback, or ask for product help, Sketch Party may also process the information you send for support and operational purposes. Product-specific data, legal obligations, and privacy handling remain scoped to Sketch Party even when some infrastructure is shared with other products on the same domain.',
     ],
     termsSummary: [
       'Sketch Party is meant for playful, consensual interactions between connected users and should not be used to harass, impersonate, or mislead people.',
@@ -167,14 +164,14 @@ export const extensions: ExtensionDefinition[] = [
       'Product, privacy, and support obligations remain specific to Sketch Party even when infrastructure is shared with other products on the same domain.',
     ],
     loginBody: [
-      'Sketch Party can be used in guest mode for temporary sessions, or with account sign-in for saved friends and restored preferences.',
-      'When account sign-in is used, it belongs only to Sketch Party and is meant to restore the same profile, friend connections, and settings across reinstalls.',
+      'Sketch Party can be used in guest mode for temporary sessions, or with account-linked sign-in for saved friends, restored preferences, and future paid access.',
+      'Under the current product direction, account-linked sign-in and paid access are planned around Patreon identity and Patreon subscription status rather than multiple overlapping login systems.',
       'The extension uses a Chrome-compatible browser handoff for sign-in and then returns the user to the extension flow.',
     ],
     paymentBody: [
-      'Sketch Party keeps any future upgrades on the website so the extension can stay simpler and more Chrome Web Store friendly.',
-      'During the free launch period, this page should explain the product status clearly instead of pretending checkout is already live.',
-      'If premium plans are introduced later, this route should become the single upgrade and billing handoff for Sketch Party accounts.',
+      'Sketch Party keeps upgrades on the website so the extension can stay simpler and more Chrome Web Store friendly.',
+      'Under the current product direction, Patreon-based login and Patreon subscriptions are the planned path for Pro access and future paid features.',
+      'This route should become the single upgrade and billing handoff for Sketch Party accounts when Patreon checkout and entitlement sync are live.',
     ],
     requiredPages: buildRequiredPages('sketch-party'),
     features: {

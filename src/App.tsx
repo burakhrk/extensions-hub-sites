@@ -672,7 +672,11 @@ function ArticlePage({ extension, title, eyebrow, items }: { extension: Extensio
       <h1>{title}</h1>
       <p className="article-intro">{extension.name} stays separate from the other extensions on this domain. This page is only for {extension.name}.</p>
       <div className="stack-md">
-        {items.map((item) => <section key={item} className="article-section"><p>{item}</p></section>)}
+        {items.map((item) => (
+          <section key={item} className="article-section">
+            {item.split('\n\n').map((paragraph, index) => <p key={`${item}-${index}`}>{paragraph}</p>)}
+          </section>
+        ))}
       </div>
     </section>
   )
