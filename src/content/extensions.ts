@@ -47,7 +47,7 @@ export type ExtensionDefinition = {
   installUrl?: string
 }
 
-const deepNoteApi = import.meta.env.VITE_DEEP_NOTE_API_URL || 'https://notetaker-backend.notetaker-app-burak.workers.dev'
+const deepNoteApi = import.meta.env.VITE_DEEP_NOTE_API_URL || 'https://harika-extensions-backend.notetaker-app-burak.workers.dev'
 
 const buildRequiredPages = (slug: ExtensionSlug): ExtensionRequiredPage[] => [
   { key: 'landing', label: 'Landing page', path: `/${slug}`, required: true, note: 'Product-specific overview page with clear install and support handoff.' },
