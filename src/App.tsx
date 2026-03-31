@@ -514,6 +514,9 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
   const [loading, setLoading] = useState(Boolean(extension.apiBase && (identity.clientId || auth.user?.id)))
   const [error, setError] = useState<string | null>(null)
   const [patreonLoading, setPatreonLoading] = useState(false)
+  const [promoCode, setPromoCode] = useState('')
+  const [promoLoading, setPromoLoading] = useState(false)
+  const [promoMessage, setPromoMessage] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -551,6 +554,47 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
   const effectiveClientId = identity.clientId || identity.accountId || auth.user?.id || ''
   const effectiveAccountId = identity.accountId || auth.user?.id || ''
   const effectiveEmail = identity.email || auth.user?.email || ''
+
+  const handleApplyPromo = async () => {
+    if (!extension.apiBase || !effectiveClientId || !effectiveAccountId) {
+      setError('Sign in with the same Google account first so the promo can be tied to the right extension account.')
+      return
+    }
+
+    const sanitizedPromo = promoCode.trim().toUpperCase()
+    if (!sanitizedPromo) {
+      setPromoMessage('Enter a promo code first.')
+      return
+    }
+
+    setPromoLoading(true)
+    setPromoMessage(null)
+    setError(null)
+    try {
+      const res = await fetch(`${extension.apiBase}/api/billing/promo`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          appId: extension.appId,
+          clientId: effectiveClientId,
+          accountId: effectiveAccountId,
+          email: effectiveEmail || null,
+          code: sanitizedPromo,
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        throw new Error(data.error || 'Promo code could not be redeemed.')
+      }
+      setState(data as BillingState)
+      setPromoCode('')
+      setPromoMessage('Promo applied. Pro access is active for 30 days on this extension account.')
+    } catch (err) {
+      setPromoMessage(err instanceof Error ? err.message : 'Promo code could not be redeemed.')
+    } finally {
+      setPromoLoading(false)
+    }
+  }
 
   const handleConnectPatreon = async () => {
     if (!extension.apiBase || !effectiveClientId || !effectiveAccountId) {
@@ -625,7 +669,9 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
               {patreonStatus === 'connected' ? <p><strong>Patreon connected.</strong> Your membership was synced back to this extension account.</p> : null}
               {patreonStatus === 'failed' ? <p className="warning">Patreon connection did not complete. Try again from this page.</p> : null}
               {!loading && state?.isTrialActive ? <p><strong>Trial active.</strong> {trialEndsLabel ? ` Ends ${trialEndsLabel}.` : ''}</p> : null}
-              {!loading && state && !state.isTrialActive ? <p><strong>Current plan:</strong> {state.plan}</p> : null}
+              {!loading && state?.source === 'promo' ? <p><strong>Promo active.</strong> {trialEndsLabel ? ` Pro access ends ${trialEndsLabel}.` : ' Pro access lasts 30 days from redemption.'}</p> : null}
+              {!loading && state && !state.isTrialActive && state.source !== 'promo' ? <p><strong>Current plan:</strong> {state.plan}</p> : null}
+              {!loading && state ? <p><strong>Access source:</strong> {state.source}</p> : null}
             {isPatreonBilling ? (
               <>
                 <p>
@@ -648,6 +694,22 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
               : <p>{state?.checkoutUrl ? 'Checkout is available below.' : 'This page is ready for website billing once the provider is connected.'}</p>}
             {!isPatreonBilling && mode === 'manage' && state?.portalUrl ? <a className="primary-cta inline-cta" href={state.portalUrl}>Open billing portal</a> : null}
             {!isPatreonBilling && mode !== 'manage' && state?.checkoutUrl ? <a className="primary-cta inline-cta" href={state.checkoutUrl}>Continue to checkout</a> : null}
+            <div className="article-section">
+              <p><strong>Have a promo code?</strong> Redeem it here to unlock 30 days of Pro on this extension account.</p>
+              <div className="cta-row compact-cta-row">
+                <input
+                  className="text-input"
+                  type="text"
+                  value={promoCode}
+                  onChange={(event) => setPromoCode(event.target.value.toUpperCase())}
+                  placeholder="Enter promo code"
+                />
+                <button className="button-cta inline-cta" onClick={() => void handleApplyPromo()} disabled={promoLoading}>
+                  {promoLoading ? 'Applying...' : 'Redeem promo'}
+                </button>
+              </div>
+              {promoMessage ? <p className={promoMessage.toLowerCase().includes('active') ? 'success' : 'warning'}>{promoMessage}</p> : null}
+            </div>
           </div>
         </div>
         <div className="info-card accent-card">
@@ -790,6 +852,9 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
       {state ? (
         <section className="article-section">
           <p><strong>Current plan:</strong> {state.plan}</p>
+          <p><strong>Access source:</strong> {state.source}</p>
+          {state.source === 'promo' && state.trialEndsAt ? <p><strong>Promo ends:</strong> {new Date(state.trialEndsAt).toLocaleString()}</p> : null}
+          {state.isTrialActive && state.trialEndsAt ? <p><strong>Trial ends:</strong> {new Date(state.trialEndsAt).toLocaleString()}</p> : null}
           <p><strong>Billing provider:</strong> {state.billingProvider || 'website'}</p>
           {state.patreonConnected ? <p><strong>Patreon linked:</strong> {state.patreonUserId || 'Connected'}</p> : null}
           <div className="cta-row">

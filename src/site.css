@@ -138,6 +138,17 @@ button { border: 0; cursor: pointer; }
 .compact-cta-row {
   margin-top: 12px;
 }
+.text-input {
+  min-width: 220px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-soft);
+  color: var(--text);
+  padding: 12px 14px;
+}
+.text-input::placeholder {
+  color: var(--muted);
+}
 .simple-list { margin: 12px 0 0; padding-left: 18px; }
 .simple-list li + li { margin-top: 8px; }
 .warning { color: #b45309; }
