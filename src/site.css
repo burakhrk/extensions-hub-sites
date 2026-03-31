@@ -545,6 +545,109 @@ button { border: 0; cursor: pointer; }
 .event-meta { flex-wrap: wrap; margin-top: 6px; font-size: .84rem; }
 .event-detail { margin: 8px 0 0; line-height: 1.5; font-size: .92rem; }
 
+.shared-note-shell {
+  max-width: 880px;
+  margin: 0 auto;
+}
+.shared-note-card {
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  background: white;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.shared-note-image-wrap {
+  position: relative;
+  max-height: 280px;
+  overflow: hidden;
+  background: #eef2f7;
+}
+.shared-note-image {
+  display: block;
+  width: 100%;
+  object-fit: cover;
+  max-height: 280px;
+}
+.shared-note-image-pill {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, .72);
+  color: white;
+  font-size: .72rem;
+  font-weight: 700;
+}
+.shared-note-body {
+  display: grid;
+  gap: 18px;
+  padding: 28px;
+}
+.shared-note-topbar,
+.shared-note-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.shared-note-meta,
+.shared-note-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.shared-note-date {
+  color: var(--muted);
+  font-size: .88rem;
+}
+.shared-note-tag {
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: #ecfdf5;
+  border: 1px solid #c4ede8;
+  color: var(--accent);
+  font-size: .78rem;
+  font-weight: 700;
+}
+.shared-note-card h1 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  line-height: 1.05;
+}
+.shared-note-summary {
+  margin: 0;
+  font-size: 1.02rem;
+  line-height: 1.7;
+  color: #1f2937;
+  font-weight: 600;
+}
+.shared-note-section {
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: #fbfcfe;
+  padding: 18px;
+}
+.shared-note-text {
+  border-left-width: 3px;
+}
+.shared-note-section-label {
+  text-transform: uppercase;
+  letter-spacing: .16em;
+  font-size: .72rem;
+  font-weight: 800;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.shared-note-section p {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.7;
+  color: #374151;
+}
+
 .field { display: grid; gap: 8px; }
 .field span {
   text-transform: uppercase; letter-spacing: .14em; font-size: .72rem; font-weight: 800; color: var(--muted);
@@ -605,6 +708,9 @@ button { border: 0; cursor: pointer; }
   .selected-user-grid { grid-template-columns: 1fr; }
   .admin-main .event-card { grid-template-columns: 1fr; }
   .reason-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .shared-note-body {
+    padding: 22px;
+  }
 }
 
 @media (max-width: 720px) {

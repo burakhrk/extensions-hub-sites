@@ -46,6 +46,10 @@ type SharedNote = {
   summary?: string
   text?: string
   opinion?: string
+  imageUrl?: string
+  tags?: string[]
+  highlightColor?: string
+  isStarter?: boolean
 }
 
 type LeaveFeedbackReason =
@@ -978,13 +982,59 @@ function SharedNotePage({ extension, slug }: { extension: ExtensionDefinition; s
   if (error || !note) return <section className="article-card"><h1>Shared note unavailable</h1><p className="article-intro">{error || 'The link may be invalid or expired.'}</p></section>
 
   return (
-    <section className="article-card">
-      <div className="pill">{extension.name} shared note</div>
-      <h1>{note.title || 'Untitled note'}</h1>
-      {note.summary ? <div className="article-section"><strong>AI Summary</strong><p>{note.summary}</p></div> : null}
-      {note.text ? <div className="article-section"><strong>Captured Text</strong><p>{note.text}</p></div> : null}
-      {note.opinion ? <div className="article-section"><strong>Thoughts</strong><p>{note.opinion}</p></div> : null}
-      {note.url ? <a className="secondary-cta inline-cta" href={note.url} target="_blank" rel="noreferrer">Source link</a> : null}
+    <section className="shared-note-shell">
+      <article className="shared-note-card">
+        {note.imageUrl ? (
+          <div className="shared-note-image-wrap">
+            <img src={note.imageUrl} alt={note.title || 'Shared note image'} className="shared-note-image" />
+            <div className="shared-note-image-pill">Image</div>
+          </div>
+        ) : null}
+
+        <div className="shared-note-body">
+          <div className="shared-note-topbar">
+            <div className="shared-note-meta">
+              <span className="pill">{extension.name} shared note</span>
+              {note.isStarter ? <span className="mini-pill">Default</span> : null}
+            </div>
+            <span className="shared-note-date">{note.createdAt ? new Date(note.createdAt).toLocaleDateString() : 'Shared now'}</span>
+          </div>
+
+          {note.tags?.length ? (
+            <div className="shared-note-tags">
+              {note.tags.map((tag) => <span key={tag} className="shared-note-tag">{tag}</span>)}
+            </div>
+          ) : null}
+
+          <h1>{note.title || 'Untitled note'}</h1>
+
+          {note.summary ? (
+            <p className="shared-note-summary">{note.summary}</p>
+          ) : null}
+
+          {note.text ? (
+            <section
+              className="shared-note-section shared-note-text"
+              style={{ backgroundColor: note.highlightColor ? `${note.highlightColor}40` : undefined, borderColor: note.highlightColor || undefined }}
+            >
+              <div className="shared-note-section-label">Captured text</div>
+              <p>"{note.text}"</p>
+            </section>
+          ) : null}
+
+          {note.opinion ? (
+            <section className="shared-note-section">
+              <div className="shared-note-section-label accent-text">My thoughts</div>
+              <p>{note.opinion}</p>
+            </section>
+          ) : null}
+
+          <div className="shared-note-footer">
+            {note.url ? <a className="secondary-cta inline-cta" href={note.url} target="_blank" rel="noreferrer">Source link</a> : <span />}
+            <span className="muted-copy">Shared from Deep Note</span>
+          </div>
+        </div>
+      </article>
     </section>
   )
 }
