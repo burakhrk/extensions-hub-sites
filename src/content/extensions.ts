@@ -39,6 +39,7 @@ export type ExtensionDefinition = {
     adminAnalytics?: boolean
   }
   apiBase?: string
+  billingProvider?: 'website' | 'patreon'
   adminApiBase?: string
   adminAnalyticsPath?: string
   adminAnalyticsAppId?: string
@@ -84,7 +85,7 @@ export const extensions: ExtensionDefinition[] = [
     ],
     pricingTitle: 'Website billing for Deep Note Pro',
     pricingBody:
-      'Deep Note keeps billing outside the extension. Google sign-in links the account, starts the time-limited trial, and keeps Pro tied to the same user.',
+      'Deep Note keeps billing outside the extension. Google sign-in anchors the app account, and Patreon can be linked on the website to sync the same user into the right free or Pro tier.',
     proFeatures: [
       'AI summaries, smart tags, and folder suggestions.',
       'Knowledge chat across your saved notes.',
@@ -101,12 +102,14 @@ export const extensions: ExtensionDefinition[] = [
       'Users are responsible for the material they save, organize, and share.',
     ],
     loginBody: [
-      'Deep Note login should always explain that Google sign-in restores cloud-linked note state, billing state, and account-linked features.',
+      'Deep Note login should always explain that Google sign-in restores cloud-linked note state, app identity, and account-linked features.',
+      'If Deep Note uses Patreon-based plans, Patreon should be linked only after the same Google account is already signed in on the website.',
       'The login page should make it obvious that auth belongs to Deep Note only and does not sign the user into unrelated extensions on the same domain.',
     ],
     paymentBody: [
       'Deep Note payment should stay on the website, not inside the extension.',
-      'The payment route should be the handoff page for checkout, account-linked upgrades, and future billing portal access.',
+      'Google identifies the Deep Note account first, then Patreon can be linked to determine whether that account is on the free or Pro package.',
+      'The payment route should be the handoff page for Patreon package selection, account-linked upgrades, and future billing management.',
     ],
     requiredPages: buildRequiredPages('deep-note'),
     features: {
@@ -118,6 +121,7 @@ export const extensions: ExtensionDefinition[] = [
       adminAnalytics: true,
     },
     apiBase: deepNoteApi,
+    billingProvider: 'patreon',
     adminApiBase: deepNoteApi,
     adminAnalyticsPath: '/api/admin/analytics',
     adminAnalyticsAppId: 'deep-note',
@@ -178,6 +182,7 @@ export const extensions: ExtensionDefinition[] = [
       loginPage: true,
       paymentPage: true,
     },
+    billingProvider: 'patreon',
     adminAnalyticsAppId: 'sketch-party',
     installUrl: 'https://chrome.google.com/webstore',
   },

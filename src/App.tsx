@@ -17,16 +17,24 @@ type PageKey =
   | 'not-found'
 
 type BillingState = {
+  appId?: string
   plan: 'basic' | 'pro'
   trialStartedAt: number | null
   trialEndsAt: number | null
   isTrialActive: boolean
   promoCodeApplied: string | null
-  source: 'basic' | 'trial' | 'promo' | 'pro'
+  source: 'basic' | 'trial' | 'promo' | 'pro' | 'patreon'
   accountId: string | null
   accountEmail: string | null
   checkoutUrl?: string | null
   portalUrl?: string | null
+  billingProvider?: 'website' | 'patreon'
+  patreonConnected?: boolean
+  patreonUserId?: string | null
+  patreonCampaignId?: string | null
+  patreonTierIds?: string[]
+  patreonConnectedAt?: number | null
+  patreonLastSyncedAt?: number | null
 }
 
 type SharedNote = {
@@ -465,12 +473,14 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
 function PricingPage({ extension }: { extension: ExtensionDefinition }) {
   const params = new URLSearchParams(window.location.search)
   const mode = params.get('mode') === 'manage' ? 'manage' : 'upgrade'
+  const patreonStatus = params.get('patreon')
   const [identity] = useState(() => readWebsiteHandoff(extension, 'pricing'))
   const auth = useWebsiteAuthState()
   const [state, setState] = useState<BillingState | null>(null)
   const [authError, setAuthError] = useState<string | null>(null)
   const [loading, setLoading] = useState(Boolean(extension.apiBase && (identity.clientId || auth.user?.id)))
   const [error, setError] = useState<string | null>(null)
+  const [patreonLoading, setPatreonLoading] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -479,12 +489,12 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
       const effectiveAccountId = identity.accountId || auth.user?.id || ''
       const effectiveEmail = identity.email || auth.user?.email || ''
 
-      if (!extension.apiBase || !effectiveClientId || !effectiveAccountId) {
+        if (!extension.apiBase || !effectiveClientId || !effectiveAccountId) {
         setLoading(false)
         return
       }
       try {
-        const query = new URLSearchParams({ clientId: effectiveClientId, accountId: effectiveAccountId })
+        const query = new URLSearchParams({ clientId: effectiveClientId, accountId: effectiveAccountId, appId: extension.appId })
         if (effectiveEmail) query.set('email', effectiveEmail)
         const res = await fetch(`${extension.apiBase}/api/billing/state?${query.toString()}`)
         const data = await res.json().catch(() => ({}))
@@ -504,6 +514,36 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
   const identityEmail = identity.email || state?.accountEmail || ''
   const isSyncedUser = Boolean(auth.user && identity.accountId && auth.user.id === identity.accountId)
   const isDifferentUser = Boolean(auth.user && identity.accountId && auth.user.id !== identity.accountId)
+  const isPatreonBilling = extension.billingProvider === 'patreon'
+  const effectiveClientId = identity.clientId || identity.accountId || auth.user?.id || ''
+  const effectiveAccountId = identity.accountId || auth.user?.id || ''
+  const effectiveEmail = identity.email || auth.user?.email || ''
+
+  const handleConnectPatreon = async () => {
+    if (!extension.apiBase || !effectiveClientId || !effectiveAccountId) {
+      setError('Sign in with the same Google account first so Patreon can be linked to the right extension account.')
+      return
+    }
+    setError(null)
+    setPatreonLoading(true)
+    try {
+      const query = new URLSearchParams({
+        appId: extension.appId,
+        clientId: effectiveClientId,
+        accountId: effectiveAccountId,
+      })
+      if (effectiveEmail) query.set('email', effectiveEmail)
+      const res = await fetch(`${extension.apiBase}/api/billing/patreon/connect?${query.toString()}`)
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || typeof data.connectUrl !== 'string') {
+        throw new Error(data.error || 'Patreon link could not be started.')
+      }
+      window.location.href = data.connectUrl
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Patreon link could not be started.')
+      setPatreonLoading(false)
+    }
+  }
 
   return (
     <div className="stack-lg">
@@ -549,13 +589,32 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
               {loading ? <p>Loading billing state...</p> : null}
               {authError ? <p className="warning">{authError}</p> : null}
               {error ? <p className="warning">{error}</p> : null}
+              {patreonStatus === 'connected' ? <p><strong>Patreon connected.</strong> Your membership was synced back to this extension account.</p> : null}
+              {patreonStatus === 'failed' ? <p className="warning">Patreon connection did not complete. Try again from this page.</p> : null}
               {!loading && state?.isTrialActive ? <p><strong>Trial active.</strong> {trialEndsLabel ? ` Ends ${trialEndsLabel}.` : ''}</p> : null}
               {!loading && state && !state.isTrialActive ? <p><strong>Current plan:</strong> {state.plan}</p> : null}
-            {mode === 'manage'
+            {isPatreonBilling ? (
+              <>
+                <p>
+                  {state?.patreonConnected
+                    ? 'This extension uses Patreon membership for entitlement sync. Reconnect if you changed tiers or switched accounts.'
+                    : 'This extension uses Google sign-in for app identity and Patreon for plan entitlement. Link Patreon to sync your free or Pro status.'}
+                </p>
+                {state?.patreonConnected ? <p><strong>Connected Patreon user:</strong> {state.patreonUserId || 'Connected'}</p> : null}
+                {state?.patreonTierIds?.length ? <p><strong>Entitled tiers:</strong> {state.patreonTierIds.join(', ')}</p> : null}
+                <div className="cta-row compact-cta-row">
+                  <button className="button-cta inline-cta" onClick={() => void handleConnectPatreon()} disabled={patreonLoading}>
+                    {patreonLoading ? 'Opening Patreon...' : state?.patreonConnected ? 'Refresh Patreon access' : 'Connect Patreon'}
+                  </button>
+                  {state?.checkoutUrl ? <a className="secondary-cta" href={state.checkoutUrl} target="_blank" rel="noreferrer">Open Patreon package</a> : null}
+                  {state?.portalUrl ? <a className="secondary-cta" href={state.portalUrl} target="_blank" rel="noreferrer">Manage Patreon billing</a> : null}
+                </div>
+              </>
+            ) : mode === 'manage'
               ? <p>{state?.portalUrl ? 'Billing portal is available below.' : 'Billing portal will appear here once it is connected.'}</p>
               : <p>{state?.checkoutUrl ? 'Checkout is available below.' : 'This page is ready for website billing once the provider is connected.'}</p>}
-            {mode === 'manage' && state?.portalUrl ? <a className="primary-cta inline-cta" href={state.portalUrl}>Open billing portal</a> : null}
-            {mode !== 'manage' && state?.checkoutUrl ? <a className="primary-cta inline-cta" href={state.checkoutUrl}>Continue to checkout</a> : null}
+            {!isPatreonBilling && mode === 'manage' && state?.portalUrl ? <a className="primary-cta inline-cta" href={state.portalUrl}>Open billing portal</a> : null}
+            {!isPatreonBilling && mode !== 'manage' && state?.checkoutUrl ? <a className="primary-cta inline-cta" href={state.checkoutUrl}>Continue to checkout</a> : null}
           </div>
         </div>
         <div className="info-card accent-card">

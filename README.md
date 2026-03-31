@@ -55,6 +55,13 @@ Every extension added to this hub should define its own:
 
 Share pages are optional and should be enabled only when the extension actually exposes public shared content.
 
+If an extension uses Patreon for paid tiers, the recommended pattern is:
+
+- keep website or extension account sign-in as the anchor identity
+- then link Patreon from that signed-in state
+- scope Patreon entitlement by the extension `appId`
+- do not let one extension's Patreon package imply Pro access in another extension
+
 The key rule is: each route must stay product-scoped. A user opening `/sketch-party/leave` should never see Deep Note copy or behavior, and vice versa.
 
 When an extension opens website routes directly, prefer a shared handoff query shape so the website can stay in sync with the extension account context:
