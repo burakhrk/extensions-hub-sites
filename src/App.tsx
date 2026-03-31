@@ -10,6 +10,8 @@ type PageKey =
   | 'payment'
   | 'privacy'
   | 'terms'
+  | 'global-privacy'
+  | 'global-terms'
   | 'support'
   | 'share'
   | 'leave'
@@ -317,6 +319,8 @@ function parseRoute(pathname: string): { page: PageKey; extension: ExtensionDefi
   if (pathname === '/' || pathname === '') return { page: 'hub', extension: null, shareSlug: null }
   const parts = pathname.split('/').filter(Boolean)
   if (parts[0] === 'admin') return { page: 'admin', extension: null, shareSlug: null }
+  if (parts[0] === 'privacy') return { page: 'global-privacy', extension: null, shareSlug: null }
+  if (parts[0] === 'terms') return { page: 'global-terms', extension: null, shareSlug: null }
   const normalizedFirst = parts[0] === 'drawing-office' ? 'sketch-party' : parts[0]
   const first = normalizedFirst as ExtensionSlug | undefined
   const extension = first ? extensionMap.get(first) || null : null
@@ -333,6 +337,35 @@ function parseRoute(pathname: string): { page: PageKey; extension: ExtensionDefi
   if (second === 'share' && extension.features.sharePage && parts[2]) return { page: 'share', extension, shareSlug: parts[2] }
   return { page: 'not-found', extension, shareSlug: null }
 }
+
+function GlobalPolicyPage({ title, eyebrow, items }: { title: string; eyebrow: string; items: string[] }) {
+  return (
+    <section className="article-card">
+      <div className="pill">{eyebrow}</div>
+      <h1>{title}</h1>
+      <p className="article-intro">These policies cover the shared website layer and OAuth clients used across Harika Extensions products. Product-specific routes may add extra details where needed.</p>
+      <div className="stack-md">
+        {items.map((item) => (
+          <section key={item} className="article-section">
+            {item.split('\n\n').map((paragraph, index) => <p key={`${item}-${index}`}>{paragraph}</p>)}
+          </section>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+const GLOBAL_PRIVACY_COPY = [
+  'Harika Extensions operates a shared public website that supports multiple browser extensions, shared marketing pages, OAuth handoff flows, and account-linked support pages. This website may process limited account context such as extension app id, signed-in account id, email address, billing state, and support context when a user moves between an extension and the website.',
+  'When a user signs in on the website, the goal is to keep the same account in sync with the related extension. Depending on the product, this may include Google-based account identity, shared billing state, Patreon-linked entitlement checks, support requests, and analytics about product usage. Sensitive freeform content like private note bodies, drawings, or personal messages should only be processed when a specific product feature requires it and that product policy says so.',
+  'Harika Extensions does not use the shared website to merge unrelated products into a single user-facing account without context. Extension routes remain product-scoped, and billing or entitlement checks should remain scoped to the relevant extension app id. Shared infrastructure may be reused, but product-specific privacy expectations stay tied to the product routes themselves.',
+]
+
+const GLOBAL_TERMS_COPY = [
+  'Harika Extensions provides a shared website layer for multiple browser extension products. The shared site may offer public landing pages, login handoff pages, pricing pages, support routes, payment handoff pages, and legal pages. Each extension remains responsible for its own product behavior, user-facing functionality, and product-specific obligations.',
+  'Users agree not to misuse the website, shared OAuth handoff flows, or extension-specific routes for abuse, impersonation, automated scraping, credential misuse, or attempts to access another user’s extension data. Product-specific features, eligibility, and subscription logic may vary by extension and may change over time as products evolve.',
+  'The shared site and related extension services are provided on an as-is and as-available basis to the maximum extent allowed by law. Harika Extensions may update routes, account flows, billing providers, and supporting services over time. Product-specific terms, privacy disclosures, and support expectations continue to apply on top of these shared website terms where relevant.',
+]
 
 function AppShell({ children, extension, page }: { children: ReactNode; extension: ExtensionDefinition | null; page: PageKey }) {
   return (
@@ -1651,6 +1684,8 @@ export default function App() {
       {route.page === 'payment' && route.extension ? <PaymentPage extension={route.extension} /> : null}
       {route.page === 'privacy' && route.extension ? <ArticlePage extension={route.extension} title={`${route.extension.name} privacy`} eyebrow="Privacy" items={route.extension.privacySummary} /> : null}
       {route.page === 'terms' && route.extension ? <ArticlePage extension={route.extension} title={`${route.extension.name} terms`} eyebrow="Terms" items={route.extension.termsSummary} /> : null}
+      {route.page === 'global-privacy' ? <GlobalPolicyPage title="Harika Extensions privacy" eyebrow="Privacy" items={GLOBAL_PRIVACY_COPY} /> : null}
+      {route.page === 'global-terms' ? <GlobalPolicyPage title="Harika Extensions terms of service" eyebrow="Terms" items={GLOBAL_TERMS_COPY} /> : null}
       {route.page === 'support' && route.extension ? <SupportPage extension={route.extension} /> : null}
       {route.page === 'share' && route.extension && route.shareSlug ? <SharedNotePage extension={route.extension} slug={route.shareSlug} /> : null}
       {route.page === 'leave' && route.extension ? <LeavePage extension={route.extension} /> : null}

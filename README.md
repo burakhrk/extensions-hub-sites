@@ -13,6 +13,8 @@ The goal is to keep product websites separate from extension repos while still s
 
 - `/`
 - `/admin`
+- `/privacy`
+- `/terms`
 - `/deep-note`
 - `/deep-note/login`
 - `/deep-note/pricing`
