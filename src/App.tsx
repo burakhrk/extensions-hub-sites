@@ -547,6 +547,7 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
   }, [auth.user?.email, auth.user?.id, extension.apiBase, identity])
 
   const trialEndsLabel = state?.trialEndsAt ? new Date(state.trialEndsAt).toLocaleString() : null
+  const patreonLastSyncedLabel = state?.patreonLastSyncedAt ? new Date(state.patreonLastSyncedAt).toLocaleString() : null
   const identityEmail = identity.email || state?.accountEmail || ''
   const isSyncedUser = Boolean(auth.user && identity.accountId && auth.user.id === identity.accountId)
   const isDifferentUser = Boolean(auth.user && identity.accountId && auth.user.id !== identity.accountId)
@@ -681,6 +682,8 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
                 </p>
                 {state?.patreonConnected ? <p><strong>Connected Patreon user:</strong> {state.patreonUserId || 'Connected'}</p> : null}
                 {state?.patreonTierIds?.length ? <p><strong>Entitled tiers:</strong> {state.patreonTierIds.join(', ')}</p> : null}
+                {patreonLastSyncedLabel ? <p><strong>Last Patreon sync:</strong> {patreonLastSyncedLabel}</p> : null}
+                <p className="muted-copy">Membership access refreshes automatically about every 6 hours. If you upgraded, cancelled, or got refunded, the change may take a little time to appear here.</p>
                 <div className="cta-row compact-cta-row">
                   <button className="button-cta inline-cta" onClick={() => void handleConnectPatreon()} disabled={patreonLoading}>
                     {patreonLoading ? 'Opening Patreon...' : state?.patreonConnected ? 'Refresh Patreon access' : 'Connect Patreon'}
@@ -834,6 +837,7 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
   }, [auth.user?.email, auth.user?.id, extension.apiBase, extension.appId, identity])
 
   const isPatreonBilling = extension.billingProvider === 'patreon'
+  const patreonLastSyncedLabel = state?.patreonLastSyncedAt ? new Date(state.patreonLastSyncedAt).toLocaleString() : null
   return (
     <section className="article-card">
       <div className="pill">Payment</div>
@@ -857,6 +861,8 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
           {state.isTrialActive && state.trialEndsAt ? <p><strong>Trial ends:</strong> {new Date(state.trialEndsAt).toLocaleString()}</p> : null}
           <p><strong>Billing provider:</strong> {state.billingProvider || 'website'}</p>
           {state.patreonConnected ? <p><strong>Patreon linked:</strong> {state.patreonUserId || 'Connected'}</p> : null}
+          {patreonLastSyncedLabel ? <p><strong>Last Patreon sync:</strong> {patreonLastSyncedLabel}</p> : null}
+          {isPatreonBilling ? <p className="muted-copy">Patreon entitlement is cached and refreshed automatically about every 6 hours so account checks stay lightweight. Refunds or cancellations will be reflected on the next sync window.</p> : null}
           <div className="cta-row">
             {state.checkoutUrl ? <a className="primary-cta" href={state.checkoutUrl} target="_blank" rel="noreferrer">{isPatreonBilling ? 'Open Patreon checkout' : 'Continue to checkout'}</a> : null}
             {state.portalUrl ? <a className="secondary-cta" href={state.portalUrl} target="_blank" rel="noreferrer">{isPatreonBilling ? 'Manage Patreon membership' : 'Open billing portal'}</a> : null}
