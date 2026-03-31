@@ -734,16 +734,69 @@ function LoginPage({ extension }: { extension: ExtensionDefinition }) {
 }
 
 function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
+  const params = new URLSearchParams(window.location.search)
+  const paymentStatus = params.get('status')
+  const [identity] = useState(() => readWebsiteHandoff(extension, 'pricing'))
   const auth = useWebsiteAuthState()
+  const [state, setState] = useState<BillingState | null>(null)
+  const [loading, setLoading] = useState(Boolean(extension.apiBase && (identity.clientId || auth.user?.id)))
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      const effectiveClientId = identity.clientId || identity.accountId || auth.user?.id || ''
+      const effectiveAccountId = identity.accountId || auth.user?.id || ''
+      const effectiveEmail = identity.email || auth.user?.email || ''
+      if (!extension.apiBase || !effectiveClientId || !effectiveAccountId) {
+        setLoading(false)
+        return
+      }
+
+      try {
+        const query = new URLSearchParams({ clientId: effectiveClientId, accountId: effectiveAccountId, appId: extension.appId })
+        if (effectiveEmail) query.set('email', effectiveEmail)
+        const res = await fetch(`${extension.apiBase}/api/billing/state?${query.toString()}`)
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok) throw new Error(data.error || 'Payment state could not be loaded.')
+        if (!cancelled) setState(data as BillingState)
+      } catch (err) {
+        if (!cancelled) setError(err instanceof Error ? err.message : 'Payment state could not be loaded.')
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    void load()
+    return () => { cancelled = true }
+  }, [auth.user?.email, auth.user?.id, extension.apiBase, extension.appId, identity])
+
+  const isPatreonBilling = extension.billingProvider === 'patreon'
   return (
     <section className="article-card">
       <div className="pill">Payment</div>
       <h1>{extension.name} payment handoff</h1>
       <p className="article-intro">Checkout for {extension.name} should happen here on the website, with the same account context carried over from the extension.</p>
+      {paymentStatus === 'connected' ? <p className="success"><strong>Patreon connected.</strong> Your membership is now linked back to this extension account.</p> : null}
+      {paymentStatus === 'failed' ? <p className="warning">Patreon connection did not complete. You can retry from this page.</p> : null}
       {auth.user ? (
         <section className="article-section">
           <p><strong>Website account:</strong> {auth.user.email || auth.user.id}</p>
           <p>This checkout handoff is now tied to the same Supabase account system used by the extension.</p>
+        </section>
+      ) : null}
+      {loading ? <p>Loading payment options...</p> : null}
+      {error ? <p className="warning">{error}</p> : null}
+      {state ? (
+        <section className="article-section">
+          <p><strong>Current plan:</strong> {state.plan}</p>
+          <p><strong>Billing provider:</strong> {state.billingProvider || 'website'}</p>
+          {state.patreonConnected ? <p><strong>Patreon linked:</strong> {state.patreonUserId || 'Connected'}</p> : null}
+          <div className="cta-row">
+            {state.checkoutUrl ? <a className="primary-cta" href={state.checkoutUrl} target="_blank" rel="noreferrer">{isPatreonBilling ? 'Open Patreon checkout' : 'Continue to checkout'}</a> : null}
+            {state.portalUrl ? <a className="secondary-cta" href={state.portalUrl} target="_blank" rel="noreferrer">{isPatreonBilling ? 'Manage Patreon membership' : 'Open billing portal'}</a> : null}
+            <a className="secondary-cta" href={`/${extension.slug}/pricing`}>Back to pricing</a>
+          </div>
         </section>
       ) : null}
       <div className="stack-md">
