@@ -319,6 +319,11 @@ function formatPercent(value: number, total: number): string {
   return `${Math.round((value / total) * 100)}%`
 }
 
+function formatShortDateLabel(value: string): string {
+  const date = new Date(`${value}T00:00:00`)
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+}
+
 function buildUserKey(accountId?: string | null, clientId?: string | null): string {
   if (accountId) return `account:${accountId}`
   return `client:${clientId || 'anonymous'}`
@@ -1439,6 +1444,52 @@ function AdminPage() {
     ]
   }, [data?.aiUsage, data?.summary, derivedFunnel, derivedUsers.length, filteredRecentEvents.length, filteredSupportRequests.length, filteredUninstallFeedback.length])
 
+  const activityBars = useMemo(() => {
+    if (datePreset === 'all') return []
+
+    const labels: string[] = []
+    if (dateRange.start && dateRange.end) {
+      const cursor = new Date(`${dateRange.start}T00:00:00`)
+      const end = new Date(`${dateRange.end}T00:00:00`)
+      while (cursor <= end) {
+        labels.push(getLocalDateLabel(cursor))
+        cursor.setDate(cursor.getDate() + 1)
+      }
+    }
+
+    const eventCounts = new Map<string, number>()
+    const newUserCounts = new Map<string, number>()
+
+    filteredRecentEvents.forEach((event) => {
+      const key = new Date(event.timestamp).toISOString().split('T')[0]
+      eventCounts.set(key, (eventCounts.get(key) || 0) + 1)
+    })
+
+    derivedUsers.forEach((user) => {
+      const key = new Date(user.firstSeen).toISOString().split('T')[0]
+      if (labels.includes(key)) {
+        newUserCounts.set(key, (newUserCounts.get(key) || 0) + 1)
+      }
+    })
+
+    const maxEvents = Math.max(1, ...labels.map((label) => eventCounts.get(label) || 0))
+    const maxNewUsers = Math.max(1, ...labels.map((label) => newUserCounts.get(label) || 0))
+
+    return labels.map((label) => ({
+      label,
+      shortLabel: formatShortDateLabel(label),
+      eventCount: eventCounts.get(label) || 0,
+      newUsers: newUserCounts.get(label) || 0,
+      eventHeight: Math.max(10, Math.round(((eventCounts.get(label) || 0) / maxEvents) * 100)),
+      userHeight: Math.max(10, Math.round(((newUserCounts.get(label) || 0) / maxNewUsers) * 100)),
+    }))
+  }, [datePreset, dateRange.end, dateRange.start, derivedUsers, filteredRecentEvents])
+
+  const newUsersInRange = useMemo(() => {
+    if (datePreset === 'all') return derivedUsers.length
+    return derivedUsers.filter((user) => isWithinRange(user.firstSeen)).length
+  }, [datePreset, derivedUsers, dateRange.end, dateRange.start])
+
   const runSubscriptionAction = async (action: 'grant_pro' | 'revoke_pro') => {
     if (!supportsSubscriptionActions || !selectedUser || !extension.adminApiBase || !extension.adminSubscriptionPath) {
       setActionStatus('This extension does not expose admin subscription actions yet.')
@@ -1482,10 +1533,10 @@ function AdminPage() {
 
   return (
       <div className="stack-lg">
-        <section className="hero-card">
+        <section className="hero-card admin-hero-card">
           <div className="pill">Admin analytics</div>
-        <h1>{isAuthenticated ? 'Professional extension analytics workspace' : 'Admin sign in'}</h1>
-        <p>{isAuthenticated ? 'Read the funnel first, then inspect user-level journeys, ids, and plan status without mixing extension streams together.' : 'Enter the admin password to unlock the analytics workspace for your extensions.'}</p>
+        <h1>{isAuthenticated ? 'Extension analytics workspace' : 'Admin sign in'}</h1>
+        <p>{isAuthenticated ? 'Track user journeys, billing state, support, and churn in a cleaner desktop workspace.' : 'Enter the admin password to unlock the analytics workspace for your extensions.'}</p>
         </section>
       {!isAuthenticated ? (
         <section className="two-col">
@@ -1584,7 +1635,7 @@ function AdminPage() {
                 <div>
                   <div className="section-label accent-text">Executive view</div>
                   <h2>{extension.name}</h2>
-                  <p>Start with users, then read behavior, billing state, support, and churn without mixing extensions together.</p>
+                  <p>Start with users, then scan activity, conversion, support, and churn without mixing extensions together.</p>
                 </div>
                 <div className="admin-lead-meta">
                   <div className="admin-mini-stat">
@@ -1600,6 +1651,78 @@ function AdminPage() {
                     <strong>{selectedAppId}</strong>
                   </div>
                 </div>
+              </section>
+
+              <section className="admin-visual-grid">
+                <section className="info-card compact-info-card">
+                  <div className="section-label">New users</div>
+                  <div className="visual-stat-row">
+                    <div>
+                      <strong className="visual-stat-value">{newUsersInRange}</strong>
+                      <p className="muted-copy">First-time users in {dateRange.label}.</p>
+                    </div>
+                    <div className="mini-kpi-pill">users</div>
+                  </div>
+                  {activityBars.length ? (
+                    <div className="mini-chart-grid">
+                      {activityBars.slice(-10).map((bar) => (
+                        <div key={`users-${bar.label}`} className="mini-chart-col" title={`${bar.shortLabel}: ${bar.newUsers} new users`}>
+                          <div className="mini-chart-track">
+                            <div className="mini-chart-fill tone-users" style={{ height: `${bar.userHeight}%` }} />
+                          </div>
+                          <span>{bar.shortLabel}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="muted-copy">Switch from all-time to a preset range to see daily new-user movement.</p>
+                  )}
+                </section>
+                <section className="info-card compact-info-card">
+                  <div className="section-label">Event activity</div>
+                  <div className="visual-stat-row">
+                    <div>
+                      <strong className="visual-stat-value">{filteredRecentEvents.length}</strong>
+                      <p className="muted-copy">Tracked events for the current range.</p>
+                    </div>
+                    <div className="mini-kpi-pill tone-accent">events</div>
+                  </div>
+                  {activityBars.length ? (
+                    <div className="mini-chart-grid">
+                      {activityBars.slice(-10).map((bar) => (
+                        <div key={`events-${bar.label}`} className="mini-chart-col" title={`${bar.shortLabel}: ${bar.eventCount} events`}>
+                          <div className="mini-chart-track">
+                            <div className="mini-chart-fill tone-events" style={{ height: `${bar.eventHeight}%` }} />
+                          </div>
+                          <span>{bar.shortLabel}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="muted-copy">Switch from all-time to a preset range to see event volume over time.</p>
+                  )}
+                </section>
+                <section className="info-card compact-info-card">
+                  <div className="section-label">Current focus</div>
+                  <div className="focus-stack">
+                    <div className="focus-row">
+                      <span>Selected user</span>
+                      <strong>{selectedUser?.label || 'All users'}</strong>
+                    </div>
+                    <div className="focus-row">
+                      <span>Support tickets</span>
+                      <strong>{selectedUser ? selectedUserSupportRequests.length : filteredSupportRequests.length}</strong>
+                    </div>
+                    <div className="focus-row">
+                      <span>Uninstall signals</span>
+                      <strong>{selectedUser ? selectedUserFeedback.length : filteredUninstallFeedback.length}</strong>
+                    </div>
+                    <div className="focus-row">
+                      <span>Checkout intent</span>
+                      <strong>{derivedFunnel.find((item) => item.key === 'checkoutUsers')?.count || 0}</strong>
+                    </div>
+                  </div>
+                </section>
               </section>
 
               <section className="admin-user-workspace admin-user-workspace-priority">
