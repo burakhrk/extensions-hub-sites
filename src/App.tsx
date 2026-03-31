@@ -119,6 +119,19 @@ type AdminAnalyticsResponse = {
     reason?: string
   details?: string | null
   }>
+  supportRequests?: Array<{
+    id: string
+    timestamp: number
+    appId?: string
+    clientId?: string | null
+    accountId?: string | null
+    accountEmail?: string | null
+    replyEmail?: string | null
+    category: string
+    subject: string
+    message: string
+    status: 'open'
+  }>
 }
 
 type WebsiteHandoffIdentity = {
@@ -1167,6 +1180,14 @@ function AdminPage() {
     })
   }, [data?.uninstallFeedback, dateRange.end, dateRange.start, selectedAppId])
 
+  const filteredSupportRequests = useMemo(() => {
+    const items = data?.supportRequests || []
+    return items.filter((item) => {
+      const matchesApp = !item.appId || item.appId === selectedAppId
+      return matchesApp && isWithinRange(item.timestamp)
+    })
+  }, [data?.supportRequests, dateRange.end, dateRange.start, selectedAppId])
+
   const derivedTopScreens = useMemo(() => {
     const counts = new Map<string, number>()
     filteredRecentEvents.forEach((event) => {
@@ -1286,8 +1307,43 @@ function AdminPage() {
       }
     })
 
+    filteredSupportRequests.forEach((request) => {
+      const key = buildUserKey(request.accountId, request.clientId)
+      const existing = byKey.get(key)
+      if (!existing) {
+        byKey.set(key, {
+          userKey: key,
+          label: getUserLabel(request),
+          clientId: request.clientId || null,
+          accountId: request.accountId || null,
+          accountEmail: request.accountEmail || request.replyEmail || null,
+          totalEvents: 0,
+          firstSeen: request.timestamp,
+          lastSeen: request.timestamp,
+          activeDays: 1,
+          currentPlan: 'basic',
+          subscriptionKind: 'basic',
+          lastEventName: `Support: ${request.subject}`,
+          linkedClientIds: request.clientId ? [request.clientId] : [],
+          aiRequests: 0,
+          trialEndsAt: null,
+          promoCodeApplied: null,
+        })
+        return
+      }
+
+      existing.firstSeen = Math.min(existing.firstSeen, request.timestamp)
+      existing.lastSeen = Math.max(existing.lastSeen, request.timestamp)
+      if (!existing.accountEmail && (request.accountEmail || request.replyEmail)) {
+        existing.accountEmail = request.accountEmail || request.replyEmail || null
+      }
+      if (request.clientId && !existing.linkedClientIds.includes(request.clientId)) {
+        existing.linkedClientIds.push(request.clientId)
+      }
+    })
+
     return Array.from(byKey.values()).sort((a, b) => b.lastSeen - a.lastSeen)
-  }, [data?.users, filteredRecentEvents])
+  }, [data?.users, filteredRecentEvents, filteredSupportRequests])
 
   useEffect(() => {
     if (!derivedUsers.length) {
@@ -1327,6 +1383,17 @@ function AdminPage() {
       return false
     })
   }, [filteredUninstallFeedback, selectedUser])
+
+  const selectedUserSupportRequests = useMemo(() => {
+    if (!selectedUser) return filteredSupportRequests
+    return filteredSupportRequests.filter((item) => {
+      if (selectedUser.accountId && item.accountId && item.accountId === selectedUser.accountId) return true
+      if (selectedUser.clientId && item.clientId && item.clientId === selectedUser.clientId) return true
+      if (selectedUser.accountEmail && item.accountEmail && item.accountEmail === selectedUser.accountEmail) return true
+      if (selectedUser.accountEmail && item.replyEmail && item.replyEmail === selectedUser.accountEmail) return true
+      return false
+    })
+  }, [filteredSupportRequests, selectedUser])
 
   const derivedFunnel = useMemo(() => {
     if (data?.funnels && Object.keys(data.funnels).length) {
@@ -1376,9 +1443,10 @@ function AdminPage() {
       { label: 'Pro / Trial / Promo', value: (summary.proUsers || 0) + (summary.trialUsers || 0) + (summary.promoUsers || 0), tone: 'accent' },
       { label: 'Checkout Intent', value: derivedFunnel.find((item) => item.key === 'checkoutUsers')?.count || 0, tone: 'warm' },
       { label: 'AI Requests', value: summary.totalAiRequests ?? aiUsageTotal, tone: 'default' },
+      { label: 'Support Requests', value: filteredSupportRequests.length, tone: 'warm' },
       { label: 'Uninstall Signals', value: filteredUninstallFeedback.length, tone: 'danger' },
     ]
-  }, [data?.aiUsage, data?.summary, derivedFunnel, derivedUsers.length, filteredRecentEvents.length, filteredUninstallFeedback.length])
+  }, [data?.aiUsage, data?.summary, derivedFunnel, derivedUsers.length, filteredRecentEvents.length, filteredSupportRequests.length, filteredUninstallFeedback.length])
 
   const runSubscriptionAction = async (action: 'grant_pro' | 'revoke_pro') => {
     if (!supportsSubscriptionActions || !selectedUser || !extension.adminApiBase || !extension.adminSubscriptionPath) {
@@ -1757,6 +1825,34 @@ function AdminPage() {
                         </div>
                       )
                     })}
+                  </div>
+                </section>
+              ) : null}
+              {(selectedUser ? selectedUserSupportRequests : filteredSupportRequests).length ? (
+                <section className="info-card">
+                  <div className="section-label">Support requests</div>
+                  <p className="muted-copy">
+                    {selectedUser
+                      ? `Showing ${selectedUserSupportRequests.length} support submissions linked to ${selectedUser.label}.`
+                      : `Showing ${filteredSupportRequests.length} support submissions for app id ${selectedAppId} during ${dateRange.label}.`}
+                  </p>
+                  <div className="event-feed">
+                    {(selectedUser ? selectedUserSupportRequests : filteredSupportRequests).map((item) => (
+                      <div key={item.id} className="event-card">
+                        <div className="event-top">
+                          <strong>{item.subject}</strong>
+                          <span>{new Date(item.timestamp).toLocaleString()}</span>
+                        </div>
+                        <div className="event-meta">
+                          <span>{item.accountEmail || item.replyEmail || 'Anonymous user'}</span>
+                          <span>category: {item.category}</span>
+                          {item.accountId ? <span>userId: {item.accountId}</span> : null}
+                          {item.clientId ? <span>clientId: {item.clientId}</span> : null}
+                          {item.appId ? <span>appId: {item.appId}</span> : null}
+                        </div>
+                        <p className="event-detail">{item.message}</p>
+                      </div>
+                    ))}
                   </div>
                 </section>
               ) : null}
