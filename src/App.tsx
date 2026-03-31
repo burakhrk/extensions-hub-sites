@@ -1069,7 +1069,7 @@ function MetricGrid({ title, data }: { title: string; data: Record<string, numbe
 function AdminPage() {
   const [selectedSlug, setSelectedSlug] = useState<ExtensionSlug>('deep-note')
   const [passcode, setPasscode] = useState(() => window.localStorage.getItem('hub-admin-passcode') || '')
-  const [isAuthenticated, setIsAuthenticated] = useState(() => window.localStorage.getItem('hub-admin-authenticated') === 'true')
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [datePreset, setDatePreset] = useState<AdminDatePreset>('today')
   const [customDate, setCustomDate] = useState('')
   const [loading, setLoading] = useState(false)
@@ -1087,10 +1087,6 @@ function AdminPage() {
   useEffect(() => {
     window.localStorage.setItem('hub-admin-passcode', passcode)
   }, [passcode])
-
-  useEffect(() => {
-    window.localStorage.setItem('hub-admin-authenticated', isAuthenticated ? 'true' : 'false')
-  }, [isAuthenticated])
 
   useEffect(() => {
     setData(null)
@@ -1154,7 +1150,6 @@ function AdminPage() {
     setData(null)
     setError(null)
     setActionStatus(null)
-    window.localStorage.removeItem('hub-admin-authenticated')
   }
 
   const isWithinRange = (timestamp?: number | null) => {
@@ -1593,7 +1588,7 @@ function AdminPage() {
                 <div>
                   <div className="section-label accent-text">Executive view</div>
                   <h2>{extension.name}</h2>
-                  <p>Audit the funnel first, then trace one user at a time with ids, screens, plan state, and churn signals.</p>
+                  <p>Start with users, then read behavior, billing state, support, and churn without mixing extensions together.</p>
                 </div>
                 <div className="admin-lead-meta">
                   <div className="admin-mini-stat">
@@ -1609,6 +1604,95 @@ function AdminPage() {
                     <strong>{selectedAppId}</strong>
                   </div>
                 </div>
+              </section>
+
+              <section className="admin-user-workspace admin-user-workspace-priority">
+                <section className="info-card">
+                  <div className="section-label">Users</div>
+                  <p className="muted-copy">Google-linked users should appear here with email, user id, client id, plan state, and recent activity.</p>
+                  <div className="user-list">
+                    {derivedUsers.map((user) => (
+                      <button
+                        key={user.userKey}
+                        className={`user-row-card ${selectedUser?.userKey === user.userKey ? 'is-active' : ''}`}
+                        onClick={() => setSelectedUserKey(user.userKey)}
+                      >
+                        <div className="user-row-head">
+                          <strong>{user.label}</strong>
+                          <span>{user.totalEvents} events</span>
+                        </div>
+                        <div className="user-row-meta">
+                          <span>{user.accountEmail || user.accountId || user.clientId || 'No id yet'}</span>
+                          <span>{user.currentPlan} / {user.subscriptionKind}</span>
+                        </div>
+                        <div className="user-row-foot">
+                          <span>Last seen {new Date(user.lastSeen).toLocaleString()}</span>
+                          <span>{user.activeDays} active days</span>
+                        </div>
+                      </button>
+                    ))}
+                    {!derivedUsers.length ? <p className="muted-copy">No users found yet. Once sign-in and product events start, the list will populate here first.</p> : null}
+                  </div>
+                </section>
+                <section className="info-card">
+                  <div className="section-label">Selected user</div>
+                  {selectedUser ? (
+                    <div className="stack-md">
+                      <div className="selected-user-hero">
+                        <div>
+                          <h3>{selectedUser.label}</h3>
+                          <p>{selectedUser.accountEmail || selectedUser.accountId || selectedUser.clientId || 'Anonymous identity'}</p>
+                        </div>
+                        <div className={`admin-plan-badge tone-${selectedUser.currentPlan === 'pro' || selectedUser.subscriptionKind !== 'basic' ? 'accent' : 'default'}`}>
+                          {selectedUser.currentPlan} / {selectedUser.subscriptionKind}
+                        </div>
+                      </div>
+                      <div className="selected-user-grid">
+                        <div className="mini-detail-card">
+                          <span>User ID</span>
+                          <strong>{selectedUser.accountId || 'No account id yet'}</strong>
+                        </div>
+                        <div className="mini-detail-card">
+                          <span>Client ID</span>
+                          <strong>{selectedUser.clientId || 'No client id'}</strong>
+                        </div>
+                        <div className="mini-detail-card">
+                          <span>Last event</span>
+                          <strong>{selectedUser.lastEventName || 'No recent event'}</strong>
+                        </div>
+                        <div className="mini-detail-card">
+                          <span>AI requests</span>
+                          <strong>{selectedUser.aiRequests}</strong>
+                        </div>
+                      </div>
+                      {selectedJourney ? (
+                        <div className="mini-detail-card">
+                          <span>Journey snapshot</span>
+                          <strong>{selectedJourney.path.slice(0, 4).join(' -> ')}</strong>
+                        </div>
+                      ) : null}
+                      {supportsSubscriptionActions ? (
+                        <div className="admin-action-panel">
+                          <div>
+                            <div className="section-label">Quick actions</div>
+                            <p className="muted-copy">Grant or revoke Pro using the selected Google-linked account or client identity.</p>
+                          </div>
+                          <div className="cta-row">
+                            <button className="button-cta inline-cta" onClick={() => void runSubscriptionAction('grant_pro')} disabled={actionLoading}>
+                              {actionLoading ? 'Working...' : 'Grant Pro'}
+                            </button>
+                            <button className="secondary-cta" onClick={() => void runSubscriptionAction('revoke_pro')} disabled={actionLoading}>
+                              Revoke Pro
+                            </button>
+                          </div>
+                          {actionStatus ? <p className="muted-copy">{actionStatus}</p> : null}
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : (
+                    <p className="muted-copy">Select a user from the list to inspect their journey.</p>
+                  )}
+                </section>
               </section>
 
               <section className="admin-overview-grid">
@@ -1708,94 +1792,6 @@ function AdminPage() {
                   </div>
                 </section>
               ) : null}
-              <section className="admin-user-workspace">
-                <section className="info-card">
-                  <div className="section-label">Tracked users</div>
-                  <p className="muted-copy">Pick a user to inspect account id, client id, plan state, and AI usage.</p>
-                  <div className="user-list">
-                    {derivedUsers.map((user) => (
-                      <button
-                        key={user.userKey}
-                        className={`user-row-card ${selectedUser?.userKey === user.userKey ? 'is-active' : ''}`}
-                        onClick={() => setSelectedUserKey(user.userKey)}
-                      >
-                        <div className="user-row-head">
-                          <strong>{user.label}</strong>
-                          <span>{user.totalEvents} events</span>
-                        </div>
-                        <div className="user-row-meta">
-                          <span>{user.accountId || user.clientId || 'No id yet'}</span>
-                          <span>{user.currentPlan} / {user.subscriptionKind}</span>
-                        </div>
-                        <div className="user-row-foot">
-                          <span>Last seen {new Date(user.lastSeen).toLocaleString()}</span>
-                          <span>{user.activeDays} active days</span>
-                        </div>
-                      </button>
-                    ))}
-                    {!derivedUsers.length ? <p className="muted-copy">No users found in this range yet.</p> : null}
-                  </div>
-                </section>
-                <section className="info-card">
-                  <div className="section-label">Selected user</div>
-                  {selectedUser ? (
-                    <div className="stack-md">
-                      <div className="selected-user-hero">
-                        <div>
-                          <h3>{selectedUser.label}</h3>
-                          <p>{selectedUser.accountEmail || selectedUser.accountId || selectedUser.clientId || 'Anonymous identity'}</p>
-                        </div>
-                        <div className={`admin-plan-badge tone-${selectedUser.currentPlan === 'pro' || selectedUser.subscriptionKind !== 'basic' ? 'accent' : 'default'}`}>
-                          {selectedUser.currentPlan} / {selectedUser.subscriptionKind}
-                        </div>
-                      </div>
-                      <div className="selected-user-grid">
-                        <div className="mini-detail-card">
-                          <span>User ID</span>
-                          <strong>{selectedUser.accountId || 'No account id yet'}</strong>
-                        </div>
-                        <div className="mini-detail-card">
-                          <span>Client ID</span>
-                          <strong>{selectedUser.clientId || 'No client id'}</strong>
-                        </div>
-                        <div className="mini-detail-card">
-                          <span>Last event</span>
-                          <strong>{selectedUser.lastEventName || 'No recent event'}</strong>
-                        </div>
-                        <div className="mini-detail-card">
-                          <span>AI requests</span>
-                          <strong>{selectedUser.aiRequests}</strong>
-                        </div>
-                      </div>
-                      {selectedJourney ? (
-                        <div className="mini-detail-card">
-                          <span>Journey snapshot</span>
-                          <strong>{selectedJourney.path.slice(0, 4).join(' -> ')}</strong>
-                        </div>
-                      ) : null}
-                      {supportsSubscriptionActions ? (
-                        <div className="admin-action-panel">
-                          <div>
-                            <div className="section-label">Quick actions</div>
-                            <p className="muted-copy">Grant or revoke Pro from the same analytics workspace using the selected ids.</p>
-                          </div>
-                          <div className="cta-row">
-                            <button className="button-cta inline-cta" onClick={() => void runSubscriptionAction('grant_pro')} disabled={actionLoading}>
-                              {actionLoading ? 'Working...' : 'Grant Pro'}
-                            </button>
-                            <button className="secondary-cta" onClick={() => void runSubscriptionAction('revoke_pro')} disabled={actionLoading}>
-                              Revoke Pro
-                            </button>
-                          </div>
-                          {actionStatus ? <p className="muted-copy">{actionStatus}</p> : null}
-                        </div>
-                      ) : null}
-                    </div>
-                  ) : (
-                    <p className="muted-copy">Select a user from the list to inspect their journey.</p>
-                  )}
-                </section>
-              </section>
               {filteredRecentEvents.length ? (
                 <section className="info-card">
                   <div className="section-label">Event stream</div>
