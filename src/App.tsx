@@ -1068,7 +1068,7 @@ function MetricGrid({ title, data }: { title: string; data: Record<string, numbe
 
 function AdminPage() {
   const [selectedSlug, setSelectedSlug] = useState<ExtensionSlug>('deep-note')
-  const [passcode, setPasscode] = useState(() => window.localStorage.getItem('hub-admin-passcode') || '')
+  const [passcode, setPasscode] = useState('')
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [datePreset, setDatePreset] = useState<AdminDatePreset>('today')
   const [customDate, setCustomDate] = useState('')
@@ -1083,10 +1083,6 @@ function AdminPage() {
   const selectedAppId = extension.adminAnalyticsAppId || extension.appId
   const dateRange = useMemo(() => getDatePresetRange(datePreset, customDate), [datePreset, customDate])
   const supportsSubscriptionActions = Boolean(extension.adminApiBase && extension.adminSubscriptionPath)
-
-  useEffect(() => {
-    window.localStorage.setItem('hub-admin-passcode', passcode)
-  }, [passcode])
 
   useEffect(() => {
     setData(null)
