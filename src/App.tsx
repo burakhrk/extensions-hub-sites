@@ -598,10 +598,10 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
               <img src={extension.iconPath} alt={extension.name} className="hero-icon" />
               <div>
                 <div className="eyebrow">{extension.name}</div>
-                <h1>{extension.heroTitle}</h1>
+                <h1>{extension.tagline}</h1>
               </div>
             </div>
-            <p>{extension.heroBody}</p>
+            <p>{extension.summary}</p>
             <div className="cta-row">
               {extension.installUrl ? <a className="primary-cta" href={extension.installUrl} target="_blank" rel="noreferrer">Install extension</a> : null}
               {!auth.user ? <a className="secondary-cta" href={`/${extension.slug}/login`}>Login</a> : null}
@@ -628,8 +628,8 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
                 <span className="mini-pill">Captured note</span>
                 <span className="hero-preview-dot" />
               </div>
-              <strong>{extension.name} keeps important things easy to revisit.</strong>
-              <p>{extension.summary}</p>
+              <strong>{extension.tagline}</strong>
+              <p>{extension.callouts[0]}</p>
               <div className="hero-preview-tags">
                 <span>Summary</span>
                 <span>Folders</span>
@@ -644,7 +644,7 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
             </div>
             <div className="hero-preview-note hero-preview-note-tertiary">
               <div className="section-label">Pro flow</div>
-              <p>Same Google account on website and extension. Upgrade on the web. Return with the right plan already connected.</p>
+              <p>Sign in once, upgrade on the web, and come back with the right plan already connected.</p>
             </div>
           </div>
         </div>
