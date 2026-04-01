@@ -796,7 +796,6 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
                   <p className="muted-copy">Membership access refreshes automatically about every 6 hours. If you upgraded, cancelled, or got refunded, the change may take a little time to appear here.</p>
                 <div className="cta-row compact-cta-row">
                   <a className="button-cta inline-cta" href={`/${extension.slug}/payment`}>{state?.patreonConnected ? 'Review Patreon access' : 'Continue to payment'}</a>
-                  {state?.checkoutUrl ? <a className="secondary-cta" href={state.checkoutUrl} target="_blank" rel="noreferrer">Preview Patreon package</a> : null}
                 </div>
               </>
             ) : mode === 'manage'
@@ -1054,6 +1053,7 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
               <div className="editorial-copy">
                 {extension.paymentBody.map((item) => <p key={item}>{item}</p>)}
               </div>
+              <p className="muted-copy">The intended upgrade flow is simple: sign in with the same Google account, click Connect Patreon, finish Patreon auth, and land back on this payment page with the updated result.</p>
               {isPatreonBilling ? <p className="muted-copy">Patreon entitlement refreshes automatically about every 6 hours so account checks stay lightweight. Refunds or cancellations show up on the next sync window.</p> : null}
               <div className="cta-row">
                 {isPatreonBilling ? (
@@ -1061,8 +1061,8 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
                     {patreonLoading ? 'Opening Patreon...' : state?.patreonConnected ? 'Refresh Patreon access' : 'Connect Patreon'}
                   </button>
                 ) : null}
-                {state?.checkoutUrl ? <a className="secondary-cta" href={state.checkoutUrl} target="_blank" rel="noreferrer">{isPatreonBilling ? 'Open Patreon package page' : 'Continue to checkout'}</a> : null}
-                {state?.portalUrl ? <a className="secondary-cta" href={state.portalUrl} target="_blank" rel="noreferrer">{isPatreonBilling ? 'Manage membership' : 'Open billing portal'}</a> : null}
+                {!isPatreonBilling && state?.checkoutUrl ? <a className="secondary-cta" href={state.checkoutUrl} target="_blank" rel="noreferrer">Continue to checkout</a> : null}
+                {state?.portalUrl ? <a className="secondary-cta" href={state.portalUrl} target="_blank" rel="noreferrer">{isPatreonBilling ? 'Manage membership on Patreon' : 'Open billing portal'}</a> : null}
               </div>
             </section>
 
