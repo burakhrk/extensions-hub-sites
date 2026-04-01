@@ -590,20 +590,63 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
 
   return (
     <div className="stack-lg">
-      <section className="hero-card">
-        <div className="pill">{extension.heroBadge}</div>
-        <div className="product-hero-head">
-          <img src={extension.iconPath} alt={extension.name} className="hero-icon" />
+      <section className="hero-card product-hero-card">
+        <div className="hero-grid">
           <div>
-            <div className="eyebrow">{extension.name}</div>
-            <h1>{extension.heroTitle}</h1>
+            <div className="pill">{extension.heroBadge}</div>
+            <div className="product-hero-head">
+              <img src={extension.iconPath} alt={extension.name} className="hero-icon" />
+              <div>
+                <div className="eyebrow">{extension.name}</div>
+                <h1>{extension.heroTitle}</h1>
+              </div>
+            </div>
+            <p>{extension.heroBody}</p>
+            <div className="cta-row">
+              {extension.installUrl ? <a className="primary-cta" href={extension.installUrl} target="_blank" rel="noreferrer">Install extension</a> : null}
+              {!auth.user ? <a className="secondary-cta" href={`/${extension.slug}/login`}>Login</a> : null}
+              <a className="primary-cta" href={`/${extension.slug}/payment`}>Get Pro</a>
+            </div>
+            <div className="hero-meta-row">
+              <div className="hero-meta-pill">
+                <span>Status</span>
+                <strong>{auth.user ? 'Account connected' : 'Guest browsing'}</strong>
+              </div>
+              <div className="hero-meta-pill">
+                <span>Plan</span>
+                <strong>{loading ? 'Checking...' : state?.plan === 'pro' ? 'Pro' : 'Free'}</strong>
+              </div>
+              <div className="hero-meta-pill">
+                <span>Best for</span>
+                <strong>Capture, organize, revisit</strong>
+              </div>
+            </div>
           </div>
-        </div>
-        <p>{extension.heroBody}</p>
-        <div className="cta-row">
-          {extension.installUrl ? <a className="primary-cta" href={extension.installUrl} target="_blank" rel="noreferrer">Install extension</a> : null}
-          {!auth.user ? <a className="secondary-cta" href={`/${extension.slug}/login`}>Login</a> : null}
-          <a className="primary-cta" href={`/${extension.slug}/payment`}>Get Pro</a>
+          <div className="hero-preview-shell" aria-hidden="true">
+            <div className="hero-preview-note hero-preview-note-primary">
+              <div className="hero-preview-top">
+                <span className="mini-pill">Captured note</span>
+                <span className="hero-preview-dot" />
+              </div>
+              <strong>{extension.name} keeps important things easy to revisit.</strong>
+              <p>{extension.summary}</p>
+              <div className="hero-preview-tags">
+                <span>Summary</span>
+                <span>Folders</span>
+                <span>AI help</span>
+              </div>
+            </div>
+            <div className="hero-preview-note hero-preview-note-secondary">
+              <div className="section-label">Why it feels better</div>
+              <ul className="simple-list feature-list">
+                {extension.callouts.slice(0, 2).map((item) => <li key={`hero-${item}`}>{item}</li>)}
+              </ul>
+            </div>
+            <div className="hero-preview-note hero-preview-note-tertiary">
+              <div className="section-label">Pro flow</div>
+              <p>Same Google account on website and extension. Upgrade on the web. Return with the right plan already connected.</p>
+            </div>
+          </div>
         </div>
         {auth.user ? (
           <div className="plan-strip">
@@ -616,15 +659,22 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
         ) : null}
       </section>
       <section className="two-col product-story-grid">
-        <div className="editorial-section compact-editorial-section">
+        <div className="editorial-section compact-editorial-section story-panel">
           <div className="section-label">What the product is for</div>
           <div className="editorial-copy">
             <p>{extension.summary}</p>
             <p>{extension.heroBody}</p>
-            {extension.callouts.map((item) => <p key={item}>{item}</p>)}
+          </div>
+          <div className="highlight-grid">
+            {extension.callouts.map((item) => (
+              <article key={item} className="highlight-card">
+                <div className="section-label">Highlight</div>
+                <p>{item}</p>
+              </article>
+            ))}
           </div>
         </div>
-        <div className="editorial-section compact-editorial-section">
+        <div className="editorial-section compact-editorial-section story-panel story-panel-accent">
           <div className="section-label">What Pro adds</div>
           <div className="editorial-copy">
             <p>{extension.pricingBody}</p>
@@ -634,6 +684,12 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
           </ul>
         </div>
       </section>
+      <section className="section-stack">
+        <div className="section-heading-block">
+          <div className="section-label">Choose your plan</div>
+          <h2>Free to start, Pro when you want the premium workflow.</h2>
+          <p>Everything below stays scoped to {extension.name}. Sign in with the same account, then upgrade only if the extra workflow is worth it for you.</p>
+        </div>
       <section className="plan-compare-grid">
         <div className="plan-compare-card">
           <div className="section-label">Free</div>
@@ -652,7 +708,8 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
           </ul>
         </div>
       </section>
-      <section className="editorial-section">
+      </section>
+      <section className="editorial-section story-panel">
         <div className="section-label">How people use {extension.name}</div>
         <ol className="step-list editorial-steps">
           {extension.steps.map((step, index) => (
