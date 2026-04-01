@@ -66,10 +66,35 @@ button { border: 0; cursor: pointer; }
 .topnav { display: flex; flex-wrap: wrap; gap: 8px; }
 .topnav a { text-decoration: none; padding: 10px 14px; border-radius: 12px; color: var(--muted); }
 .topnav a:hover, .topnav a.is-active { background: #0f172a; color: white; }
+.session-strip {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fbfcfd;
+  color: var(--muted);
+  font-size: .92rem;
+}
+.session-strip strong {
+  color: var(--ink);
+  font-weight: 700;
+}
 .main-content { flex: 1; padding: 32px 0; }
 .footer {
   border-top: 1px solid var(--line); padding: 24px 4px 8px; color: var(--muted);
   display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-size: .95rem;
+}
+.footer-links {
+  display: inline-flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.footer-links a {
+  text-decoration: none;
+  color: var(--muted);
+}
+.footer-links a:hover {
+  color: var(--ink);
 }
 
 .stack-lg, .stack-md, .stack-sm { display: grid; }

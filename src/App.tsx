@@ -466,11 +466,14 @@ const GLOBAL_TERMS_SECTIONS: PolicySection[] = [
 ]
 
 function AppShell({ children, extension, page }: { children: ReactNode; extension: ExtensionDefinition | null; page: PageKey }) {
+  const auth = useWebsiteAuthState()
+  const brandHref = extension ? `/${extension.slug}` : '/'
+
   return (
     <div className="site-shell">
       <div className={`site-frame ${page === 'admin' ? 'site-frame-admin' : ''}`}>
         <header className="topbar">
-          <a className="brand" href="/">
+          <a className="brand" href={brandHref}>
             <img className="brand-mark-image" src="/harika-extensions-icon.png" alt="Harika Extensions" />
             <div>
               <div className="brand-title">Extensions Hub</div>
@@ -478,24 +481,30 @@ function AppShell({ children, extension, page }: { children: ReactNode; extensio
             </div>
           </a>
           <nav className="topnav">
-            <a className={!extension && page === 'hub' ? 'is-active' : ''} href="/">Home</a>
             {extension ? (
               <>
-                <a className={page === 'product' ? 'is-active' : ''} href={`/${extension.slug}`}>Overview</a>
+                <a className={page === 'product' ? 'is-active' : ''} href={`/${extension.slug}`}>Home</a>
                 <a className={page === 'login' ? 'is-active' : ''} href={`/${extension.slug}/login`}>Login</a>
-                <a className={page === 'pricing' ? 'is-active' : ''} href={`/${extension.slug}/pricing`}>Pricing</a>
-                <a className={page === 'payment' ? 'is-active' : ''} href={`/${extension.slug}/payment`}>Payment</a>
-                <a className={page === 'privacy' ? 'is-active' : ''} href={`/${extension.slug}/privacy`}>Privacy</a>
-                <a className={page === 'terms' ? 'is-active' : ''} href={`/${extension.slug}/terms`}>Terms</a>
-                <a className={page === 'support' ? 'is-active' : ''} href={`/${extension.slug}/support`}>Support</a>
+                <a className={page === 'payment' || page === 'pricing' ? 'is-active' : ''} href={`/${extension.slug}/payment`}>Get Pro</a>
               </>
-            ) : null}
+            ) : <a className={page === 'hub' ? 'is-active' : ''} href="/">Home</a>}
           </nav>
         </header>
+        {extension && auth.user ? (
+          <div className="session-strip">
+            <span>Signed in as <strong>{auth.user.email || auth.user.id}</strong></span>
+          </div>
+        ) : null}
         <main className="main-content">{children}</main>
         <footer className="footer">
-          <span>One domain, many extensions.</span>
-          <span>{extension ? `${extension.name} stays scoped to its own route.` : 'Each product keeps its own website, support flow, and account handoff.'}</span>
+          <span>{extension ? `${extension.name} stays scoped to its own route.` : 'One domain, many extensions.'}</span>
+          {extension ? (
+            <span className="footer-links">
+              <a href={`/${extension.slug}/privacy`}>Privacy</a>
+              <a href={`/${extension.slug}/terms`}>Terms</a>
+              <a href={`/${extension.slug}/support`}>Support</a>
+            </span>
+          ) : <span>Each product keeps its own website, support flow, and account handoff.</span>}
         </footer>
       </div>
     </div>
@@ -540,9 +549,8 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
         <p>{extension.heroBody}</p>
         <div className="cta-row">
           {extension.installUrl ? <a className="primary-cta" href={extension.installUrl} target="_blank" rel="noreferrer">Install extension</a> : null}
-          <a className="secondary-cta" href={`/${extension.slug}/login`}>Account</a>
-          <a className="primary-cta" href={`/${extension.slug}/pricing`}>Pricing</a>
-          <a className="secondary-cta" href={`/${extension.slug}/support`}>Support</a>
+          <a className="secondary-cta" href={`/${extension.slug}/login`}>Login</a>
+          <a className="primary-cta" href={`/${extension.slug}/payment`}>Get Pro</a>
         </div>
       </section>
       <section className="two-col">
@@ -799,8 +807,7 @@ function LoginPage({ extension }: { extension: ExtensionDefinition }) {
       </div>
       <div className="cta-row">
         {extension.installUrl ? <a className="primary-cta" href={extension.installUrl} target="_blank" rel="noreferrer">Install extension</a> : null}
-        <a className="secondary-cta" href={`/${extension.slug}/pricing`}>Open pricing</a>
-        <a className="secondary-cta" href={`/${extension.slug}/support`}>Get support</a>
+        <a className="primary-cta" href={`/${extension.slug}/payment`}>Continue to Pro</a>
       </div>
     </section>
   )
@@ -959,8 +966,8 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
         {extension.paymentBody.map((item) => <section key={item} className="article-section"><p>{item}</p></section>)}
       </div>
       <div className="cta-row">
-        <a className="primary-cta" href={`/${extension.slug}/pricing`}>Open pricing</a>
-        <a className="secondary-cta" href={`/${extension.slug}/support`}>Talk to support</a>
+        <a className="primary-cta" href={`/${extension.slug}/payment`}>Stay on payment</a>
+        <a className="secondary-cta" href={`/${extension.slug}`}>Back to {extension.name}</a>
       </div>
     </section>
   )
