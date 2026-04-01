@@ -1,11 +1,14 @@
-<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="64" height="64" rx="18" fill="#0F172A"/>
-  <rect x="8" y="8" width="48" height="48" rx="14" fill="url(#paint0_linear_1_2)"/>
-  <path d="M22 22H31.5C37.299 22 41 25.4903 41 30.4897C41 34.7655 38.0756 37.7332 33.6808 38.4474L40.5 46H34.6472L28.6111 39.0274H26.8889V46H22V22ZM26.8889 35.1339H30.8889C34.3056 35.1339 36.0556 33.579 36.0556 30.8471C36.0556 28.1458 34.3056 26.6237 30.8889 26.6237H26.8889V35.1339Z" fill="white"/>
-  <defs>
-    <linearGradient id="paint0_linear_1_2" x1="10" y1="10" x2="54" y2="54" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#0F766E"/>
-      <stop offset="1" stop-color="#22C55E"/>
-    </linearGradient>
-  </defs>
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="18" y="18" width="220" height="220" rx="52" fill="#121A26"/>
+  <rect x="18" y="18" width="220" height="220" rx="52" stroke="#F8FAFC" stroke-width="3"/>
+  <circle cx="96" cy="74" r="64" fill="#22D6BA" fill-opacity="0.18"/>
+  <circle cx="178" cy="186" r="62" fill="#F77C58" fill-opacity="0.18"/>
+  <rect x="94" y="56" width="92" height="108" rx="22" fill="#D5D1D7"/>
+  <rect x="64" y="60" width="92" height="108" rx="22" fill="#F4F7FA"/>
+  <rect x="84" y="81" width="10" height="70" rx="5" fill="#22D6BA"/>
+  <rect x="96" y="112" width="76" height="14" rx="7" fill="#22D6BA"/>
+  <path d="M83 159L163 75L184 96L104 180L83 159Z" fill="#FF7B56"/>
+  <path d="M184 96L198 89L191 110L184 96Z" fill="#FFD38D"/>
+  <circle cx="192" cy="52" r="12" fill="#FFC94D"/>
+  <circle cx="52" cy="194" r="12" fill="#FF4F93"/>
 </svg>
