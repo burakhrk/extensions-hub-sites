@@ -1042,10 +1042,14 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
       <section className="article-card payment-shell">
         <div className="payment-header">
           <div className="payment-header-copy">
-            <div className="pill">Payment</div>
             <div className="eyebrow">{extension.name}</div>
             <h1>Manage your plan on the web.</h1>
-            <p>Use the same account as the extension, connect Patreon, and come back to the right plan already linked.</p>
+            <p>Sign in with the same account as the extension, connect Patreon, and come back with the right plan already linked.</p>
+          </div>
+          <div className="payment-price-card">
+            <span>Pro plan</span>
+            <strong>{extension.priceLabel || '$5 / month'}</strong>
+            <p>One clear upgrade path for this extension.</p>
           </div>
           <div className="payment-header-summary">
             <div className="mini-detail-card">
@@ -1147,7 +1151,7 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
               <p className="payment-lead-copy">
                 {state?.patreonConnected
                   ? 'Your Patreon link is already attached to this account. Refresh access if your membership changed.'
-                  : 'Sign in with the same Google account, connect Patreon, and come back here with the updated plan.'}
+                  : `${extension.priceLabel || '$5 / month'} for Pro. Sign in, connect Patreon, and come back here with the updated plan.`}
               </p>
               {isPatreonBilling ? <p className="muted-copy">Membership changes usually appear on the next sync window.</p> : null}
               <div className="cta-row">
@@ -1162,27 +1166,6 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
             </section>
           </div>
         </div>
-        <section className="payment-plan-section">
-          <div className="section-label">Plan comparison</div>
-          <div className="plan-compare-grid compact-plan-compare-grid">
-            <div className="plan-compare-card">
-              <div className="section-label">Free</div>
-              <h3>Keep the core workflow.</h3>
-              <ul className="simple-list feature-list">
-                <li>Core extension usage.</li>
-                <li>Same Google account on extension and website.</li>
-                <li>Basic access without premium upgrades.</li>
-              </ul>
-            </div>
-            <div className="plan-compare-card plan-compare-card-accent">
-              <div className="section-label">Pro</div>
-              <h3>Unlock the premium experience.</h3>
-              <ul className="simple-list feature-list">
-                {extension.proFeatures.map((feature) => <li key={`payment-${feature}`}>{feature}</li>)}
-              </ul>
-            </div>
-          </div>
-        </section>
         <div className="cta-row">
           <a className="primary-cta" href={`/${extension.slug}/payment`}>Stay on payment</a>
           <a className="secondary-cta" href={`/${extension.slug}`}>Back to {extension.name}</a>

@@ -28,6 +28,7 @@ export type ExtensionDefinition = {
   steps: string[]
   pricingTitle: string
   pricingBody: string
+  priceLabel?: string
   proFeatures: string[]
   supportBody: string
   privacySummary: PolicySection[]
@@ -89,6 +90,7 @@ export const extensions: ExtensionDefinition[] = [
       'Open the dashboard later to review, search, and ask across your notes.',
     ],
     pricingTitle: 'Website billing for Deep Note Pro',
+    priceLabel: '$5 / month',
     pricingBody:
       'Deep Note keeps billing outside the extension. Google sign-in anchors the app account, and Patreon can be linked on the website to sync the same user into the right free or Pro tier.',
     proFeatures: [
@@ -207,6 +209,7 @@ export const extensions: ExtensionDefinition[] = [
       'The other person sees the drawing or effect on the page they are actively viewing in Chrome.',
     ],
     pricingTitle: 'Sketch Party Free and Patreon-based Pro',
+    priceLabel: '$5 / month',
     pricingBody:
       'Sketch Party is preparing a free core experience in the extension, while Patreon-based account login and Patreon subscriptions are the planned path for Pro access, premium effects, and future paid features.',
     proFeatures: [

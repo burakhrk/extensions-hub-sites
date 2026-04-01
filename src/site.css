@@ -492,22 +492,49 @@ button { border: 0; cursor: pointer; }
 }
 .payment-shell h1 {
   max-width: 8ch;
-  font-size: clamp(2rem, 3.8vw, 3.2rem);
+  font-size: clamp(1.9rem, 3.3vw, 2.9rem);
 }
 .payment-header {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 24px;
-  align-items: end;
-  margin-bottom: 18px;
+  grid-template-columns: minmax(0, 1.1fr) 220px 320px;
+  gap: 18px;
+  align-items: start;
+  margin-bottom: 14px;
 }
 .payment-header-copy {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 .payment-header-copy p {
   margin: 0;
-  max-width: 720px;
+  max-width: 620px;
+}
+.payment-price-card {
+  align-self: start;
+  padding: 18px 18px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(201, 236, 230, 0.95);
+  background: linear-gradient(180deg, #f7fffd 0%, #eaf8f4 100%);
+}
+.payment-price-card span {
+  display: block;
+  text-transform: uppercase;
+  letter-spacing: .16em;
+  font-size: .68rem;
+  font-weight: 800;
+  color: var(--muted);
+}
+.payment-price-card strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 1.55rem;
+  line-height: 1;
+  letter-spacing: -.03em;
+}
+.payment-price-card p {
+  margin: 10px 0 0;
+  color: var(--muted);
+  line-height: 1.6;
 }
 .payment-header-summary {
   display: grid;
@@ -547,9 +574,6 @@ button { border: 0; cursor: pointer; }
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin-bottom: 14px;
-}
-.payment-plan-section {
-  margin-top: 22px;
 }
 .sync-status-card {
   padding: 18px 20px;
@@ -1277,6 +1301,9 @@ button { border: 0; cursor: pointer; }
   .highlight-grid { grid-template-columns: 1fr; }
   .payment-header {
     grid-template-columns: 1fr;
+  }
+  .payment-price-card {
+    max-width: 280px;
   }
   .payment-header-summary {
     grid-template-columns: 1fr;
