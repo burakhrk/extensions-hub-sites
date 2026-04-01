@@ -1022,9 +1022,28 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
 
   return (
       <section className="article-card payment-shell">
-        <div className="pill">Payment</div>
-        <h1>{extension.name} payment handoff</h1>
-        <p className="article-intro">Checkout for {extension.name} should happen here on the website, with the same account context carried over from the extension.</p>
+        <div className="payment-header">
+          <div className="payment-header-copy">
+            <div className="pill">Payment</div>
+            <div className="eyebrow">{extension.name}</div>
+            <h1>Manage your plan on the web.</h1>
+            <p>Use the same account as the extension, connect Patreon, and come back to the right plan already linked.</p>
+          </div>
+          <div className="payment-header-summary">
+            <div className="mini-detail-card">
+              <span>Plan</span>
+              <strong>{loading ? 'Checking...' : state?.plan || 'Free'}</strong>
+            </div>
+            <div className="mini-detail-card">
+              <span>Provider</span>
+              <strong>{state?.billingProvider || (isPatreonBilling ? 'patreon' : 'website')}</strong>
+            </div>
+            <div className="mini-detail-card">
+              <span>Patreon</span>
+              <strong>{state?.patreonConnected ? 'Linked' : 'Not linked'}</strong>
+            </div>
+          </div>
+        </div>
         {paymentStatus === 'connected' ? <p className="success"><strong>Patreon connected.</strong> Your membership is now linked back to this extension account.</p> : null}
         {paymentStatus === 'failed' ? <p className="warning">Patreon connection did not complete. You can retry from this page.</p> : null}
         <div className="two-col payment-layout">
@@ -1122,30 +1141,29 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
                 {state?.portalUrl ? <a className="secondary-cta" href={state.portalUrl} target="_blank" rel="noreferrer">{isPatreonBilling ? 'Manage membership on Patreon' : 'Open billing portal'}</a> : null}
               </div>
             </section>
-
-            <section className="payment-panel">
-              <div className="section-label">Plan comparison</div>
-              <div className="plan-compare-grid compact-plan-compare-grid">
-                <div className="plan-compare-card">
-                  <div className="section-label">Free</div>
-                  <h3>Keep the core workflow.</h3>
-                  <ul className="simple-list feature-list">
-                    <li>Core extension usage.</li>
-                    <li>Same Google account on extension and website.</li>
-                    <li>Basic access without premium upgrades.</li>
-                  </ul>
-                </div>
-                <div className="plan-compare-card plan-compare-card-accent">
-                  <div className="section-label">Pro</div>
-                  <h3>Unlock the premium experience.</h3>
-                  <ul className="simple-list feature-list">
-                    {extension.proFeatures.map((feature) => <li key={`payment-${feature}`}>{feature}</li>)}
-                  </ul>
-                </div>
-              </div>
-            </section>
           </div>
         </div>
+        <section className="payment-plan-section">
+          <div className="section-label">Plan comparison</div>
+          <div className="plan-compare-grid compact-plan-compare-grid">
+            <div className="plan-compare-card">
+              <div className="section-label">Free</div>
+              <h3>Keep the core workflow.</h3>
+              <ul className="simple-list feature-list">
+                <li>Core extension usage.</li>
+                <li>Same Google account on extension and website.</li>
+                <li>Basic access without premium upgrades.</li>
+              </ul>
+            </div>
+            <div className="plan-compare-card plan-compare-card-accent">
+              <div className="section-label">Pro</div>
+              <h3>Unlock the premium experience.</h3>
+              <ul className="simple-list feature-list">
+                {extension.proFeatures.map((feature) => <li key={`payment-${feature}`}>{feature}</li>)}
+              </ul>
+            </div>
+          </div>
+        </section>
         <div className="cta-row">
           <a className="primary-cta" href={`/${extension.slug}/payment`}>Stay on payment</a>
           <a className="secondary-cta" href={`/${extension.slug}`}>Back to {extension.name}</a>

@@ -485,8 +485,32 @@ button { border: 0; cursor: pointer; }
 .payment-shell {
   padding-bottom: 28px;
 }
+.payment-shell h1 {
+  max-width: 8ch;
+  font-size: clamp(2rem, 3.8vw, 3.2rem);
+}
+.payment-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 24px;
+  align-items: end;
+  margin-bottom: 18px;
+}
+.payment-header-copy {
+  display: grid;
+  gap: 10px;
+}
+.payment-header-copy p {
+  margin: 0;
+  max-width: 720px;
+}
+.payment-header-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
 .payment-layout {
-  margin-top: 18px;
+  margin-top: 10px;
   align-items: start;
 }
 .payment-column {
@@ -512,6 +536,9 @@ button { border: 0; cursor: pointer; }
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin-bottom: 14px;
+}
+.payment-plan-section {
+  margin-top: 22px;
 }
 .sync-status-card {
   padding: 18px 20px;
@@ -1237,6 +1264,12 @@ button { border: 0; cursor: pointer; }
   .two-col { grid-template-columns: 1fr; }
   .hero-grid { grid-template-columns: 1fr; }
   .highlight-grid { grid-template-columns: 1fr; }
+  .payment-header {
+    grid-template-columns: 1fr;
+  }
+  .payment-header-summary {
+    grid-template-columns: 1fr;
+  }
   .hero-preview-note-secondary,
   .hero-preview-note-tertiary {
     width: 100%;
