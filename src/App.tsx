@@ -702,6 +702,47 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
           </ul>
         </div>
       </section>
+      <section className="editorial-section story-panel">
+        <div className="section-label">What people actually save</div>
+        <div className="examples-grid">
+          <article className="example-note-card">
+            <div className="example-note-top">
+              <span className="mini-pill">Quick capture</span>
+              <span className="example-note-color tone-mint" />
+            </div>
+            <strong>Interesting paragraph from an article</strong>
+            <p>Save the line now, add your own thought, and come back later with a short summary already attached.</p>
+            <div className="example-note-tags">
+              <span>Research</span>
+              <span>Summary</span>
+            </div>
+          </article>
+          <article className="example-note-card">
+            <div className="example-note-top">
+              <span className="mini-pill">Organized note</span>
+              <span className="example-note-color tone-sky" />
+            </div>
+            <strong>Saved into the right folder</strong>
+            <p>Turn scattered captures into a clean note stack with folders, tags, and a clearer place to revisit them.</p>
+            <div className="example-note-tags">
+              <span>Folders</span>
+              <span>Review later</span>
+            </div>
+          </article>
+          <article className="example-note-card example-note-card-accent">
+            <div className="example-note-top">
+              <span className="mini-pill">Pro workflow</span>
+              <span className="example-note-color tone-ink" />
+            </div>
+            <strong>Ask AI across your saved notes</strong>
+            <p>Use Pro to summarize what you saved, suggest structure, and chat across notes without rebuilding context each time.</p>
+            <div className="example-note-tags">
+              <span>AI help</span>
+              <span>Knowledge chat</span>
+            </div>
+          </article>
+        </div>
+      </section>
       <section className="section-stack">
         <div className="section-heading-block">
           <div className="section-label">Choose your plan</div>
@@ -1044,7 +1085,6 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
       <section className="article-card payment-shell">
         <div className="payment-header">
           <div className="payment-header-copy">
-            <div className="eyebrow">{extension.name}</div>
             <h1>Upgrade to Deep Note Pro.</h1>
             <p>{extension.priceLabel || '$5 / month'} billed through Patreon. Sign in, connect Patreon, and the same account unlocks Pro in the extension.</p>
           </div>
@@ -1052,15 +1092,10 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
             <span>Deep Note Pro</span>
             <strong>{extension.priceLabel || '$5 / month'}</strong>
             <p>AI summaries, smart organization, and knowledge chat across your saved notes.</p>
-            <div className="payment-price-meta">
-              <div>
-                <span>Current access</span>
-                <strong>{planLabel}</strong>
-              </div>
-              <div>
-                <span>Patreon</span>
-                <strong>{patreonStatusLabel}</strong>
-              </div>
+            <div className="payment-visual-tags">
+              <span>Summaries</span>
+              <span>Folders</span>
+              <span>Knowledge chat</span>
             </div>
           </div>
         </div>
@@ -1160,11 +1195,21 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
               <div className="cta-row">
                 {isPatreonBilling ? (
                   <button className="button-cta" onClick={() => void handleConnectPatreon()} disabled={patreonLoading || !auth.user}>
-                    {patreonLoading ? 'Opening Patreon...' : state?.patreonConnected ? 'Refresh Patreon access' : `Connect Patreon for ${extension.priceLabel || '$5 / month'}`}
+                    {patreonLoading ? 'Opening Patreon...' : 'Connect Patreon'}
                   </button>
                 ) : null}
                 {!isPatreonBilling && state?.checkoutUrl ? <a className="secondary-cta" href={state.checkoutUrl} target="_blank" rel="noreferrer">Continue to checkout</a> : null}
                 {state?.portalUrl && state?.plan === 'pro' ? <a className="secondary-cta" href={state.portalUrl} target="_blank" rel="noreferrer">{isPatreonBilling ? 'Manage membership on Patreon' : 'Open billing portal'}</a> : null}
+              </div>
+              <div className="payment-status-strip">
+                <div>
+                  <span>Current access</span>
+                  <strong>{planLabel}</strong>
+                </div>
+                <div>
+                  <span>Patreon</span>
+                  <strong>{patreonStatusLabel}</strong>
+                </div>
               </div>
             </section>
           </div>
