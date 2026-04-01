@@ -493,6 +493,16 @@ function AppShell({ children, extension, page }: { children: ReactNode; extensio
                 <a className={page === 'product' ? 'is-active' : ''} href={`/${extension.slug}`}>Home</a>
                 {!auth.user ? <a className={page === 'login' ? 'is-active' : ''} href={`/${extension.slug}/login`}>Login</a> : null}
                 <a className={page === 'payment' || page === 'pricing' ? 'is-active' : ''} href={`/${extension.slug}/payment`}>Get Pro</a>
+                {auth.user ? (
+                  <button
+                    className="topnav-button"
+                    onClick={() => {
+                      void signOutOnWebsite()
+                    }}
+                  >
+                    Log out
+                  </button>
+                ) : null}
               </>
             ) : <a className={page === 'hub' ? 'is-active' : ''} href="/">Home</a>}
           </nav>
@@ -544,6 +554,39 @@ function HubPage() {
 function ProductHome({ extension }: { extension: ExtensionDefinition }) {
   const auth = useWebsiteAuthState()
   const otherProducts = extensions.filter((item) => item.slug !== extension.slug)
+  const [state, setState] = useState<BillingState | null>(null)
+  const [loading, setLoading] = useState(Boolean(extension.apiBase && auth.user?.id))
+
+  useEffect(() => {
+    let cancelled = false
+
+    const load = async () => {
+      if (!extension.apiBase || !auth.user?.id) {
+        setLoading(false)
+        return
+      }
+
+      try {
+        const query = new URLSearchParams({
+          appId: extension.appId,
+          clientId: auth.user.id,
+          accountId: auth.user.id,
+        })
+        if (auth.user.email) query.set('email', auth.user.email)
+        const res = await fetch(`${extension.apiBase}/api/billing/state?${query.toString()}`)
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok) throw new Error(data.error || 'Billing state could not be loaded.')
+        if (!cancelled) setState(data as BillingState)
+      } catch {
+        if (!cancelled) setState(null)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    void load()
+    return () => { cancelled = true }
+  }, [auth.user?.email, auth.user?.id, extension.apiBase, extension.appId])
 
   return (
     <div className="stack-lg">
@@ -562,6 +605,15 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
           {!auth.user ? <a className="secondary-cta" href={`/${extension.slug}/login`}>Login</a> : null}
           <a className="primary-cta" href={`/${extension.slug}/payment`}>Get Pro</a>
         </div>
+        {auth.user ? (
+          <div className="plan-strip">
+            <span>Signed in as <strong>{auth.user.email || auth.user.id}</strong></span>
+            <span>
+              Current plan: <strong>{loading ? 'Checking...' : state?.plan === 'pro' ? 'Pro' : 'Free'}</strong>
+              {state?.source ? ` via ${state.source}` : ''}
+            </span>
+          </div>
+        ) : null}
       </section>
       <section className="two-col product-story-grid">
         <div className="editorial-section compact-editorial-section">
@@ -579,6 +631,24 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
           </div>
           <ul className="simple-list feature-list">
             {extension.proFeatures.map((feature) => <li key={feature}>{feature}</li>)}
+          </ul>
+        </div>
+      </section>
+      <section className="plan-compare-grid">
+        <div className="plan-compare-card">
+          <div className="section-label">Free</div>
+          <h3>Start using the extension right away.</h3>
+          <ul className="simple-list feature-list">
+            <li>Core capture and product workflow inside the extension.</li>
+            <li>Website sign-in to keep the same account connected.</li>
+            <li>Basic access while you decide whether Pro is worth it for you.</li>
+          </ul>
+        </div>
+        <div className="plan-compare-card plan-compare-card-accent">
+          <div className="section-label">Pro</div>
+          <h3>Unlock the premium workflow for {extension.name}.</h3>
+          <ul className="simple-list feature-list">
+            {extension.proFeatures.map((feature) => <li key={`pro-${feature}`}>{feature}</li>)}
           </ul>
         </div>
       </section>
@@ -895,83 +965,128 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
   }
 
   return (
-      <section className="article-card">
+      <section className="article-card payment-shell">
         <div className="pill">Payment</div>
         <h1>{extension.name} payment handoff</h1>
         <p className="article-intro">Checkout for {extension.name} should happen here on the website, with the same account context carried over from the extension.</p>
         {paymentStatus === 'connected' ? <p className="success"><strong>Patreon connected.</strong> Your membership is now linked back to this extension account.</p> : null}
         {paymentStatus === 'failed' ? <p className="warning">Patreon connection did not complete. You can retry from this page.</p> : null}
-        <div className="editorial-section compact-editorial-section">
-          <div className="stack-sm content-flow">
-            <p><strong>Website account:</strong> {auth.loading ? 'Checking...' : auth.user?.email || 'Not signed in'}</p>
-            {auth.user ? (
-              <div className={`sync-status-card ${isDifferentUser ? 'is-warning' : 'is-success'}`}>
-              <strong>{isDifferentUser ? 'Different account detected' : isSyncedUser ? 'Website and extension are synced' : 'Website session active'}</strong>
-              <p>
-                {isDifferentUser
-                  ? `Website: ${auth.user.email || auth.user.id} | Extension: ${identity.email || identity.accountId}`
-                  : auth.user.email || auth.user.id}
-              </p>
-            </div>
-          ) : null}
-          {!auth.user && auth.configured ? (
-            <div className="auth-inline-box">
-              <p>Use the same Google account you use inside the extension before you continue to Patreon.</p>
-              <button
-                className="button-cta inline-cta"
-                onClick={() => {
-                  setAuthError(null)
-                  void signInOnWebsiteWithGoogle(window.location.href).catch((err) => setAuthError(err instanceof Error ? err.message : 'Website sign-in failed.'))
-                }}
-              >
-                Sign in with Google
-              </button>
-            </div>
-          ) : null}
-          {auth.user ? (
-            <div className="cta-row compact-cta-row">
-              <button
-                className="secondary-cta"
-                onClick={() => {
-                  setAuthError(null)
-                  void signOutOnWebsite().catch((err) => setAuthError(err instanceof Error ? err.message : 'Sign out failed.'))
-                }}
-              >
-                Sign out on website
-              </button>
-            </div>
-            ) : null}
-            {!auth.configured ? <p className="warning">Supabase website auth is not configured yet. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` on this site.</p> : null}
-            {authError ? <p className="warning">{authError}</p> : null}
+        <div className="two-col payment-layout">
+          <div className="payment-column stack-md">
+            <section className="payment-panel">
+              <div className="section-label">Account</div>
+              <p><strong>Website account:</strong> {auth.loading ? 'Checking...' : auth.user?.email || 'Not signed in'}</p>
+              {auth.user ? (
+                <div className={`sync-status-card ${isDifferentUser ? 'is-warning' : 'is-success'}`}>
+                  <strong>{isDifferentUser ? 'Different account detected' : isSyncedUser ? 'Website and extension are synced' : 'Website session active'}</strong>
+                  <p>
+                    {isDifferentUser
+                      ? `Website: ${auth.user.email || auth.user.id} | Extension: ${identity.email || identity.accountId}`
+                      : auth.user.email || auth.user.id}
+                  </p>
+                </div>
+              ) : null}
+              {!auth.user && auth.configured ? (
+                <div className="auth-inline-box">
+                  <p>Use the same Google account you use inside the extension before you continue to Patreon.</p>
+                  <button
+                    className="button-cta inline-cta"
+                    onClick={() => {
+                      setAuthError(null)
+                      void signInOnWebsiteWithGoogle(window.location.href).catch((err) => setAuthError(err instanceof Error ? err.message : 'Website sign-in failed.'))
+                    }}
+                  >
+                    Sign in with Google
+                  </button>
+                </div>
+              ) : null}
+              {auth.user ? (
+                <div className="cta-row compact-cta-row">
+                  <button
+                    className="secondary-cta"
+                    onClick={() => {
+                      setAuthError(null)
+                      void signOutOnWebsite().catch((err) => setAuthError(err instanceof Error ? err.message : 'Sign out failed.'))
+                    }}
+                  >
+                    Sign out on website
+                  </button>
+                </div>
+              ) : null}
+              {!auth.configured ? <p className="warning">Supabase website auth is not configured yet. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` on this site.</p> : null}
+              {authError ? <p className="warning">{authError}</p> : null}
+            </section>
+
+            <section className="payment-panel">
+              <div className="section-label">Current access</div>
+              {loading ? <p>Loading payment options...</p> : null}
+              {error ? <p className="warning">{error}</p> : null}
+              {state ? (
+                <div className="payment-state-grid">
+                  <div className="mini-detail-card">
+                    <span>Current plan</span>
+                    <strong>{state.plan}</strong>
+                  </div>
+                  <div className="mini-detail-card">
+                    <span>Access source</span>
+                    <strong>{state.source}</strong>
+                  </div>
+                  <div className="mini-detail-card">
+                    <span>Billing provider</span>
+                    <strong>{state.billingProvider || 'website'}</strong>
+                  </div>
+                  <div className="mini-detail-card">
+                    <span>Patreon</span>
+                    <strong>{state.patreonConnected ? (state.patreonUserId || 'Connected') : 'Not linked'}</strong>
+                  </div>
+                </div>
+              ) : null}
+              {state?.source === 'promo' && state.trialEndsAt ? <p><strong>Promo ends:</strong> {new Date(state.trialEndsAt).toLocaleString()}</p> : null}
+              {state?.isTrialActive && state.trialEndsAt ? <p><strong>Trial ends:</strong> {new Date(state.trialEndsAt).toLocaleString()}</p> : null}
+              {patreonLastSyncedLabel ? <p><strong>Last Patreon sync:</strong> {patreonLastSyncedLabel}</p> : null}
+            </section>
           </div>
-        </div>
-        {loading ? <p>Loading payment options...</p> : null}
-        {error ? <p className="warning">{error}</p> : null}
-        {state ? (
-          <div className="editorial-section compact-editorial-section">
-            <p><strong>Current plan:</strong> {state.plan}</p>
-            <p><strong>Access source:</strong> {state.source}</p>
-            {state.source === 'promo' && state.trialEndsAt ? <p><strong>Promo ends:</strong> {new Date(state.trialEndsAt).toLocaleString()}</p> : null}
-          {state.isTrialActive && state.trialEndsAt ? <p><strong>Trial ends:</strong> {new Date(state.trialEndsAt).toLocaleString()}</p> : null}
-          <p><strong>Billing provider:</strong> {state.billingProvider || 'website'}</p>
-          {state.patreonConnected ? <p><strong>Patreon linked:</strong> {state.patreonUserId || 'Connected'}</p> : null}
-          {patreonLastSyncedLabel ? <p><strong>Last Patreon sync:</strong> {patreonLastSyncedLabel}</p> : null}
-          {isPatreonBilling ? <p className="muted-copy">Patreon entitlement is cached and refreshed automatically about every 6 hours so account checks stay lightweight. Refunds or cancellations will be reflected on the next sync window.</p> : null}
-          <div className="cta-row">
-            {isPatreonBilling ? (
-              <button className="button-cta" onClick={() => void handleConnectPatreon()} disabled={patreonLoading || !auth.user}>
-                {patreonLoading ? 'Opening Patreon...' : state.patreonConnected ? 'Refresh Patreon access' : 'Connect Patreon'}
-              </button>
-            ) : null}
-            {state.checkoutUrl ? <a className="secondary-cta" href={state.checkoutUrl} target="_blank" rel="noreferrer">{isPatreonBilling ? 'Open Patreon package page' : 'Continue to checkout'}</a> : null}
-              {state.portalUrl ? <a className="secondary-cta" href={state.portalUrl} target="_blank" rel="noreferrer">{isPatreonBilling ? 'Manage Patreon membership' : 'Open billing portal'}</a> : null}
-              <a className="secondary-cta" href={`/${extension.slug}/pricing`}>Back to pricing</a>
-            </div>
-          </div>
-        ) : null}
-        <div className="editorial-section">
-          <div className="editorial-copy">
-            {extension.paymentBody.map((item) => <p key={item}>{item}</p>)}
+
+          <div className="payment-column stack-md">
+            <section className="payment-panel payment-panel-accent">
+              <div className="section-label">Next step</div>
+              <h2>{state?.patreonConnected ? 'Refresh or manage your Pro access' : 'Connect Patreon for Pro'}</h2>
+              <div className="editorial-copy">
+                {extension.paymentBody.map((item) => <p key={item}>{item}</p>)}
+              </div>
+              {isPatreonBilling ? <p className="muted-copy">Patreon entitlement refreshes automatically about every 6 hours so account checks stay lightweight. Refunds or cancellations show up on the next sync window.</p> : null}
+              <div className="cta-row">
+                {isPatreonBilling ? (
+                  <button className="button-cta" onClick={() => void handleConnectPatreon()} disabled={patreonLoading || !auth.user}>
+                    {patreonLoading ? 'Opening Patreon...' : state?.patreonConnected ? 'Refresh Patreon access' : 'Connect Patreon'}
+                  </button>
+                ) : null}
+                {state?.checkoutUrl ? <a className="secondary-cta" href={state.checkoutUrl} target="_blank" rel="noreferrer">{isPatreonBilling ? 'Open Patreon package page' : 'Continue to checkout'}</a> : null}
+                {state?.portalUrl ? <a className="secondary-cta" href={state.portalUrl} target="_blank" rel="noreferrer">{isPatreonBilling ? 'Manage membership' : 'Open billing portal'}</a> : null}
+              </div>
+            </section>
+
+            <section className="payment-panel">
+              <div className="section-label">Plan comparison</div>
+              <div className="plan-compare-grid compact-plan-compare-grid">
+                <div className="plan-compare-card">
+                  <div className="section-label">Free</div>
+                  <h3>Keep the core workflow.</h3>
+                  <ul className="simple-list feature-list">
+                    <li>Core extension usage.</li>
+                    <li>Same Google account on extension and website.</li>
+                    <li>Basic access without premium upgrades.</li>
+                  </ul>
+                </div>
+                <div className="plan-compare-card plan-compare-card-accent">
+                  <div className="section-label">Pro</div>
+                  <h3>Unlock the premium experience.</h3>
+                  <ul className="simple-list feature-list">
+                    {extension.proFeatures.map((feature) => <li key={`payment-${feature}`}>{feature}</li>)}
+                  </ul>
+                </div>
+              </div>
+            </section>
           </div>
         </div>
         <div className="cta-row">

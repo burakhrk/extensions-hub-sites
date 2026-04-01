@@ -104,8 +104,15 @@ button { border: 0; cursor: pointer; }
 .brand-title { font-size: .9rem; font-weight: 700; text-transform: uppercase; letter-spacing: .16em; }
 .brand-subtitle { color: var(--muted); font-size: .9rem; }
 .topnav { display: flex; flex-wrap: wrap; gap: 8px; }
-.topnav a { text-decoration: none; padding: 10px 14px; border-radius: 12px; color: var(--muted); }
-.topnav a:hover, .topnav a.is-active { background: #0f172a; color: white; }
+.topnav a,
+.topnav-button {
+  text-decoration: none;
+  padding: 10px 14px;
+  border-radius: 12px;
+  color: var(--muted);
+  background: transparent;
+}
+.topnav a:hover, .topnav a.is-active, .topnav-button:hover { background: #0f172a; color: white; }
 .session-strip {
   margin-top: 12px;
   padding: 10px 14px;
@@ -305,6 +312,37 @@ button { border: 0; cursor: pointer; }
   border: 1px solid var(--line);
   background: white;
 }
+.payment-shell {
+  padding-bottom: 28px;
+}
+.payment-layout {
+  margin-top: 18px;
+  align-items: start;
+}
+.payment-column {
+  min-width: 0;
+}
+.payment-panel {
+  padding: 22px 24px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: #fbfcfe;
+}
+.payment-panel h2 {
+  margin: 12px 0 0;
+  font-size: 1.6rem;
+  line-height: 1.15;
+}
+.payment-panel-accent {
+  background: linear-gradient(180deg, #f7fffd 0%, #ebfaf7 100%);
+  border-color: #c9ece6;
+}
+.payment-state-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
 .sync-status-card {
   padding: 16px 18px;
   border-radius: 14px;
@@ -341,6 +379,42 @@ button { border: 0; cursor: pointer; }
 .feature-list li {
   color: var(--muted);
   line-height: 1.7;
+}
+.plan-strip {
+  margin-top: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+}
+.plan-strip strong {
+  color: var(--ink);
+}
+.plan-compare-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.compact-plan-compare-grid {
+  margin-top: 12px;
+}
+.plan-compare-card {
+  padding: 20px 22px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: #fbfcfe;
+}
+.plan-compare-card h3 {
+  margin: 10px 0 0;
+  font-size: 1.3rem;
+  line-height: 1.2;
+}
+.plan-compare-card-accent {
+  background: linear-gradient(180deg, #f4fffd 0%, #e8faf6 100%);
+  border-color: #bce6dd;
 }
 .products-footer-section {
   border-top: 1px solid var(--line);
@@ -942,6 +1016,8 @@ button { border: 0; cursor: pointer; }
   .legal-aside { position: static; }
   .admin-layout { grid-template-columns: 1fr; }
   .admin-sidebar { position: static; }
+  .payment-state-grid,
+  .plan-compare-grid,
   .admin-lead-card,
   .admin-visual-grid,
   .admin-analysis-grid,
