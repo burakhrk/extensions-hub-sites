@@ -1,14 +1,17 @@
 <svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect x="18" y="18" width="220" height="220" rx="46" fill="#0C121C"/>
+  <rect x="18" y="18" width="220" height="220" rx="46" fill="#0E1420"/>
   <rect x="18" y="18" width="220" height="220" rx="46" stroke="#FFFFFF" stroke-opacity="0.12" stroke-width="3"/>
-  <ellipse cx="100" cy="102" rx="66" ry="70" fill="#31D6C2" fill-opacity="0.12"/>
-  <ellipse cx="168" cy="88" rx="48" ry="40" fill="#FFFFFF" fill-opacity="0.05"/>
-  <rect x="72" y="66" width="22" height="124" rx="11" fill="#31D6C2"/>
-  <rect x="160" y="66" width="22" height="124" rx="11" fill="#F5F7FA"/>
-  <rect x="84" y="119" width="86" height="18" rx="9" fill="#F5F7FA"/>
-  <rect x="84" y="119" width="38" height="18" rx="9" fill="#B8C4D2"/>
-  <rect x="168" y="85" width="24" height="30" rx="8" fill="#121925"/>
-  <circle cx="186" cy="95" r="3" fill="#F0C060"/>
-  <circle cx="186" cy="105" r="3" fill="#F0C060"/>
-  <circle cx="186" cy="62" r="8" fill="#F0C060"/>
+  <ellipse cx="92" cy="100" rx="60" ry="68" fill="#38DCC7" fill-opacity="0.14"/>
+  <ellipse cx="172" cy="88" rx="54" ry="44" fill="#FFCE66" fill-opacity="0.08"/>
+  <rect x="72" y="66" width="22" height="124" rx="11" fill="#38DCC7"/>
+  <rect x="160" y="66" width="22" height="124" rx="11" fill="#F4F7FB"/>
+  <rect x="84" y="119" width="86" height="18" rx="9" fill="#F4F7FB"/>
+  <rect x="84" y="119" width="34" height="18" rx="9" fill="#B8C5D6"/>
+  <circle cx="184" cy="70" r="18" stroke="#FFFFFF" stroke-opacity="0.24" stroke-width="3"/>
+  <path d="M169 78C172 71 178 67 184 67" stroke="#FFCE66" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="184" cy="70" r="5" fill="#FFCE66"/>
+  <circle cx="192" cy="87" r="4" fill="#FF6699"/>
+  <circle cx="57" cy="185" r="5" fill="#FF6699"/>
+  <path d="M202 44V56" stroke="#FFFFFF" stroke-opacity="0.72" stroke-width="3" stroke-linecap="round"/>
+  <path d="M196 50H208" stroke="#FFFFFF" stroke-opacity="0.72" stroke-width="3" stroke-linecap="round"/>
 </svg>
