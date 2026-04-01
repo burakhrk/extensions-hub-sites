@@ -8,6 +8,11 @@ export type ExtensionRequiredPage = {
   note: string
 }
 
+export type PolicySection = {
+  title: string
+  body: string[]
+}
+
 export type ExtensionDefinition = {
   slug: ExtensionSlug
   appId: string
@@ -25,8 +30,8 @@ export type ExtensionDefinition = {
   pricingBody: string
   proFeatures: string[]
   supportBody: string
-  privacySummary: string[]
-  termsSummary: string[]
+  privacySummary: PolicySection[]
+  termsSummary: PolicySection[]
   loginBody: string[]
   paymentBody: string[]
   requiredPages: ExtensionRequiredPage[]
@@ -94,12 +99,64 @@ export const extensions: ExtensionDefinition[] = [
     supportBody:
       'Use this page for public support, legal pages, pricing handoff, and shared note links for Deep Note.',
     privacySummary: [
-      'Deep Note stores notes locally by default and only sends note content to backend services when the user triggers AI, sharing, or cloud-linked features.',
-      'Google sign-in can be used for cloud restore and account-linked billing state.',
+      {
+        title: 'Information Deep Note processes',
+        body: [
+          'Deep Note processes note content, captured highlights, image references, page URLs, note titles, comments, reminders, and note organization data such as folders and tags. This information is used to provide the core note capture and review workflow inside the extension.',
+          'For ordinary product use, Deep Note stores notes and most note-related state locally in the extension environment on the user’s device. This local-first behavior is part of the product design and helps keep basic note usage available without requiring a permanent remote account for every action.',
+        ],
+      },
+      {
+        title: 'When data is sent to backend services',
+        body: [
+          'Deep Note sends limited note content or account context to backend services only when the user actively triggers a feature that requires it. Examples include AI summaries, AI chat across saved notes, smart tag suggestions, folder suggestions, share-link generation, account-linked restore, support requests, and billing or entitlement checks.',
+          'Those requests are made to complete the feature the user selected. Deep Note does not use note content for unrelated advertising purposes or to create unrelated cross-product marketing profiles.',
+        ],
+      },
+      {
+        title: 'Accounts, restore, and billing',
+        body: [
+          'Deep Note may use Google sign-in and Supabase-backed identity to restore account-linked state, reconnect a user after reinstalling the extension, and keep website billing or entitlement checks tied to the correct account. Patreon may also be linked on the website to determine whether the signed-in Deep Note account should receive Pro access.',
+          'Billing and entitlement checks remain scoped to Deep Note specifically. Being signed in for Deep Note does not automatically sign a user into unrelated extensions that may exist on the same domain.',
+        ],
+      },
+      {
+        title: 'Sharing, support, and user controls',
+        body: [
+          'If a user creates a share link, the note content included in that share flow becomes accessible to anyone who has the link until it expires or is otherwise removed. Users should avoid sharing sensitive content through public links unless they are comfortable with that outcome.',
+          'Users may also send support requests or uninstall feedback. Those submissions may include account identifiers, reply email addresses, and the support or feedback text the user chooses to provide. Users remain in control of what they store, what they share, and whether they connect account-linked billing or restore features.',
+        ],
+      },
     ],
     termsSummary: [
-      'Deep Note is provided as-is during active iteration.',
-      'Users are responsible for the material they save, organize, and share.',
+      {
+        title: 'Use of the product',
+        body: [
+          'Deep Note is a browser extension for saving highlights, personal notes, reminders, and research context while browsing. By using Deep Note, users agree to use the product lawfully and responsibly and to take responsibility for the material they choose to save, organize, export, or share.',
+          'Users must not use Deep Note to violate law, infringe intellectual property rights, distribute malware, or store or share content they do not have a right to use.',
+        ],
+      },
+      {
+        title: 'Accounts, subscriptions, and upgrades',
+        body: [
+          'Some features may depend on Google sign-in, website billing handoff, Patreon-linked entitlement, promo codes, or future account-linked restore flows. Paid features, eligibility, pricing, and billing providers may change over time as the product evolves.',
+          'If a user upgrades through a linked billing provider, entitlement remains tied to the relevant Deep Note account. Promo access or Patreon-linked Pro access may expire, be revoked, or change according to the applicable plan rules or payment status.',
+        ],
+      },
+      {
+        title: 'Availability and feature changes',
+        body: [
+          'Deep Note is an actively evolving software product. Features, usage limits, storage behavior, layout, integrations, and AI-powered experiences may change over time. Some features may be revised or removed as the product matures.',
+          'Deep Note may also limit access, suspend features, or change product behavior when necessary for abuse prevention, legal compliance, stability, or operational reasons.',
+        ],
+      },
+      {
+        title: 'Warranty and limitation of liability',
+        body: [
+          'Deep Note is provided on an as-is and as-available basis to the maximum extent permitted by applicable law. Deep Note does not guarantee uninterrupted availability, permanent preservation of data outside the stated storage or backup flows, or perfect accuracy of AI-generated output.',
+          'To the maximum extent permitted by law, Deep Note will not be liable for indirect, incidental, consequential, or special damages arising from use of the product, including data loss, billing issues, sync failures, or inaccurate AI output.',
+        ],
+      },
     ],
     loginBody: [
       'Deep Note login should always explain that Google sign-in restores cloud-linked note state, app identity, and account-linked features.',
@@ -160,10 +217,63 @@ export const extensions: ExtensionDefinition[] = [
     supportBody:
       'Use this route for Sketch Party installation help, Patreon login questions, privacy questions, party code issues, and product-specific support.',
     privacySummary: [
-      'Sketch Party is a Chrome extension built for friend-to-friend drawing, playful visual effects, lightweight messaging, and optional page overlay experiences inside Chrome. To make those features work, Sketch Party stores certain extension settings locally on the device, such as onboarding state, guest party code, effect preferences, online visibility, and other product controls, so the extension can remember its own setup between sessions without asking the user to reconfigure everything every time the browser opens.\n\nWhen a user chooses to use an account-linked version of Sketch Party, the product may process account identity, authentication state, subscription state, saved profile details, saved friends, and account preferences so the same profile and entitlement can be restored after reinstalling the extension or switching sessions. Under the current product direction, paid access and Pro entitlements are intended to be tied to Patreon-based login and Patreon subscription status. That means Sketch Party may process Patreon-linked identity and membership state when needed to determine whether a user should receive account-linked features or paid plan access.\n\nSketch Party also processes realtime product data only as part of the features the user actively triggers. This can include friend messages, drawing payloads, effect events, session identifiers, and related delivery state needed to send a drawing, run a live session, or display a selected visual effect on a friend’s current Chrome tab. Sketch Party is not designed to sell personal data, sell browsing history, or create unrelated advertising profiles from user browsing behavior.\n\nBecause one of Sketch Party’s core features is rendering optional friend-sent drawings and playful overlays on the page the recipient is currently viewing, the extension may temporarily inspect visible page text, layout structure, or current page presentation locally in the browser so a selected effect can be positioned and rendered correctly. This access is feature-driven and user-controlled. Users can choose whether they appear online, whether they receive drawings, and whether surprise effects are allowed, and they can change those settings from the extension at any time.\n\nSketch Party is intended for playful, consensual use between connected users. If you contact support, submit uninstall feedback, or ask for product help, Sketch Party may also process the information you send for support and operational purposes. Product-specific data, legal obligations, and privacy handling remain scoped to Sketch Party even when some infrastructure is shared with other products on the same domain.',
+      {
+        title: 'Local extension state',
+        body: [
+          'Sketch Party stores certain extension settings locally so it can remember onboarding state, guest party code, effect preferences, online visibility, and other product controls between sessions. This local state supports the normal operation of the extension and avoids unnecessary reconfiguration every time the browser opens.',
+        ],
+      },
+      {
+        title: 'Account-linked and subscription-linked information',
+        body: [
+          'When a user chooses an account-linked version of Sketch Party, the product may process account identity, authentication state, subscription state, saved profile details, saved friends, and account preferences so the same profile and entitlement can be restored later. Under the current product direction, Patreon-based login and Patreon subscription status are expected to determine paid access and future Pro entitlements.',
+          'That means Sketch Party may process Patreon-linked identity and membership state when it is necessary to determine whether a user should receive account-linked features or paid plan access.',
+        ],
+      },
+      {
+        title: 'Realtime social features',
+        body: [
+          'Sketch Party may process drawings, lightweight messages, effect events, session identifiers, and related delivery data when the user actively triggers a friend-to-friend interaction. This processing is part of the product experience and is limited to delivering the feature the user selected.',
+          'Sketch Party is not designed to sell personal data, sell browsing history, or create unrelated advertising profiles from browsing behavior.',
+        ],
+      },
+      {
+        title: 'Overlay behavior, support, and controls',
+        body: [
+          'Because Sketch Party can render optional drawings or effects on the page the recipient is currently viewing, the extension may inspect limited visible page structure locally in the browser so an effect can be positioned correctly. This access is feature-driven and user-controlled.',
+          'Users can control whether they appear online, whether they receive drawings, and whether surprise effects are allowed. If a user contacts support or submits uninstall feedback, Sketch Party may process the information the user provides for operational and support purposes.',
+        ],
+      },
     ],
     termsSummary: [
-      'Sketch Party is provided as a product for playful, consensual interactions between users who choose to connect with each other. By using Sketch Party, users agree not to use the extension to harass, impersonate, deceive, intimidate, or otherwise abuse other people. Users are responsible for the drawings, messages, overlay effects, profile names, and other content they choose to send through the product, and they are also responsible for making sure their use of the extension fits the rules of the environments and relationships in which they use it.\n\nSketch Party may evolve over time, including changes to available features, account flows, subscription structure, supported integrations, and visual effects. Some features may be offered in guest mode, while others may depend on account-linked access or paid plans. Under the current product direction, paid access and future Pro entitlements are intended to be tied to Patreon-based login and Patreon subscription status. Sketch Party may suspend, limit, or remove access to certain features when necessary for product stability, abuse prevention, legal compliance, or operational reasons.\n\nUsers should understand that Sketch Party is built around friend-to-friend interactions and optional page overlay behavior in Chrome. That means some experiences are intentionally surprising in presentation, but they are still expected to remain consensual and user-controlled. Users should not attempt to use Sketch Party to trick, harm, stalk, or misrepresent themselves to others. Sketch Party may restrict or remove access where behavior appears abusive, disruptive, or inconsistent with the intended social and playful nature of the product.\n\nSketch Party is provided on an as-is and as-available basis to the maximum extent allowed by applicable law. While reasonable efforts may be made to keep the service stable, available, and secure, uninterrupted access, error-free operation, perfect compatibility across all websites, and permanent preservation of all product states cannot be guaranteed. Product-specific privacy, support, account, and legal obligations remain scoped to Sketch Party even when some infrastructure is shared with other products on the same domain.',
+      {
+        title: 'Consensual and acceptable use',
+        body: [
+          'Sketch Party is intended for playful, consensual interactions between users who choose to connect with one another. Users must not use the extension to harass, impersonate, deceive, threaten, stalk, or otherwise abuse other people.',
+          'Users are responsible for the drawings, messages, profile names, and effects they choose to send, and they must ensure their use of the extension fits the rules, relationships, and environments in which they use it.',
+        ],
+      },
+      {
+        title: 'Features and paid access',
+        body: [
+          'Sketch Party may evolve over time, including changes to guest mode, account-linked flows, subscription structure, Patreon-linked entitlement logic, and supported visual effects. Some features may remain free, while others may require an account-linked or paid plan.',
+          'Sketch Party may suspend, restrict, or remove access where necessary for abuse prevention, legal compliance, product stability, or operational safety.',
+        ],
+      },
+      {
+        title: 'Social behavior expectations',
+        body: [
+          'Some Sketch Party experiences may be visually surprising in presentation, but they are still expected to remain consensual and user-controlled. Users may not use Sketch Party to trick, harm, or misrepresent themselves to others, even if the effect itself appears playful.',
+          'If behavior appears abusive, disruptive, or inconsistent with the intended social use of the product, Sketch Party may limit or revoke access to some or all product features.',
+        ],
+      },
+      {
+        title: 'Warranty and limitation of liability',
+        body: [
+          'Sketch Party is provided on an as-is and as-available basis to the maximum extent permitted by law. Reasonable efforts may be made to keep the product stable and secure, but uninterrupted availability, perfect compatibility with every website, and permanent preservation of every product state cannot be guaranteed.',
+          'Product-specific privacy, support, billing, and legal obligations remain scoped to Sketch Party even when some infrastructure is shared with other products on the same domain.',
+        ],
+      },
     ],
     loginBody: [
       'Sketch Party can be used in guest mode for temporary sessions, or with account-linked sign-in for saved friends, restored preferences, and future paid access.',

@@ -124,6 +124,68 @@ button { border: 0; cursor: pointer; }
 }
 .article-intro { margin-top: 12px; }
 .article-section { border-radius: 24px; padding: 18px 20px; border: 1px solid var(--line); background: var(--surface-soft); }
+.legal-document {
+  padding: 40px;
+}
+.legal-layout {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 28px;
+  margin-top: 28px;
+}
+.legal-aside {
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid var(--line);
+  background: var(--surface-soft);
+}
+.legal-toc {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.legal-toc li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+  color: var(--muted);
+  font-size: .92rem;
+}
+.legal-toc a {
+  text-decoration: none;
+}
+.legal-toc a:hover {
+  color: var(--accent);
+}
+.legal-content {
+  display: grid;
+  gap: 28px;
+}
+.legal-section {
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--line);
+}
+.legal-section:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+.legal-section h2 {
+  margin: 0 0 14px;
+  font-size: 1.45rem;
+  line-height: 1.2;
+}
+.legal-section p {
+  margin: 0 0 14px;
+}
+.legal-section p:last-child {
+  margin-bottom: 0;
+}
 .auth-inline-box {
   padding: 16px 18px;
   border-radius: 20px;
@@ -694,6 +756,8 @@ button { border: 0; cursor: pointer; }
 
 @media (max-width: 920px) {
   .two-col { grid-template-columns: 1fr; }
+  .legal-layout { grid-template-columns: 1fr; }
+  .legal-aside { position: static; }
   .admin-layout { grid-template-columns: 1fr; }
   .admin-sidebar { position: static; }
   .admin-lead-card,
@@ -717,6 +781,9 @@ button { border: 0; cursor: pointer; }
   .site-shell { padding: 16px; }
   .topbar { border-radius: 28px; padding: 16px; align-items: flex-start; flex-direction: column; }
   .hero-card, .article-card, .info-card, .product-card { padding: 22px; border-radius: 24px; }
+  .legal-document {
+    padding: 24px;
+  }
   .funnel-grid { grid-template-columns: 1fr; }
   .reason-grid { grid-template-columns: 1fr; }
 }
