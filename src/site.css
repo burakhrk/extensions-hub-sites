@@ -24,13 +24,53 @@ select { font: inherit; }
 a { color: inherit; }
 button { border: 0; cursor: pointer; }
 
-.site-shell { min-height: 100vh; padding: 24px; }
+.site-shell {
+  position: relative;
+  min-height: 100vh;
+  padding: 24px;
+  overflow: hidden;
+}
+.floating-background {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.floating-shape {
+  position: absolute;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: linear-gradient(180deg, rgba(255,255,255,0.75) 0%, rgba(223,247,244,0.38) 100%);
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.04);
+}
+.floating-shape-one {
+  top: 120px;
+  left: -40px;
+  width: 180px;
+  height: 180px;
+}
+.floating-shape-two {
+  top: 240px;
+  right: 6%;
+  width: 120px;
+  height: 120px;
+}
+.floating-shape-three {
+  bottom: 140px;
+  left: 8%;
+  width: 240px;
+  height: 72px;
+  border-radius: 28px;
+  transform: rotate(-10deg);
+}
 .site-frame {
+  position: relative;
   max-width: 1120px;
   margin: 0 auto;
   min-height: calc(100vh - 48px);
   display: flex;
   flex-direction: column;
+  z-index: 1;
 }
 .site-frame-admin {
   max-width: 1560px;
@@ -925,6 +965,21 @@ button { border: 0; cursor: pointer; }
 
 @media (max-width: 720px) {
   .site-shell { padding: 16px; }
+  .floating-shape-one {
+    width: 120px;
+    height: 120px;
+    top: 160px;
+  }
+  .floating-shape-two {
+    width: 90px;
+    height: 90px;
+    right: -10px;
+  }
+  .floating-shape-three {
+    width: 160px;
+    left: -10px;
+    bottom: 180px;
+  }
   .topbar { border-radius: 18px; padding: 16px; align-items: flex-start; flex-direction: column; }
   .hero-card, .article-card, .info-card, .product-card { padding: 22px; border-radius: 18px; }
   .legal-document {

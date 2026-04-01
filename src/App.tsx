@@ -471,6 +471,13 @@ function AppShell({ children, extension, page }: { children: ReactNode; extensio
 
   return (
     <div className="site-shell">
+      {page !== 'admin' ? (
+        <div className="floating-background" aria-hidden="true">
+          <span className="floating-shape floating-shape-one" />
+          <span className="floating-shape floating-shape-two" />
+          <span className="floating-shape floating-shape-three" />
+        </div>
+      ) : null}
       <div className={`site-frame ${page === 'admin' ? 'site-frame-admin' : ''}`}>
         <header className="topbar">
           <a className="brand" href={brandHref}>
