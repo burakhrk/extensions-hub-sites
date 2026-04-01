@@ -553,57 +553,22 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
           <a className="primary-cta" href={`/${extension.slug}/payment`}>Get Pro</a>
         </div>
       </section>
-      <section className="two-col">
-        <div className="info-card">
-          <div className="section-label">Why people use it</div>
-          <div className="list-grid">
-            {extension.callouts.map((item) => <div key={item} className="list-box">{item}</div>)}
-          </div>
-        </div>
-        <div className="info-card accent-card">
-          <div className="section-label accent-text">Get started</div>
-          <ol className="step-list">
-            {extension.steps.map((step, index) => (
-              <li key={step}>
-                <span>{index + 1}</span>
-                <p>{step}</p>
-              </li>
-            ))}
-          </ol>
+      <section className="editorial-section">
+        <div className="section-label">Why people use it</div>
+        <div className="editorial-copy">
+          {extension.callouts.map((item) => <p key={item}>{item}</p>)}
         </div>
       </section>
-      <section className="info-card">
-        <div className="section-label">Where to go next</div>
-        <div className="required-page-grid">
-          <a className="required-page-card" href={`/${extension.slug}/login`}>
-            <div className="required-page-top">
-              <strong>Restore your account</strong>
-              <span className="mini-pill">Account</span>
-            </div>
-            <p>Check sign-in status, reconnect the right Google account, and keep the website in sync with the extension.</p>
-          </a>
-          <a className="required-page-card" href={`/${extension.slug}/pricing`}>
-            <div className="required-page-top">
-              <strong>See plans and upgrades</strong>
-              <span className="mini-pill">Plans</span>
-            </div>
-            <p>Review plans, trial status, and any website-based upgrade flow without getting pushed into the extension UI.</p>
-          </a>
-          <a className="required-page-card" href={`/${extension.slug}/support`}>
-            <div className="required-page-top">
-              <strong>Get support</strong>
-              <span className="mini-pill">Help</span>
-            </div>
-            <p>Find install guidance, billing help, and product-specific troubleshooting without leaving this product route.</p>
-          </a>
-          <a className="required-page-card" href={`/${extension.slug}/privacy`}>
-            <div className="required-page-top">
-              <strong>Privacy and terms</strong>
-              <span className="mini-pill">Legal</span>
-            </div>
-            <p>Review the product-specific legal and privacy details for this extension before you install or upgrade.</p>
-          </a>
-        </div>
+      <section className="editorial-section">
+        <div className="section-label">Get started</div>
+        <ol className="step-list editorial-steps">
+          {extension.steps.map((step, index) => (
+            <li key={step}>
+              <span>{index + 1}</span>
+              <p>{step}</p>
+            </li>
+          ))}
+        </ol>
       </section>
     </div>
   )
@@ -656,19 +621,18 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
   const isPatreonBilling = extension.billingProvider === 'patreon'
 
   return (
-    <div className="stack-lg">
-      <section className="hero-card">
-        <div className="pill">{extension.name} pricing</div>
-        <h1>{extension.pricingTitle}</h1>
-        <p>{extension.pricingBody}</p>
-      </section>
-        <section className="two-col">
-          <div className="info-card">
-            <div className="section-label">Current state</div>
-            <div className="stack-sm">
-              <p><strong>Google account:</strong> {auth.user?.email || identityEmail || 'Sign in from the extension first'}</p>
-              {identity.source ? <p><strong>Opened from:</strong> {identity.source}</p> : null}
-              {auth.loading ? <p>Checking website session...</p> : null}
+      <div className="stack-lg">
+        <section className="hero-card">
+          <div className="pill">{extension.name} pricing</div>
+          <h1>{extension.pricingTitle}</h1>
+          <p>{extension.pricingBody}</p>
+        </section>
+          <section className="two-col pricing-layout">
+            <div className="content-panel">
+              <div className="stack-sm content-flow">
+                <p><strong>Google account:</strong> {auth.user?.email || identityEmail || 'Sign in from the extension first'}</p>
+                {identity.source ? <p><strong>Opened from:</strong> {identity.source}</p> : null}
+                {auth.loading ? <p>Checking website session...</p> : null}
               {auth.configured && !auth.user ? (
                 <div className="auth-inline-box">
                   <p>Sign in on the website with the same Google account you use in the extension.</p>
@@ -702,23 +666,23 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
             {patreonStatus === 'connected' ? <p><strong>Patreon connected.</strong> Your membership was synced back to this extension account. Continue below to review your access status.</p> : null}
             {patreonStatus === 'failed' ? <p className="warning">Patreon connection did not complete. Try again from this page.</p> : null}
             {!loading && state?.isTrialActive ? <p><strong>Trial active.</strong> {trialEndsLabel ? ` Ends ${trialEndsLabel}.` : ''}</p> : null}
-            {!loading && state?.source === 'promo' ? <p><strong>Promo active.</strong> {trialEndsLabel ? ` Pro access ends ${trialEndsLabel}.` : ' Pro access lasts 30 days from redemption.'}</p> : null}
-            {!loading && state && !state.isTrialActive && state.source !== 'promo' ? <p><strong>Current plan:</strong> {state.plan}</p> : null}
-            {!loading && state ? <p><strong>Access source:</strong> {state.source}</p> : null}
-            {isPatreonBilling ? (
-              <>
-                <div className="article-section">
-                  <div className="section-label">How Patreon access works</div>
-                  <ol className="step-list compact-step-list">
-                    <li><span>1</span><p>Sign in on this website with the same Google account you use inside the extension.</p></li>
-                    <li><span>2</span><p>Open the payment handoff page and connect the Patreon account that owns your membership.</p></li>
-                    <li><span>3</span><p>Come back to this page or the payment page to confirm whether the same extension account is now on Free or Pro.</p></li>
-                  </ol>
-                </div>
-                {state?.patreonConnected ? <p><strong>Connected Patreon user:</strong> {state.patreonUserId || 'Connected'}</p> : null}
-                {state?.patreonTierIds?.length ? <p><strong>Entitled tiers:</strong> {state.patreonTierIds.join(', ')}</p> : null}
-                {patreonLastSyncedLabel ? <p><strong>Last Patreon sync:</strong> {patreonLastSyncedLabel}</p> : null}
-                <p className="muted-copy">Membership access refreshes automatically about every 6 hours. If you upgraded, cancelled, or got refunded, the change may take a little time to appear here.</p>
+              {!loading && state?.source === 'promo' ? <p><strong>Promo active.</strong> {trialEndsLabel ? ` Pro access ends ${trialEndsLabel}.` : ' Pro access lasts 30 days from redemption.'}</p> : null}
+              {!loading && state && !state.isTrialActive && state.source !== 'promo' ? <p><strong>Current plan:</strong> {state.plan}</p> : null}
+              {!loading && state ? <p><strong>Access source:</strong> {state.source}</p> : null}
+              {isPatreonBilling ? (
+                <>
+                  <div className="editorial-section compact-editorial-section">
+                    <div className="section-label">How Patreon access works</div>
+                    <div className="editorial-copy">
+                      <p>Sign in on this website with the same Google account you use inside the extension.</p>
+                      <p>Then open the payment handoff page and connect the Patreon account that owns your membership.</p>
+                      <p>When the handoff completes, this extension account will show whether it is on Free or Pro.</p>
+                    </div>
+                  </div>
+                  {state?.patreonConnected ? <p><strong>Connected Patreon user:</strong> {state.patreonUserId || 'Connected'}</p> : null}
+                  {state?.patreonTierIds?.length ? <p><strong>Entitled tiers:</strong> {state.patreonTierIds.join(', ')}</p> : null}
+                  {patreonLastSyncedLabel ? <p><strong>Last Patreon sync:</strong> {patreonLastSyncedLabel}</p> : null}
+                  <p className="muted-copy">Membership access refreshes automatically about every 6 hours. If you upgraded, cancelled, or got refunded, the change may take a little time to appear here.</p>
                 <div className="cta-row compact-cta-row">
                   <a className="button-cta inline-cta" href={`/${extension.slug}/payment`}>{state?.patreonConnected ? 'Review Patreon access' : 'Continue to payment'}</a>
                   {state?.checkoutUrl ? <a className="secondary-cta" href={state.checkoutUrl} target="_blank" rel="noreferrer">Preview Patreon package</a> : null}
@@ -726,21 +690,21 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
               </>
             ) : mode === 'manage'
               ? <p>{state?.portalUrl ? 'Billing portal is available below.' : 'Billing portal will appear here once it is connected.'}</p>
-              : <p>{state?.checkoutUrl ? 'Checkout is available below.' : 'This page is ready for website billing once the provider is connected.'}</p>}
-            {!isPatreonBilling && mode === 'manage' && state?.portalUrl ? <a className="primary-cta inline-cta" href={state.portalUrl}>Open billing portal</a> : null}
-            {!isPatreonBilling && mode !== 'manage' && state?.checkoutUrl ? <a className="primary-cta inline-cta" href={state.checkoutUrl}>Continue to checkout</a> : null}
+                : <p>{state?.checkoutUrl ? 'Checkout is available below.' : 'This page is ready for website billing once the provider is connected.'}</p>}
+              {!isPatreonBilling && mode === 'manage' && state?.portalUrl ? <a className="primary-cta inline-cta" href={state.portalUrl}>Open billing portal</a> : null}
+              {!isPatreonBilling && mode !== 'manage' && state?.checkoutUrl ? <a className="primary-cta inline-cta" href={state.checkoutUrl}>Continue to checkout</a> : null}
+            </div>
           </div>
-        </div>
-        <div className="info-card accent-card">
-          <div className="section-label accent-text">What Pro unlocks</div>
-          <div className="list-grid">
-            {extension.proFeatures.map((item) => <div key={item} className="list-box dark-box">{item}</div>)}
+          <div className="content-panel content-panel-soft">
+            <div className="section-label accent-text">What Pro unlocks</div>
+            <div className="editorial-copy">
+              {extension.proFeatures.map((item) => <p key={item}>{item}</p>)}
+            </div>
           </div>
-        </div>
-      </section>
-    </div>
-  )
-}
+        </section>
+      </div>
+    )
+  }
 
 function LoginPage({ extension }: { extension: ExtensionDefinition }) {
   const [identity] = useState(() => readWebsiteHandoff(extension, 'login'))
@@ -749,16 +713,16 @@ function LoginPage({ extension }: { extension: ExtensionDefinition }) {
   const isSyncedUser = Boolean(auth.user && identity.accountId && auth.user.id === identity.accountId)
   const isDifferentUser = Boolean(auth.user && identity.accountId && auth.user.id !== identity.accountId)
 
-  return (
-    <section className="article-card">
-      <div className="pill">Login</div>
-      <h1>{extension.name} login</h1>
-      <p className="article-intro">Use the same Google account you use inside {extension.name} so your website access, billing state, and extension identity stay in sync.</p>
-      <section className="article-section">
-        <div className="stack-sm">
-          <p><strong>Website session:</strong> {auth.loading ? 'Checking...' : auth.user?.email || 'Not signed in'}</p>
-          {auth.user ? (
-            <div className={`sync-status-card ${isDifferentUser ? 'is-warning' : 'is-success'}`}>
+    return (
+      <section className="article-card">
+        <div className="pill">Login</div>
+        <h1>{extension.name} login</h1>
+        <p className="article-intro">Use the same Google account you use inside {extension.name} so your website access, billing state, and extension identity stay in sync.</p>
+        <div className="editorial-section compact-editorial-section">
+          <div className="stack-sm content-flow">
+            <p><strong>Website session:</strong> {auth.loading ? 'Checking...' : auth.user?.email || 'Not signed in'}</p>
+            {auth.user ? (
+              <div className={`sync-status-card ${isDifferentUser ? 'is-warning' : 'is-success'}`}>
               <strong>{isDifferentUser ? 'This is not the same account as the extension handoff' : isSyncedUser ? 'Same account on website and extension' : 'Website session active'}</strong>
               <p>
                 {isDifferentUser
@@ -790,24 +754,26 @@ function LoginPage({ extension }: { extension: ExtensionDefinition }) {
                 Sign in with Google
               </button>
             )}
+            </div>
+            {!auth.configured ? <p className="warning">Supabase website auth is not configured yet. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` on this site.</p> : null}
+            {authError ? <p className="warning">{authError}</p> : null}
           </div>
-          {!auth.configured ? <p className="warning">Supabase website auth is not configured yet. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` on this site.</p> : null}
-          {authError ? <p className="warning">{authError}</p> : null}
         </div>
-      </section>
-      {identity.email || identity.accountId ? (
-        <section className="article-section">
-          <p><strong>Detected account:</strong> {identity.email || identity.accountId}</p>
-          <p>This page picked up the same identity handoff used by the extension, so you can continue with the right account context.</p>
-          {identity.source ? <p><strong>Opened from:</strong> {identity.source}</p> : null}
-        </section>
-      ) : null}
-      <div className="stack-md">
-        {extension.loginBody.map((item) => <section key={item} className="article-section"><p>{item}</p></section>)}
-      </div>
-      <div className="cta-row">
-        {extension.installUrl ? <a className="primary-cta" href={extension.installUrl} target="_blank" rel="noreferrer">Install extension</a> : null}
-        <a className="primary-cta" href={`/${extension.slug}/payment`}>Continue to Pro</a>
+        {identity.email || identity.accountId ? (
+          <div className="editorial-section compact-editorial-section">
+            <p><strong>Detected account:</strong> {identity.email || identity.accountId}</p>
+            <p>This page picked up the same identity handoff used by the extension, so you can continue with the right account context.</p>
+            {identity.source ? <p><strong>Opened from:</strong> {identity.source}</p> : null}
+          </div>
+        ) : null}
+        <div className="editorial-section">
+          <div className="editorial-copy">
+            {extension.loginBody.map((item) => <p key={item}>{item}</p>)}
+          </div>
+        </div>
+        <div className="cta-row">
+          {extension.installUrl ? <a className="primary-cta" href={extension.installUrl} target="_blank" rel="noreferrer">Install extension</a> : null}
+          <a className="primary-cta" href={`/${extension.slug}/payment`}>Continue to Pro</a>
       </div>
     </section>
   )
@@ -888,17 +854,17 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
   }
 
   return (
-    <section className="article-card">
-      <div className="pill">Payment</div>
-      <h1>{extension.name} payment handoff</h1>
-      <p className="article-intro">Checkout for {extension.name} should happen here on the website, with the same account context carried over from the extension.</p>
-      {paymentStatus === 'connected' ? <p className="success"><strong>Patreon connected.</strong> Your membership is now linked back to this extension account.</p> : null}
-      {paymentStatus === 'failed' ? <p className="warning">Patreon connection did not complete. You can retry from this page.</p> : null}
-      <section className="article-section">
-        <div className="stack-sm">
-          <p><strong>Website account:</strong> {auth.loading ? 'Checking...' : auth.user?.email || 'Not signed in'}</p>
-          {auth.user ? (
-            <div className={`sync-status-card ${isDifferentUser ? 'is-warning' : 'is-success'}`}>
+      <section className="article-card">
+        <div className="pill">Payment</div>
+        <h1>{extension.name} payment handoff</h1>
+        <p className="article-intro">Checkout for {extension.name} should happen here on the website, with the same account context carried over from the extension.</p>
+        {paymentStatus === 'connected' ? <p className="success"><strong>Patreon connected.</strong> Your membership is now linked back to this extension account.</p> : null}
+        {paymentStatus === 'failed' ? <p className="warning">Patreon connection did not complete. You can retry from this page.</p> : null}
+        <div className="editorial-section compact-editorial-section">
+          <div className="stack-sm content-flow">
+            <p><strong>Website account:</strong> {auth.loading ? 'Checking...' : auth.user?.email || 'Not signed in'}</p>
+            {auth.user ? (
+              <div className={`sync-status-card ${isDifferentUser ? 'is-warning' : 'is-success'}`}>
               <strong>{isDifferentUser ? 'Different account detected' : isSyncedUser ? 'Website and extension are synced' : 'Website session active'}</strong>
               <p>
                 {isDifferentUser
@@ -933,18 +899,18 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
                 Sign out on website
               </button>
             </div>
-          ) : null}
-          {!auth.configured ? <p className="warning">Supabase website auth is not configured yet. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` on this site.</p> : null}
-          {authError ? <p className="warning">{authError}</p> : null}
+            ) : null}
+            {!auth.configured ? <p className="warning">Supabase website auth is not configured yet. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` on this site.</p> : null}
+            {authError ? <p className="warning">{authError}</p> : null}
+          </div>
         </div>
-      </section>
-      {loading ? <p>Loading payment options...</p> : null}
-      {error ? <p className="warning">{error}</p> : null}
-      {state ? (
-        <section className="article-section">
-          <p><strong>Current plan:</strong> {state.plan}</p>
-          <p><strong>Access source:</strong> {state.source}</p>
-          {state.source === 'promo' && state.trialEndsAt ? <p><strong>Promo ends:</strong> {new Date(state.trialEndsAt).toLocaleString()}</p> : null}
+        {loading ? <p>Loading payment options...</p> : null}
+        {error ? <p className="warning">{error}</p> : null}
+        {state ? (
+          <div className="editorial-section compact-editorial-section">
+            <p><strong>Current plan:</strong> {state.plan}</p>
+            <p><strong>Access source:</strong> {state.source}</p>
+            {state.source === 'promo' && state.trialEndsAt ? <p><strong>Promo ends:</strong> {new Date(state.trialEndsAt).toLocaleString()}</p> : null}
           {state.isTrialActive && state.trialEndsAt ? <p><strong>Trial ends:</strong> {new Date(state.trialEndsAt).toLocaleString()}</p> : null}
           <p><strong>Billing provider:</strong> {state.billingProvider || 'website'}</p>
           {state.patreonConnected ? <p><strong>Patreon linked:</strong> {state.patreonUserId || 'Connected'}</p> : null}
@@ -957,17 +923,19 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
               </button>
             ) : null}
             {state.checkoutUrl ? <a className="secondary-cta" href={state.checkoutUrl} target="_blank" rel="noreferrer">{isPatreonBilling ? 'Open Patreon package page' : 'Continue to checkout'}</a> : null}
-            {state.portalUrl ? <a className="secondary-cta" href={state.portalUrl} target="_blank" rel="noreferrer">{isPatreonBilling ? 'Manage Patreon membership' : 'Open billing portal'}</a> : null}
-            <a className="secondary-cta" href={`/${extension.slug}/pricing`}>Back to pricing</a>
+              {state.portalUrl ? <a className="secondary-cta" href={state.portalUrl} target="_blank" rel="noreferrer">{isPatreonBilling ? 'Manage Patreon membership' : 'Open billing portal'}</a> : null}
+              <a className="secondary-cta" href={`/${extension.slug}/pricing`}>Back to pricing</a>
+            </div>
           </div>
-        </section>
-      ) : null}
-      <div className="stack-md">
-        {extension.paymentBody.map((item) => <section key={item} className="article-section"><p>{item}</p></section>)}
-      </div>
-      <div className="cta-row">
-        <a className="primary-cta" href={`/${extension.slug}/payment`}>Stay on payment</a>
-        <a className="secondary-cta" href={`/${extension.slug}`}>Back to {extension.name}</a>
+        ) : null}
+        <div className="editorial-section">
+          <div className="editorial-copy">
+            {extension.paymentBody.map((item) => <p key={item}>{item}</p>)}
+          </div>
+        </div>
+        <div className="cta-row">
+          <a className="primary-cta" href={`/${extension.slug}/payment`}>Stay on payment</a>
+          <a className="secondary-cta" href={`/${extension.slug}`}>Back to {extension.name}</a>
       </div>
     </section>
   )
@@ -1046,16 +1014,16 @@ function SupportPage({ extension }: { extension: ExtensionDefinition }) {
     }
   }
 
-  return (
-    <section className="article-card">
-      <div className="pill">Support</div>
-      <h1>{extension.name} support</h1>
-      <p className="article-intro">{extension.supportBody}</p>
-      <div className="stack-md">
-        <section className="article-section">
-          <div className="section-label">Send a support request</div>
-          <div className="stack-md support-form-stack">
-            <p className="muted-copy">Use the same Google account you use in the extension when possible. That makes it easier to match your request to billing, login, and product activity for this extension only.</p>
+    return (
+      <section className="article-card">
+        <div className="pill">Support</div>
+        <h1>{extension.name} support</h1>
+        <p className="article-intro">{extension.supportBody}</p>
+        <div className="stack-md">
+          <section className="content-panel compact-support-panel">
+            <div className="section-label">Send a support request</div>
+            <div className="stack-md support-form-stack">
+              <p className="muted-copy">Use the same Google account you use in the extension when possible. That makes it easier to match your request to billing, login, and product activity for this extension only.</p>
             <div className="support-form-grid">
               <label className="field">
                 <span>Category</span>
@@ -1085,32 +1053,20 @@ function SupportPage({ extension }: { extension: ExtensionDefinition }) {
                 {status === 'sending' ? 'Sending...' : 'Send support request'}
               </button>
               <a className="secondary-cta" href={`/${extension.slug}/login`}>Login help</a>
+              </div>
+              {statusMessage ? <p className={status === 'done' ? 'success' : 'warning'}>{statusMessage}</p> : null}
             </div>
-            {statusMessage ? <p className={status === 'done' ? 'success' : 'warning'}>{statusMessage}</p> : null}
+          </section>
+          <div className="editorial-section">
+            <div className="editorial-copy">
+              <p>Use support for install issues, account sync problems, billing or Patreon questions, and product-specific bugs.</p>
+              <p>If you only need to reconnect your account or continue with payment, use the login or payment routes from this same product page instead of leaving the flow.</p>
+            </div>
           </div>
-        </section>
-        <section className="article-section">
-          <p>Recommended support routes for this product:</p>
-          <ul className="simple-list">
-            <li>install and login issues</li>
-            <li>billing and pricing questions for this extension only</li>
-            <li>product-specific bug reports</li>
-            <li>privacy and terms questions for this extension route</li>
-            <li>uninstall feedback routing through its own leave page</li>
-          </ul>
-        </section>
-        <section className="article-section">
-          <p>Useful links for a first support pass:</p>
-          <div className="cta-row">
-            {extension.installUrl ? <a className="primary-cta" href={extension.installUrl} target="_blank" rel="noreferrer">Install / open store</a> : null}
-            <a className="secondary-cta" href={`/${extension.slug}/login`}>Login help</a>
-            <a className="secondary-cta" href={`/${extension.slug}/pricing`}>Pricing</a>
-          </div>
-        </section>
-      </div>
-    </section>
-  )
-}
+        </div>
+      </section>
+    )
+  }
 
 function SharedNotePage({ extension, slug }: { extension: ExtensionDefinition; slug: string }) {
   const [note, setNote] = useState<SharedNote | null>(null)
