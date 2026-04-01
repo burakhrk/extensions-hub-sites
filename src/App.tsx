@@ -1011,6 +1011,8 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
   const effectiveEmail = identity.email || auth.user?.email || ''
   const isSyncedUser = Boolean(auth.user && identity.accountId && auth.user.id === identity.accountId)
   const isDifferentUser = Boolean(auth.user && identity.accountId && auth.user.id !== identity.accountId)
+  const planLabel = loading ? 'Checking...' : state?.plan === 'pro' ? 'Pro active' : 'Free plan'
+  const patreonStatusLabel = state?.patreonConnected ? 'Linked' : 'Not linked'
 
   const handleConnectPatreon = async () => {
     if (!extension.apiBase || !effectiveClientId || !effectiveAccountId) {
@@ -1043,26 +1045,22 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
         <div className="payment-header">
           <div className="payment-header-copy">
             <div className="eyebrow">{extension.name}</div>
-            <h1>Manage your plan on the web.</h1>
-            <p>Sign in with the same account as the extension, connect Patreon, and come back with the right plan already linked.</p>
+            <h1>Upgrade to Deep Note Pro.</h1>
+            <p>{extension.priceLabel || '$5 / month'} billed through Patreon. Sign in, connect Patreon, and the same account unlocks Pro in the extension.</p>
           </div>
           <div className="payment-price-card">
-            <span>Pro plan</span>
+            <span>Deep Note Pro</span>
             <strong>{extension.priceLabel || '$5 / month'}</strong>
-            <p>One clear upgrade path for this extension.</p>
-          </div>
-          <div className="payment-header-summary">
-            <div className="mini-detail-card">
-              <span>Plan</span>
-              <strong>{loading ? 'Checking...' : state?.plan || 'Free'}</strong>
-            </div>
-            <div className="mini-detail-card">
-              <span>Provider</span>
-              <strong>{state?.billingProvider || (isPatreonBilling ? 'patreon' : 'website')}</strong>
-            </div>
-            <div className="mini-detail-card">
-              <span>Patreon</span>
-              <strong>{state?.patreonConnected ? 'Linked' : 'Not linked'}</strong>
+            <p>AI summaries, smart organization, and knowledge chat across your saved notes.</p>
+            <div className="payment-price-meta">
+              <div>
+                <span>Current access</span>
+                <strong>{planLabel}</strong>
+              </div>
+              <div>
+                <span>Patreon</span>
+                <strong>{patreonStatusLabel}</strong>
+              </div>
             </div>
           </div>
         </div>
@@ -1121,20 +1119,20 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
               {state ? (
                 <div className="payment-state-grid">
                   <div className="mini-detail-card">
-                    <span>Current plan</span>
-                    <strong>{state.plan}</strong>
+                    <span>Plan</span>
+                    <strong>{state.plan === 'pro' ? 'Pro' : 'Free'}</strong>
                   </div>
                   <div className="mini-detail-card">
                     <span>Access source</span>
                     <strong>{state.source}</strong>
                   </div>
                   <div className="mini-detail-card">
-                    <span>Billing provider</span>
+                    <span>Billing</span>
                     <strong>{state.billingProvider || 'website'}</strong>
                   </div>
                   <div className="mini-detail-card">
                     <span>Patreon</span>
-                    <strong>{state.patreonConnected ? (state.patreonUserId || 'Connected') : 'Not linked'}</strong>
+                    <strong>{state.patreonConnected ? 'Linked' : 'Not linked'}</strong>
                   </div>
                 </div>
               ) : null}
@@ -1146,18 +1144,23 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
 
           <div className="payment-column stack-md">
             <section className="payment-panel payment-panel-accent">
-              <div className="section-label">Next step</div>
-              <h2>{state?.patreonConnected ? 'Refresh or manage your Pro access' : 'Connect Patreon for Pro'}</h2>
+              <div className="section-label">Upgrade</div>
+              <h2>{state?.patreonConnected ? 'Refresh your Pro access' : 'Connect Patreon for Pro'}</h2>
               <p className="payment-lead-copy">
                 {state?.patreonConnected
-                  ? 'Your Patreon link is already attached to this account. Refresh access if your membership changed.'
-                  : `${extension.priceLabel || '$5 / month'} for Pro. Sign in, connect Patreon, and come back here with the updated plan.`}
+                  ? 'This account is already linked. Refresh if your membership changed.'
+                  : `Pro is ${extension.priceLabel || '$5 / month'}. Connect Patreon once and this account will come back with the right plan.`}
               </p>
               {isPatreonBilling ? <p className="muted-copy">Membership changes usually appear on the next sync window.</p> : null}
+              <ul className="payment-feature-list">
+                <li>AI summaries and smart tags</li>
+                <li>Folder suggestions and knowledge chat</li>
+                <li>Same account across extension and website</li>
+              </ul>
               <div className="cta-row">
                 {isPatreonBilling ? (
                   <button className="button-cta" onClick={() => void handleConnectPatreon()} disabled={patreonLoading || !auth.user}>
-                    {patreonLoading ? 'Opening Patreon...' : state?.patreonConnected ? 'Refresh Patreon access' : 'Connect Patreon'}
+                    {patreonLoading ? 'Opening Patreon...' : state?.patreonConnected ? 'Refresh Patreon access' : `Connect Patreon for ${extension.priceLabel || '$5 / month'}`}
                   </button>
                 ) : null}
                 {!isPatreonBilling && state?.checkoutUrl ? <a className="secondary-cta" href={state.checkoutUrl} target="_blank" rel="noreferrer">Continue to checkout</a> : null}
@@ -1166,10 +1169,9 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
             </section>
           </div>
         </div>
-        <div className="cta-row">
-          <a className="primary-cta" href={`/${extension.slug}/payment`}>Stay on payment</a>
-          <a className="secondary-cta" href={`/${extension.slug}`}>Back to {extension.name}</a>
-      </div>
+        <div className="payment-footer-link">
+          <a href={`/${extension.slug}`}>Back to {extension.name}</a>
+        </div>
     </section>
   )
 }
