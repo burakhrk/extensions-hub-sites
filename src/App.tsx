@@ -491,7 +491,16 @@ function AppShell({ children, extension, page }: { children: ReactNode; extensio
             {extension ? (
               <>
                 <a className={page === 'product' ? 'is-active' : ''} href={`/${extension.slug}`}>Home</a>
-                {!auth.user ? <a className={page === 'login' ? 'is-active' : ''} href={`/${extension.slug}/login`}>Login</a> : null}
+                {!auth.user ? (
+                  <button
+                    className={`topnav-button ${page === 'login' ? 'is-active' : ''}`}
+                    onClick={() => {
+                      void signInOnWebsiteWithGoogle(window.location.href)
+                    }}
+                  >
+                    Login
+                  </button>
+                ) : null}
                 <a className={page === 'payment' || page === 'pricing' ? 'is-active' : ''} href={`/${extension.slug}/payment`}>Get Pro</a>
                 {auth.user ? (
                   <button
@@ -604,7 +613,16 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
             <p>{extension.summary}</p>
             <div className="cta-row">
               {extension.installUrl ? <a className="primary-cta" href={extension.installUrl} target="_blank" rel="noreferrer">Install extension</a> : null}
-              {!auth.user ? <a className="secondary-cta" href={`/${extension.slug}/login`}>Login</a> : null}
+              {!auth.user ? (
+                <button
+                  className="secondary-cta"
+                  onClick={() => {
+                    void signInOnWebsiteWithGoogle(window.location.href)
+                  }}
+                >
+                  Login
+                </button>
+              ) : null}
               <a className="primary-cta" href={`/${extension.slug}/payment`}>Get Pro</a>
             </div>
             <div className="hero-meta-row">
@@ -1126,11 +1144,12 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
             <section className="payment-panel payment-panel-accent">
               <div className="section-label">Next step</div>
               <h2>{state?.patreonConnected ? 'Refresh or manage your Pro access' : 'Connect Patreon for Pro'}</h2>
-              <div className="editorial-copy">
-                {extension.paymentBody.map((item) => <p key={item}>{item}</p>)}
-              </div>
-              <p className="muted-copy">The intended upgrade flow is simple: sign in with the same Google account, click Connect Patreon, finish Patreon auth, and land back on this payment page with the updated result.</p>
-              {isPatreonBilling ? <p className="muted-copy">Patreon entitlement refreshes automatically about every 6 hours so account checks stay lightweight. Refunds or cancellations show up on the next sync window.</p> : null}
+              <p className="payment-lead-copy">
+                {state?.patreonConnected
+                  ? 'Your Patreon link is already attached to this account. Refresh access if your membership changed.'
+                  : 'Sign in with the same Google account, connect Patreon, and come back here with the updated plan.'}
+              </p>
+              {isPatreonBilling ? <p className="muted-copy">Membership changes usually appear on the next sync window.</p> : null}
               <div className="cta-row">
                 {isPatreonBilling ? (
                   <button className="button-cta" onClick={() => void handleConnectPatreon()} disabled={patreonLoading || !auth.user}>
@@ -1138,7 +1157,7 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
                   </button>
                 ) : null}
                 {!isPatreonBilling && state?.checkoutUrl ? <a className="secondary-cta" href={state.checkoutUrl} target="_blank" rel="noreferrer">Continue to checkout</a> : null}
-                {state?.portalUrl ? <a className="secondary-cta" href={state.portalUrl} target="_blank" rel="noreferrer">{isPatreonBilling ? 'Manage membership on Patreon' : 'Open billing portal'}</a> : null}
+                {state?.portalUrl && state?.plan === 'pro' ? <a className="secondary-cta" href={state.portalUrl} target="_blank" rel="noreferrer">{isPatreonBilling ? 'Manage membership on Patreon' : 'Open billing portal'}</a> : null}
               </div>
             </section>
           </div>
