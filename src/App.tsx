@@ -471,7 +471,7 @@ function AppShell({ children, extension, page }: { children: ReactNode; extensio
       <div className={`site-frame ${page === 'admin' ? 'site-frame-admin' : ''}`}>
         <header className="topbar">
           <a className="brand" href="/">
-            <div className="brand-mark">BH</div>
+            <img className="brand-mark-image" src="/harika-extensions-icon.png" alt="Harika Extensions" />
             <div>
               <div className="brand-title">Extensions Hub</div>
               <div className="brand-subtitle">{extension ? `${extension.name} on the web` : 'Discover browser tools built for real workflows'}</div>
@@ -611,10 +611,6 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
   const [authError, setAuthError] = useState<string | null>(null)
   const [loading, setLoading] = useState(Boolean(extension.apiBase && (identity.clientId || auth.user?.id)))
   const [error, setError] = useState<string | null>(null)
-  const [patreonLoading, setPatreonLoading] = useState(false)
-  const [promoCode, setPromoCode] = useState('')
-  const [promoLoading, setPromoLoading] = useState(false)
-  const [promoMessage, setPromoMessage] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -650,76 +646,6 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
   const isSyncedUser = Boolean(auth.user && identity.accountId && auth.user.id === identity.accountId)
   const isDifferentUser = Boolean(auth.user && identity.accountId && auth.user.id !== identity.accountId)
   const isPatreonBilling = extension.billingProvider === 'patreon'
-  const effectiveClientId = identity.clientId || identity.accountId || auth.user?.id || ''
-  const effectiveAccountId = identity.accountId || auth.user?.id || ''
-  const effectiveEmail = identity.email || auth.user?.email || ''
-
-  const handleApplyPromo = async () => {
-    if (!extension.apiBase || !effectiveClientId || !effectiveAccountId) {
-      setError('Sign in with the same Google account first so the promo can be tied to the right extension account.')
-      return
-    }
-
-    const sanitizedPromo = promoCode.trim().toUpperCase()
-    if (!sanitizedPromo) {
-      setPromoMessage('Enter a promo code first.')
-      return
-    }
-
-    setPromoLoading(true)
-    setPromoMessage(null)
-    setError(null)
-    try {
-      const res = await fetch(`${extension.apiBase}/api/billing/promo`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          appId: extension.appId,
-          clientId: effectiveClientId,
-          accountId: effectiveAccountId,
-          email: effectiveEmail || null,
-          code: sanitizedPromo,
-        }),
-      })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok) {
-        throw new Error(data.error || 'Promo code could not be redeemed.')
-      }
-      setState(data as BillingState)
-      setPromoCode('')
-      setPromoMessage('Promo applied. Pro access is active for 30 days on this extension account.')
-    } catch (err) {
-      setPromoMessage(err instanceof Error ? err.message : 'Promo code could not be redeemed.')
-    } finally {
-      setPromoLoading(false)
-    }
-  }
-
-  const handleConnectPatreon = async () => {
-    if (!extension.apiBase || !effectiveClientId || !effectiveAccountId) {
-      setError('Sign in with the same Google account first so Patreon can be linked to the right extension account.')
-      return
-    }
-    setError(null)
-    setPatreonLoading(true)
-    try {
-      const query = new URLSearchParams({
-        appId: extension.appId,
-        clientId: effectiveClientId,
-        accountId: effectiveAccountId,
-      })
-      if (effectiveEmail) query.set('email', effectiveEmail)
-      const res = await fetch(`${extension.apiBase}/api/billing/patreon/connect?${query.toString()}`)
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok || typeof data.connectUrl !== 'string') {
-        throw new Error(data.error || 'Patreon link could not be started.')
-      }
-      window.location.href = data.connectUrl
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Patreon link could not be started.')
-      setPatreonLoading(false)
-    }
-  }
 
   return (
     <div className="stack-lg">
@@ -749,9 +675,9 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
                   </button>
                 </div>
               ) : null}
-              {auth.user ? (
-                <div className={`sync-status-card ${isDifferentUser ? 'is-warning' : 'is-success'}`}>
-                  <strong>{isDifferentUser ? 'Different account detected' : isSyncedUser ? 'Website and extension are synced' : 'Website session active'}</strong>
+            {auth.user ? (
+              <div className={`sync-status-card ${isDifferentUser ? 'is-warning' : 'is-success'}`}>
+                <strong>{isDifferentUser ? 'Different account detected' : isSyncedUser ? 'Website and extension are synced' : 'Website session active'}</strong>
                   <p>
                     {isDifferentUser
                       ? `Website: ${auth.user.email || auth.user.id} | Extension: ${identityEmail || identity.accountId}`
@@ -761,33 +687,33 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
                     <button className="secondary-cta" onClick={() => void signOutOnWebsite().catch((err) => setAuthError(err instanceof Error ? err.message : 'Sign out failed.'))}>Sign out</button>
                   </div>
                 </div>
-              ) : null}
-              {loading ? <p>Loading billing state...</p> : null}
-              {authError ? <p className="warning">{authError}</p> : null}
-              {error ? <p className="warning">{error}</p> : null}
-              {patreonStatus === 'connected' ? <p><strong>Patreon connected.</strong> Your membership was synced back to this extension account.</p> : null}
-              {patreonStatus === 'failed' ? <p className="warning">Patreon connection did not complete. Try again from this page.</p> : null}
-              {!loading && state?.isTrialActive ? <p><strong>Trial active.</strong> {trialEndsLabel ? ` Ends ${trialEndsLabel}.` : ''}</p> : null}
-              {!loading && state?.source === 'promo' ? <p><strong>Promo active.</strong> {trialEndsLabel ? ` Pro access ends ${trialEndsLabel}.` : ' Pro access lasts 30 days from redemption.'}</p> : null}
-              {!loading && state && !state.isTrialActive && state.source !== 'promo' ? <p><strong>Current plan:</strong> {state.plan}</p> : null}
-              {!loading && state ? <p><strong>Access source:</strong> {state.source}</p> : null}
+            ) : null}
+            {loading ? <p>Loading billing state...</p> : null}
+            {authError ? <p className="warning">{authError}</p> : null}
+            {error ? <p className="warning">{error}</p> : null}
+            {patreonStatus === 'connected' ? <p><strong>Patreon connected.</strong> Your membership was synced back to this extension account. Continue below to review your access status.</p> : null}
+            {patreonStatus === 'failed' ? <p className="warning">Patreon connection did not complete. Try again from this page.</p> : null}
+            {!loading && state?.isTrialActive ? <p><strong>Trial active.</strong> {trialEndsLabel ? ` Ends ${trialEndsLabel}.` : ''}</p> : null}
+            {!loading && state?.source === 'promo' ? <p><strong>Promo active.</strong> {trialEndsLabel ? ` Pro access ends ${trialEndsLabel}.` : ' Pro access lasts 30 days from redemption.'}</p> : null}
+            {!loading && state && !state.isTrialActive && state.source !== 'promo' ? <p><strong>Current plan:</strong> {state.plan}</p> : null}
+            {!loading && state ? <p><strong>Access source:</strong> {state.source}</p> : null}
             {isPatreonBilling ? (
               <>
-                <p>
-                  {state?.patreonConnected
-                    ? 'This extension uses Patreon membership for entitlement sync. Reconnect if you changed tiers or switched accounts.'
-                    : 'This extension uses Google sign-in for app identity and Patreon for plan entitlement. Link Patreon to sync your free or Pro status.'}
-                </p>
+                <div className="article-section">
+                  <div className="section-label">How Patreon access works</div>
+                  <ol className="step-list compact-step-list">
+                    <li><span>1</span><p>Sign in on this website with the same Google account you use inside the extension.</p></li>
+                    <li><span>2</span><p>Open the payment handoff page and connect the Patreon account that owns your membership.</p></li>
+                    <li><span>3</span><p>Come back to this page or the payment page to confirm whether the same extension account is now on Free or Pro.</p></li>
+                  </ol>
+                </div>
                 {state?.patreonConnected ? <p><strong>Connected Patreon user:</strong> {state.patreonUserId || 'Connected'}</p> : null}
                 {state?.patreonTierIds?.length ? <p><strong>Entitled tiers:</strong> {state.patreonTierIds.join(', ')}</p> : null}
                 {patreonLastSyncedLabel ? <p><strong>Last Patreon sync:</strong> {patreonLastSyncedLabel}</p> : null}
                 <p className="muted-copy">Membership access refreshes automatically about every 6 hours. If you upgraded, cancelled, or got refunded, the change may take a little time to appear here.</p>
                 <div className="cta-row compact-cta-row">
-                  <button className="button-cta inline-cta" onClick={() => void handleConnectPatreon()} disabled={patreonLoading}>
-                    {patreonLoading ? 'Opening Patreon...' : state?.patreonConnected ? 'Refresh Patreon access' : 'Connect Patreon'}
-                  </button>
-                  {state?.checkoutUrl ? <a className="secondary-cta" href={state.checkoutUrl} target="_blank" rel="noreferrer">Open Patreon package</a> : null}
-                  {state?.portalUrl ? <a className="secondary-cta" href={state.portalUrl} target="_blank" rel="noreferrer">Manage Patreon billing</a> : null}
+                  <a className="button-cta inline-cta" href={`/${extension.slug}/payment`}>{state?.patreonConnected ? 'Review Patreon access' : 'Continue to payment'}</a>
+                  {state?.checkoutUrl ? <a className="secondary-cta" href={state.checkoutUrl} target="_blank" rel="noreferrer">Preview Patreon package</a> : null}
                 </div>
               </>
             ) : mode === 'manage'
@@ -795,22 +721,6 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
               : <p>{state?.checkoutUrl ? 'Checkout is available below.' : 'This page is ready for website billing once the provider is connected.'}</p>}
             {!isPatreonBilling && mode === 'manage' && state?.portalUrl ? <a className="primary-cta inline-cta" href={state.portalUrl}>Open billing portal</a> : null}
             {!isPatreonBilling && mode !== 'manage' && state?.checkoutUrl ? <a className="primary-cta inline-cta" href={state.checkoutUrl}>Continue to checkout</a> : null}
-            <div className="article-section">
-              <p><strong>Have a promo code?</strong> Redeem it here to unlock 30 days of Pro on this extension account.</p>
-              <div className="cta-row compact-cta-row">
-                <input
-                  className="text-input"
-                  type="text"
-                  value={promoCode}
-                  onChange={(event) => setPromoCode(event.target.value.toUpperCase())}
-                  placeholder="Enter promo code"
-                />
-                <button className="button-cta inline-cta" onClick={() => void handleApplyPromo()} disabled={promoLoading}>
-                  {promoLoading ? 'Applying...' : 'Redeem promo'}
-                </button>
-              </div>
-              {promoMessage ? <p className={promoMessage.toLowerCase().includes('active') ? 'success' : 'warning'}>{promoMessage}</p> : null}
-            </div>
           </div>
         </div>
         <div className="info-card accent-card">
@@ -904,6 +814,8 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
   const [state, setState] = useState<BillingState | null>(null)
   const [loading, setLoading] = useState(Boolean(extension.apiBase && (identity.clientId || auth.user?.id)))
   const [error, setError] = useState<string | null>(null)
+  const [authError, setAuthError] = useState<string | null>(null)
+  const [patreonLoading, setPatreonLoading] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -936,6 +848,38 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
 
   const isPatreonBilling = extension.billingProvider === 'patreon'
   const patreonLastSyncedLabel = state?.patreonLastSyncedAt ? new Date(state.patreonLastSyncedAt).toLocaleString() : null
+  const effectiveClientId = identity.clientId || identity.accountId || auth.user?.id || ''
+  const effectiveAccountId = identity.accountId || auth.user?.id || ''
+  const effectiveEmail = identity.email || auth.user?.email || ''
+  const isSyncedUser = Boolean(auth.user && identity.accountId && auth.user.id === identity.accountId)
+  const isDifferentUser = Boolean(auth.user && identity.accountId && auth.user.id !== identity.accountId)
+
+  const handleConnectPatreon = async () => {
+    if (!extension.apiBase || !effectiveClientId || !effectiveAccountId) {
+      setError('Sign in with the same Google account first so Patreon can be linked to the right extension account.')
+      return
+    }
+    setError(null)
+    setPatreonLoading(true)
+    try {
+      const query = new URLSearchParams({
+        appId: extension.appId,
+        clientId: effectiveClientId,
+        accountId: effectiveAccountId,
+      })
+      if (effectiveEmail) query.set('email', effectiveEmail)
+      const res = await fetch(`${extension.apiBase}/api/billing/patreon/connect?${query.toString()}`)
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || typeof data.connectUrl !== 'string') {
+        throw new Error(data.error || 'Patreon link could not be started.')
+      }
+      window.location.href = data.connectUrl
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Patreon link could not be started.')
+      setPatreonLoading(false)
+    }
+  }
+
   return (
     <section className="article-card">
       <div className="pill">Payment</div>
@@ -943,12 +887,50 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
       <p className="article-intro">Checkout for {extension.name} should happen here on the website, with the same account context carried over from the extension.</p>
       {paymentStatus === 'connected' ? <p className="success"><strong>Patreon connected.</strong> Your membership is now linked back to this extension account.</p> : null}
       {paymentStatus === 'failed' ? <p className="warning">Patreon connection did not complete. You can retry from this page.</p> : null}
-      {auth.user ? (
-        <section className="article-section">
-          <p><strong>Website account:</strong> {auth.user.email || auth.user.id}</p>
-          <p>This checkout handoff is now tied to the same Supabase account system used by the extension.</p>
-        </section>
-      ) : null}
+      <section className="article-section">
+        <div className="stack-sm">
+          <p><strong>Website account:</strong> {auth.loading ? 'Checking...' : auth.user?.email || 'Not signed in'}</p>
+          {auth.user ? (
+            <div className={`sync-status-card ${isDifferentUser ? 'is-warning' : 'is-success'}`}>
+              <strong>{isDifferentUser ? 'Different account detected' : isSyncedUser ? 'Website and extension are synced' : 'Website session active'}</strong>
+              <p>
+                {isDifferentUser
+                  ? `Website: ${auth.user.email || auth.user.id} | Extension: ${identity.email || identity.accountId}`
+                  : auth.user.email || auth.user.id}
+              </p>
+            </div>
+          ) : null}
+          {!auth.user && auth.configured ? (
+            <div className="auth-inline-box">
+              <p>Use the same Google account you use inside the extension before you continue to Patreon.</p>
+              <button
+                className="button-cta inline-cta"
+                onClick={() => {
+                  setAuthError(null)
+                  void signInOnWebsiteWithGoogle(window.location.href).catch((err) => setAuthError(err instanceof Error ? err.message : 'Website sign-in failed.'))
+                }}
+              >
+                Sign in with Google
+              </button>
+            </div>
+          ) : null}
+          {auth.user ? (
+            <div className="cta-row compact-cta-row">
+              <button
+                className="secondary-cta"
+                onClick={() => {
+                  setAuthError(null)
+                  void signOutOnWebsite().catch((err) => setAuthError(err instanceof Error ? err.message : 'Sign out failed.'))
+                }}
+              >
+                Sign out on website
+              </button>
+            </div>
+          ) : null}
+          {!auth.configured ? <p className="warning">Supabase website auth is not configured yet. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` on this site.</p> : null}
+          {authError ? <p className="warning">{authError}</p> : null}
+        </div>
+      </section>
       {loading ? <p>Loading payment options...</p> : null}
       {error ? <p className="warning">{error}</p> : null}
       {state ? (
@@ -962,7 +944,12 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
           {patreonLastSyncedLabel ? <p><strong>Last Patreon sync:</strong> {patreonLastSyncedLabel}</p> : null}
           {isPatreonBilling ? <p className="muted-copy">Patreon entitlement is cached and refreshed automatically about every 6 hours so account checks stay lightweight. Refunds or cancellations will be reflected on the next sync window.</p> : null}
           <div className="cta-row">
-            {state.checkoutUrl ? <a className="primary-cta" href={state.checkoutUrl} target="_blank" rel="noreferrer">{isPatreonBilling ? 'Open Patreon checkout' : 'Continue to checkout'}</a> : null}
+            {isPatreonBilling ? (
+              <button className="button-cta" onClick={() => void handleConnectPatreon()} disabled={patreonLoading || !auth.user}>
+                {patreonLoading ? 'Opening Patreon...' : state.patreonConnected ? 'Refresh Patreon access' : 'Connect Patreon'}
+              </button>
+            ) : null}
+            {state.checkoutUrl ? <a className="secondary-cta" href={state.checkoutUrl} target="_blank" rel="noreferrer">{isPatreonBilling ? 'Open Patreon package page' : 'Continue to checkout'}</a> : null}
             {state.portalUrl ? <a className="secondary-cta" href={state.portalUrl} target="_blank" rel="noreferrer">{isPatreonBilling ? 'Manage Patreon membership' : 'Open billing portal'}</a> : null}
             <a className="secondary-cta" href={`/${extension.slug}/pricing`}>Back to pricing</a>
           </div>
@@ -991,12 +978,110 @@ function ArticlePage({ extension, title, eyebrow, items }: { extension: Extensio
 }
 
 function SupportPage({ extension }: { extension: ExtensionDefinition }) {
+  const [identity] = useState(() => readWebsiteHandoff(extension, 'login'))
+  const auth = useWebsiteAuthState()
+  const [category, setCategory] = useState('billing')
+  const [subject, setSubject] = useState('')
+  const [message, setMessage] = useState('')
+  const [replyEmail, setReplyEmail] = useState(identity.email || '')
+  const [status, setStatus] = useState<'idle' | 'sending' | 'done' | 'error'>('idle')
+  const [statusMessage, setStatusMessage] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!replyEmail && auth.user?.email) {
+      setReplyEmail(auth.user.email)
+    }
+  }, [auth.user?.email, replyEmail])
+
+  const submit = async () => {
+    const clientId = identity.clientId || identity.accountId || auth.user?.id || ''
+    const accountId = identity.accountId || auth.user?.id || null
+    const accountEmail = identity.email || auth.user?.email || null
+
+    if (!extension.apiBase || !clientId) {
+      setStatus('error')
+      setStatusMessage('Sign in with the same Google account first so support can be tied to the right extension account.')
+      return
+    }
+
+    if (!subject.trim() || !message.trim()) {
+      setStatus('error')
+      setStatusMessage('Add a subject and message before sending your support request.')
+      return
+    }
+
+    setStatus('sending')
+    setStatusMessage(null)
+    try {
+      const res = await fetch(`${extension.apiBase}/api/support/request`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          appId: extension.appId,
+          clientId,
+          accountId,
+          accountEmail,
+          replyEmail: replyEmail.trim() || accountEmail,
+          category,
+          subject: subject.trim(),
+          message: message.trim(),
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'Support request could not be sent.')
+      setStatus('done')
+      setStatusMessage('Support request sent. It is now visible in the admin workspace for this extension.')
+      setSubject('')
+      setMessage('')
+    } catch (err) {
+      setStatus('error')
+      setStatusMessage(err instanceof Error ? err.message : 'Support request could not be sent.')
+    }
+  }
+
   return (
     <section className="article-card">
       <div className="pill">Support</div>
       <h1>{extension.name} support</h1>
       <p className="article-intro">{extension.supportBody}</p>
       <div className="stack-md">
+        <section className="article-section">
+          <div className="section-label">Send a support request</div>
+          <div className="stack-md support-form-stack">
+            <p className="muted-copy">Use the same Google account you use in the extension when possible. That makes it easier to match your request to billing, login, and product activity for this extension only.</p>
+            <div className="support-form-grid">
+              <label className="field">
+                <span>Category</span>
+                <select value={category} onChange={(event) => setCategory(event.target.value)}>
+                  <option value="billing">Billing or Patreon</option>
+                  <option value="login">Login or account sync</option>
+                  <option value="bug">Bug report</option>
+                  <option value="feedback">Product feedback</option>
+                  <option value="other">Other</option>
+                </select>
+              </label>
+              <label className="field">
+                <span>Reply email</span>
+                <input type="email" value={replyEmail} onChange={(event) => setReplyEmail(event.target.value)} placeholder="you@example.com" />
+              </label>
+            </div>
+            <label className="field">
+              <span>Subject</span>
+              <input type="text" value={subject} onChange={(event) => setSubject(event.target.value)} placeholder={`What do you need help with in ${extension.name}?`} />
+            </label>
+            <label className="field">
+              <span>Message</span>
+              <textarea className="support-textarea" rows={6} value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Include what you were trying to do, what happened, and what account or browser context might help us reproduce it." />
+            </label>
+            <div className="cta-row">
+              <button className="button-cta" onClick={() => void submit()} disabled={status === 'sending'}>
+                {status === 'sending' ? 'Sending...' : 'Send support request'}
+              </button>
+              <a className="secondary-cta" href={`/${extension.slug}/login`}>Login help</a>
+            </div>
+            {statusMessage ? <p className={status === 'done' ? 'success' : 'warning'}>{statusMessage}</p> : null}
+          </div>
+        </section>
         <section className="article-section">
           <p>Recommended support routes for this product:</p>
           <ul className="simple-list">

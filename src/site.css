@@ -54,6 +54,13 @@ button { border: 0; cursor: pointer; }
   width: 42px; height: 42px; border-radius: 14px; display: grid; place-items: center;
   background: #0f172a; color: white; font-size: 12px; font-weight: 800; letter-spacing: .18em;
 }
+.brand-mark-image {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: block;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+}
 .brand-title { font-size: .9rem; font-weight: 700; text-transform: uppercase; letter-spacing: .16em; }
 .brand-subtitle { color: var(--muted); font-size: .9rem; }
 .topnav { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -717,6 +724,25 @@ button { border: 0; cursor: pointer; }
 .field input, .field select {
   width: 100%; border: 1px solid var(--line); border-radius: 18px; background: var(--surface-soft); padding: 14px 16px;
 }
+.field textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface-soft);
+  padding: 14px 16px;
+  resize: vertical;
+}
+.support-form-stack {
+  margin-top: 12px;
+}
+.support-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.support-textarea {
+  min-height: 150px;
+}
 .preset-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -772,6 +798,7 @@ button { border: 0; cursor: pointer; }
   .selected-user-grid { grid-template-columns: 1fr; }
   .admin-main .event-card { grid-template-columns: 1fr; }
   .reason-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .support-form-grid { grid-template-columns: 1fr; }
   .shared-note-body {
     padding: 22px;
   }
