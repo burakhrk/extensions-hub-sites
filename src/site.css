@@ -124,6 +124,9 @@ button { border: 0; cursor: pointer; }
 .product-grid { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
 .two-col { grid-template-columns: 1.1fr .9fr; }
 .pricing-layout { align-items: start; }
+.product-story-grid {
+  align-items: start;
+}
 .content-panel {
   padding: 0;
   background: transparent;
@@ -292,6 +295,13 @@ button { border: 0; cursor: pointer; }
 }
 .simple-list { margin: 12px 0 0; padding-left: 18px; }
 .simple-list li + li { margin-top: 8px; }
+.feature-list {
+  margin-top: 14px;
+}
+.feature-list li {
+  color: var(--muted);
+  line-height: 1.7;
+}
 .warning { color: #b45309; }
 .success { color: var(--accent); }
 .muted-copy { color: var(--muted); }

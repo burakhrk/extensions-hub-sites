@@ -484,7 +484,7 @@ function AppShell({ children, extension, page }: { children: ReactNode; extensio
             {extension ? (
               <>
                 <a className={page === 'product' ? 'is-active' : ''} href={`/${extension.slug}`}>Home</a>
-                <a className={page === 'login' ? 'is-active' : ''} href={`/${extension.slug}/login`}>Login</a>
+                {!auth.user ? <a className={page === 'login' ? 'is-active' : ''} href={`/${extension.slug}/login`}>Login</a> : null}
                 <a className={page === 'payment' || page === 'pricing' ? 'is-active' : ''} href={`/${extension.slug}/payment`}>Get Pro</a>
               </>
             ) : <a className={page === 'hub' ? 'is-active' : ''} href="/">Home</a>}
@@ -535,6 +535,8 @@ function HubPage() {
 }
 
 function ProductHome({ extension }: { extension: ExtensionDefinition }) {
+  const auth = useWebsiteAuthState()
+
   return (
     <div className="stack-lg">
       <section className="hero-card">
@@ -549,18 +551,31 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
         <p>{extension.heroBody}</p>
         <div className="cta-row">
           {extension.installUrl ? <a className="primary-cta" href={extension.installUrl} target="_blank" rel="noreferrer">Install extension</a> : null}
-          <a className="secondary-cta" href={`/${extension.slug}/login`}>Login</a>
+          {!auth.user ? <a className="secondary-cta" href={`/${extension.slug}/login`}>Login</a> : null}
           <a className="primary-cta" href={`/${extension.slug}/payment`}>Get Pro</a>
         </div>
       </section>
-      <section className="editorial-section">
-        <div className="section-label">Why people use it</div>
-        <div className="editorial-copy">
-          {extension.callouts.map((item) => <p key={item}>{item}</p>)}
+      <section className="two-col product-story-grid">
+        <div className="editorial-section compact-editorial-section">
+          <div className="section-label">What the product is for</div>
+          <div className="editorial-copy">
+            <p>{extension.summary}</p>
+            <p>{extension.heroBody}</p>
+            {extension.callouts.map((item) => <p key={item}>{item}</p>)}
+          </div>
+        </div>
+        <div className="editorial-section compact-editorial-section">
+          <div className="section-label">What Pro adds</div>
+          <div className="editorial-copy">
+            <p>{extension.pricingBody}</p>
+          </div>
+          <ul className="simple-list feature-list">
+            {extension.proFeatures.map((feature) => <li key={feature}>{feature}</li>)}
+          </ul>
         </div>
       </section>
       <section className="editorial-section">
-        <div className="section-label">Get started</div>
+        <div className="section-label">How people use {extension.name}</div>
         <ol className="step-list editorial-steps">
           {extension.steps.map((step, index) => (
             <li key={step}>
