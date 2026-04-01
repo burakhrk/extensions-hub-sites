@@ -302,6 +302,49 @@ button { border: 0; cursor: pointer; }
   color: var(--muted);
   line-height: 1.7;
 }
+.products-footer-section {
+  border-top: 1px solid var(--line);
+  padding-top: 24px;
+}
+.products-footer-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+.products-footer-head p {
+  margin: 12px 0 0;
+  max-width: 700px;
+}
+.products-footer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+  margin-top: 20px;
+}
+.products-footer-card {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  text-decoration: none;
+  padding: 16px 18px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: #fbfcfe;
+}
+.products-footer-card:hover {
+  background: white;
+  border-color: #c8d7e2;
+}
+.products-footer-card strong {
+  display: block;
+  margin-bottom: 6px;
+}
+.products-footer-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
 .warning { color: #b45309; }
 .success { color: var(--accent); }
 .muted-copy { color: var(--muted); }
@@ -874,6 +917,9 @@ button { border: 0; cursor: pointer; }
   .support-form-grid { grid-template-columns: 1fr; }
   .shared-note-body {
     padding: 22px;
+  }
+  .products-footer-head {
+    flex-direction: column;
   }
 }
 

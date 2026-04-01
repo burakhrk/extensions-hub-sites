@@ -536,6 +536,7 @@ function HubPage() {
 
 function ProductHome({ extension }: { extension: ExtensionDefinition }) {
   const auth = useWebsiteAuthState()
+  const otherProducts = extensions.filter((item) => item.slug !== extension.slug)
 
   return (
     <div className="stack-lg">
@@ -584,6 +585,24 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
             </li>
           ))}
         </ol>
+      </section>
+      <section className="editorial-section products-footer-section">
+        <div className="section-label">Our products</div>
+        <div className="products-footer-head">
+          <p>Want to explore the rest of the Harika Extensions lineup? You can stay inside this product flow or jump back to the main landing page.</p>
+          <a className="secondary-cta inline-cta" href="/">Open hub landing</a>
+        </div>
+        <div className="products-footer-grid">
+          {otherProducts.map((item) => (
+            <a key={item.slug} className="products-footer-card" href={`/${item.slug}`}>
+              <img src={item.iconPath} alt={item.name} className="product-icon" />
+              <div>
+                <strong>{item.name}</strong>
+                <p>{item.summary}</p>
+              </div>
+            </a>
+          ))}
+        </div>
       </section>
     </div>
   )
