@@ -17,7 +17,7 @@ body {
   margin: 0;
   font-family: Inter, "Segoe UI", system-ui, sans-serif;
   color: var(--ink);
-  background: linear-gradient(180deg, #ffffff 0%, var(--bg) 100%);
+  background: #f5f7f8;
 }
 a, button, input, textarea { font: inherit; }
 select { font: inherit; }
@@ -46,8 +46,8 @@ button { border: 0; cursor: pointer; }
 }
 .topbar {
   display: flex; gap: 16px; align-items: center; justify-content: space-between;
-  padding: 16px 18px; border: 1px solid var(--line); border-radius: 999px;
-  background: rgba(255,255,255,.92); box-shadow: 0 16px 50px rgba(15,23,42,.06);
+  padding: 16px 18px; border: 1px solid var(--line); border-radius: 20px;
+  background: rgba(255,255,255,.96); box-shadow: 0 10px 32px rgba(15,23,42,.05);
 }
 .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
 .brand-mark {
@@ -64,7 +64,7 @@ button { border: 0; cursor: pointer; }
 .brand-title { font-size: .9rem; font-weight: 700; text-transform: uppercase; letter-spacing: .16em; }
 .brand-subtitle { color: var(--muted); font-size: .9rem; }
 .topnav { display: flex; flex-wrap: wrap; gap: 8px; }
-.topnav a { text-decoration: none; padding: 10px 14px; border-radius: 999px; color: var(--muted); }
+.topnav a { text-decoration: none; padding: 10px 14px; border-radius: 12px; color: var(--muted); }
 .topnav a:hover, .topnav a.is-active { background: #0f172a; color: white; }
 .main-content { flex: 1; padding: 32px 0; }
 .footer {
@@ -78,17 +78,17 @@ button { border: 0; cursor: pointer; }
 .stack-sm { gap: 10px; }
 
 .hero-card, .info-card, .article-card, .product-card {
-  border: 1px solid var(--line); border-radius: 32px; background: var(--surface); box-shadow: var(--shadow);
+  border: 1px solid var(--line); border-radius: 18px; background: var(--surface); box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
 }
-.hero-card, .article-card { padding: 36px; }
-.info-card, .product-card { padding: 28px; }
+.hero-card, .article-card { padding: 32px; }
+.info-card, .product-card { padding: 24px; }
 .compact-card { max-width: 820px; margin: 0 auto; }
 
 .pill, .eyebrow, .section-label, .accent-text {
   text-transform: uppercase; letter-spacing: .18em; font-size: .72rem; font-weight: 800;
 }
 .pill {
-  display: inline-flex; padding: 8px 12px; border-radius: 999px;
+  display: inline-flex; padding: 8px 12px; border-radius: 10px;
   background: var(--accent-soft); border: 1px solid #c4ede8; color: var(--accent);
 }
 .hero-card h1, .article-card h1 { margin: 18px 0 0; font-size: clamp(2.2rem, 4vw, 3.5rem); line-height: 1.05; }
@@ -113,14 +113,14 @@ button { border: 0; cursor: pointer; }
 .cta-row { margin-top: 24px; display: flex; flex-wrap: wrap; gap: 12px; }
 .primary-cta, .secondary-cta, .button-cta {
   display: inline-flex; align-items: center; justify-content: center; text-decoration: none;
-  border-radius: 999px; padding: 14px 18px; font-weight: 700;
+  border-radius: 12px; padding: 13px 18px; font-weight: 700;
 }
 .primary-cta, .button-cta { background: #0f172a; color: white; }
 .secondary-cta { border: 1px solid var(--line); background: white; }
 .inline-cta { width: fit-content; }
 
 .list-grid { display: grid; gap: 12px; margin-top: 18px; }
-.list-box { border-radius: 22px; padding: 16px 18px; border: 1px solid var(--line); background: var(--surface-soft); }
+.list-box { border-radius: 14px; padding: 16px 18px; border: 1px solid var(--line); background: var(--surface-soft); }
 .accent-card { background: linear-gradient(180deg, #eaf8f6 0%, #dff7f4 100%); border-color: #cdeee9; }
 .dark-box { background: #0f172a; color: #d8e3ea; border-color: #17253a; }
 .step-list { list-style: none; padding: 0; margin: 18px 0 0; display: grid; gap: 14px; }
@@ -130,7 +130,7 @@ button { border: 0; cursor: pointer; }
   border-radius: 999px; background: #0f172a; color: white; font-size: .84rem; font-weight: 800;
 }
 .article-intro { margin-top: 12px; }
-.article-section { border-radius: 24px; padding: 18px 20px; border: 1px solid var(--line); background: var(--surface-soft); }
+.article-section { border-radius: 14px; padding: 18px 20px; border: 1px solid var(--line); background: var(--surface-soft); }
 .legal-document {
   padding: 40px;
 }
@@ -145,7 +145,7 @@ button { border: 0; cursor: pointer; }
   top: 24px;
   align-self: start;
   padding: 18px;
-  border-radius: 22px;
+  border-radius: 14px;
   border: 1px solid var(--line);
   background: var(--surface-soft);
 }
@@ -195,13 +195,13 @@ button { border: 0; cursor: pointer; }
 }
 .auth-inline-box {
   padding: 16px 18px;
-  border-radius: 20px;
+  border-radius: 14px;
   border: 1px solid var(--line);
   background: white;
 }
 .sync-status-card {
   padding: 16px 18px;
-  border-radius: 20px;
+  border-radius: 14px;
   border: 1px solid #cfe6e2;
   background: #f7fffd;
 }
@@ -727,7 +727,7 @@ button { border: 0; cursor: pointer; }
 .field textarea {
   width: 100%;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: 14px;
   background: var(--surface-soft);
   padding: 14px 16px;
   resize: vertical;
@@ -776,7 +776,7 @@ button { border: 0; cursor: pointer; }
 .reason-card { padding: 14px 16px; border-radius: 20px; border: 1px solid var(--line); background: var(--surface-soft); text-align: left; }
 .reason-card.is-selected { border-color: #95ddd4; background: var(--accent-soft); }
 .feedback-box {
-  width: 100%; margin-top: 14px; border: 1px solid var(--line); border-radius: 20px;
+  width: 100%; margin-top: 14px; border: 1px solid var(--line); border-radius: 14px;
   background: var(--surface-soft); padding: 14px 16px; resize: vertical;
 }
 
@@ -806,8 +806,8 @@ button { border: 0; cursor: pointer; }
 
 @media (max-width: 720px) {
   .site-shell { padding: 16px; }
-  .topbar { border-radius: 28px; padding: 16px; align-items: flex-start; flex-direction: column; }
-  .hero-card, .article-card, .info-card, .product-card { padding: 22px; border-radius: 24px; }
+  .topbar { border-radius: 18px; padding: 16px; align-items: flex-start; flex-direction: column; }
+  .hero-card, .article-card, .info-card, .product-card { padding: 22px; border-radius: 18px; }
   .legal-document {
     padding: 24px;
   }
