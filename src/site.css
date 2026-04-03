@@ -171,7 +171,7 @@ button { border: 0; cursor: pointer; }
   background: linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(251,252,254,0.98) 100%);
   box-shadow: var(--panel-shadow);
 }
-.hero-card, .article-card { padding: 40px; }
+.hero-card, .article-card { padding: 36px; }
 .info-card, .product-card { padding: 26px; }
 .compact-card { max-width: 820px; margin: 0 auto; }
 
@@ -199,15 +199,16 @@ button { border: 0; cursor: pointer; }
 .pricing-layout { align-items: start; }
 .pricing-system-grid {
   align-items: start;
+  gap: 20px;
 }
 .pricing-hero-card {
-  padding-bottom: 32px;
+  padding-bottom: 30px;
 }
 .pricing-hero-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(320px, .92fr);
-  gap: 30px;
-  align-items: start;
+  grid-template-columns: minmax(0, 1.04fr) minmax(320px, .96fr);
+  gap: 24px;
+  align-items: center;
 }
 .pricing-hero-copy {
   display: grid;
@@ -260,7 +261,7 @@ button { border: 0; cursor: pointer; }
   font-weight: 700;
 }
 .pricing-panel {
-  padding: 24px 26px;
+  padding: 24px;
 }
 .pricing-step-list {
   margin-top: 8px;
@@ -291,10 +292,11 @@ button { border: 0; cursor: pointer; }
 }
 .product-story-grid {
   align-items: start;
+  gap: 20px;
 }
 .section-stack {
   display: grid;
-  gap: 18px;
+  gap: 22px;
 }
 .section-heading-block {
   display: grid;
@@ -377,19 +379,19 @@ button { border: 0; cursor: pointer; }
 .hero-icon { width: 64px; height: 64px; }
 .product-hero-head { display: flex; align-items: center; gap: 18px; margin-top: 20px; }
 .product-hero-card {
-  padding-bottom: 28px;
+  padding-bottom: 30px;
 }
 .hero-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(320px, .92fr);
-  gap: 30px;
-  align-items: start;
+  grid-template-columns: minmax(0, 1.04fr) minmax(320px, .96fr);
+  gap: 24px;
+  align-items: center;
 }
 .hero-meta-row {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 24px;
+  margin-top: 20px;
 }
 .hero-meta-pill {
   min-width: 150px;
@@ -414,7 +416,7 @@ button { border: 0; cursor: pointer; }
 .hero-preview-shell {
   position: relative;
   min-height: 100%;
-  padding: 20px 0 10px;
+  padding: 8px 0 0;
 }
 .hero-preview-note {
   border-radius: 24px;
@@ -580,7 +582,7 @@ button { border: 0; cursor: pointer; }
   background: rgba(255,255,255,0.95);
 }
 .payment-shell {
-  padding-bottom: 28px;
+  padding-bottom: 30px;
 }
 .payment-shell h1 {
   max-width: 12ch;
@@ -588,19 +590,19 @@ button { border: 0; cursor: pointer; }
 }
 .payment-header {
   display: grid;
-  grid-template-columns: minmax(0, 1.18fr) minmax(320px, .82fr);
-  gap: 34px;
-  align-items: end;
-  margin-bottom: 24px;
+  grid-template-columns: minmax(0, 1.04fr) minmax(320px, .96fr);
+  gap: 24px;
+  align-items: center;
+  margin-bottom: 22px;
 }
 .payment-header-copy {
   display: grid;
   gap: 12px;
-  align-content: end;
+  align-content: center;
 }
 .payment-header-copy p {
   margin: 0;
-  max-width: 760px;
+  max-width: 720px;
   font-size: 1.05rem;
 }
 .payment-price-card {
@@ -610,6 +612,7 @@ button { border: 0; cursor: pointer; }
   border: 1px solid rgba(201, 236, 230, 0.95);
   background: linear-gradient(180deg, #f7fffd 0%, #eaf8f4 100%);
   box-shadow: 0 20px 44px rgba(15, 118, 110, 0.08);
+  min-height: 100%;
 }
 .payment-price-card-preview {
   overflow: hidden;
@@ -689,12 +692,13 @@ button { border: 0; cursor: pointer; }
 .payment-layout {
   margin-top: 6px;
   align-items: start;
+  gap: 20px;
 }
 .payment-column {
   min-width: 0;
 }
 .payment-panel {
-  padding: 22px;
+  padding: 24px;
   border-radius: 22px;
   border: 1px solid var(--line);
   background: #fbfcfe;
@@ -742,7 +746,7 @@ button { border: 0; cursor: pointer; }
   line-height: 1.6;
 }
 .payment-footer-link {
-  margin-top: 18px;
+  margin-top: 16px;
 }
 .payment-footer-link a {
   color: var(--muted);
@@ -794,12 +798,12 @@ button { border: 0; cursor: pointer; }
   line-height: 1.7;
 }
 .plan-strip {
-  margin-top: 18px;
+  margin-top: 20px;
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 10px 16px;
-  padding-top: 16px;
+  padding-top: 18px;
   border-top: 1px solid var(--line);
   color: var(--muted);
 }
@@ -832,7 +836,7 @@ button { border: 0; cursor: pointer; }
   border-color: #bce6dd;
 }
 .story-panel {
-  padding: 24px 26px;
+  padding: 24px;
   border-radius: 22px;
   border: 1px solid rgba(219, 226, 232, 0.88);
   background: rgba(255,255,255,0.85);
