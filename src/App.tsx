@@ -636,7 +636,7 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
               </div>
               <div className="hero-meta-pill">
                 <span>Best for</span>
-                <strong>Capture, organize, revisit</strong>
+                <strong>Saving useful things fast</strong>
               </div>
             </div>
           </div>
@@ -655,14 +655,14 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
               </div>
             </div>
             <div className="hero-preview-note hero-preview-note-secondary">
-              <div className="section-label">Why it feels better</div>
+              <div className="section-label">Why it works</div>
               <ul className="simple-list feature-list">
                 {extension.callouts.slice(0, 2).map((item) => <li key={`hero-${item}`}>{item}</li>)}
               </ul>
             </div>
             <div className="hero-preview-note hero-preview-note-tertiary">
-              <div className="section-label">Pro flow</div>
-              <p>Sign in once, upgrade on the web, and come back with the right plan already connected.</p>
+              <div className="section-label">Pro</div>
+              <p>Upgrade on the web and return with the right plan already linked.</p>
             </div>
           </div>
         </div>
@@ -678,7 +678,7 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
       </section>
       <section className="two-col product-story-grid">
         <div className="editorial-section compact-editorial-section story-panel">
-          <div className="section-label">What the product is for</div>
+          <div className="section-label">What Deep Note does</div>
           <div className="editorial-copy">
             <p>{extension.summary}</p>
             <p>{extension.heroBody}</p>
@@ -687,17 +687,17 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
             <article className="review-fact-card">
               <span>Works in</span>
               <strong>Chrome extension workflow</strong>
-              <p>Deep Note is built for quick capture while browsing, then returning later to review and organize saved notes.</p>
+              <p>Capture while browsing, then come back later to review and organize what you saved.</p>
             </article>
             <article className="review-fact-card">
               <span>Billing</span>
               <strong>Handled on the website</strong>
-              <p>Upgrade and billing stay outside the extension so the same signed-in account can safely carry the right plan back in.</p>
+              <p>Upgrade on the website so the same signed-in account can carry the right plan back into the extension.</p>
             </article>
             <article className="review-fact-card">
               <span>Data style</span>
               <strong>Local-first with account features</strong>
-              <p>Core notes stay local by default, while optional account-linked features handle sync, billing, sharing, and support flows.</p>
+              <p>Core notes stay local by default. Account-linked features handle sync, billing, sharing, and support.</p>
             </article>
           </div>
           <div className="highlight-grid">
@@ -712,7 +712,7 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
         <div className="editorial-section compact-editorial-section story-panel story-panel-accent">
           <div className="section-label">What Pro adds</div>
           <div className="editorial-copy">
-            <p>{extension.pricingBody}</p>
+            <p>Pro is for people who want faster organization and better recall from what they save.</p>
           </div>
           <ul className="simple-list feature-list">
             {extension.proFeatures.map((feature) => <li key={feature}>{feature}</li>)}
@@ -763,8 +763,8 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
       <section className="section-stack">
         <div className="section-heading-block">
           <div className="section-label">Choose your plan</div>
-          <h2>Free to start, Pro when you want the premium workflow.</h2>
-          <p>Everything below stays scoped to {extension.name}. Sign in with the same account, then upgrade only if the extra workflow is worth it for you.</p>
+          <h2>Start free. Upgrade when you want more.</h2>
+          <p>Use the core workflow for free, then move to Pro if the extra AI workflow feels worth it.</p>
         </div>
       <section className="plan-compare-grid">
         <div className="plan-compare-card">
@@ -801,15 +801,15 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
         <div className="submission-checklist">
           <div className="submission-check-card">
             <strong>Capture while browsing</strong>
-            <p>Use Deep Note when you want to save useful text, screenshots, or quick thoughts from the page you are on.</p>
+            <p>Save useful text, screenshots, or quick thoughts from the page you are on.</p>
           </div>
           <div className="submission-check-card">
             <strong>Sign in only when needed</strong>
-            <p>Google sign-in is for account-linked restore, website billing, support context, and future synced access.</p>
+            <p>Google sign-in is for account-linked restore, website billing, and support context.</p>
           </div>
           <div className="submission-check-card">
             <strong>Get help quickly</strong>
-            <p>Public privacy, terms, support, and payment pages stay on this site so users always know where those flows live.</p>
+            <p>Privacy, terms, support, and payment pages stay on this site so those flows are easy to find.</p>
           </div>
         </div>
       </section>
@@ -889,7 +889,7 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
             <div className="pricing-hero-copy">
               <div className="pill">{extension.name} pricing</div>
               <h1>{extension.pricingTitle}</h1>
-              <p>{extension.pricingBody}</p>
+              <p>Use Deep Note for free, then upgrade to Pro for faster organization and note-based AI help.</p>
               <div className="pricing-hero-inline">
                 <div className="hero-meta-pill">
                   <span>Current plan</span>
@@ -911,7 +911,7 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
                 <span className="hero-preview-dot" />
               </div>
               <strong>What Pro feels like</strong>
-              <p>Save a note, get an instant summary, sort it into the right folder, and come back later with the context already organized.</p>
+              <p>Save a note, summarize it fast, and come back later with less cleanup and less searching.</p>
               <div className="pricing-preview-tags">
                 <span>AI summary</span>
                 <span>Smart tags</span>
@@ -962,15 +962,15 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
               <ol className="step-list pricing-step-list">
                 <li>
                   <span>1</span>
-                  <p>Sign in on the website with the same Google account you use inside the extension.</p>
+                  <p>Sign in with the same Google account you use in the extension.</p>
                 </li>
                 <li>
                   <span>2</span>
-                  <p>Open the payment page and connect the Patreon account that owns your membership.</p>
+                  <p>Open payment and connect the Patreon account with your membership.</p>
                 </li>
                 <li>
                   <span>3</span>
-                  <p>Return to the extension with the same account already carrying the right plan.</p>
+                  <p>Return to the extension with Pro already linked.</p>
                 </li>
               </ol>
             </section>
@@ -984,9 +984,9 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
                   <div className="section-label">Free</div>
                   <h3>Use the core workflow.</h3>
                   <ul className="simple-list feature-list">
-                    <li>Capture and organize notes inside the extension.</li>
+                    <li>Save and organize notes inside the extension.</li>
                     <li>Keep the same account connected across extension and website.</li>
-                    <li>Upgrade later only if the premium workflow is worth it.</li>
+                    <li>Upgrade later only if you want more AI help.</li>
                   </ul>
                 </div>
                 <div className="plan-compare-card plan-compare-card-accent">
@@ -1032,7 +1032,7 @@ function LoginPage({ extension }: { extension: ExtensionDefinition }) {
       <section className="article-card">
         <div className="pill">Google sign-in</div>
         <h1>{extension.name} login</h1>
-        <p className="article-intro">Use the same Google account you use inside {extension.name} so your website access, billing state, and extension identity stay in sync.</p>
+        <p className="article-intro">Use the same Google account you use in the extension so website access and billing stay tied to the right Deep Note account.</p>
         <div className="editorial-section compact-editorial-section">
           <div className="stack-sm content-flow">
             <p><strong>Website session:</strong> {auth.loading ? 'Checking...' : auth.user?.email || 'Not signed in'}</p>
@@ -1077,7 +1077,7 @@ function LoginPage({ extension }: { extension: ExtensionDefinition }) {
         {identity.email || identity.accountId ? (
           <div className="editorial-section compact-editorial-section">
             <p><strong>Detected account:</strong> {identity.email || identity.accountId}</p>
-            <p>This page picked up the same identity handoff used by the extension, so you can continue with the right account context.</p>
+            <p>This matches the account context passed from the extension.</p>
             {identity.source ? <p><strong>Opened from:</strong> {identity.source}</p> : null}
           </div>
         ) : null}
@@ -1428,17 +1428,17 @@ function SupportPage({ extension }: { extension: ExtensionDefinition }) {
             <article className="support-readiness-card">
               <div className="section-label">Best for</div>
               <strong>Billing, login, and product issues</strong>
-              <p>Use this route for install problems, billing questions, Patreon access issues, or extension behavior that looks wrong.</p>
+              <p>Use this route for install problems, billing questions, Patreon access issues, or product bugs.</p>
             </article>
             <article className="support-readiness-card">
               <div className="section-label">What to include</div>
               <strong>Enough context to reproduce it</strong>
-              <p>Include the page you were on, what you clicked, what account you used, and what happened instead of the expected result.</p>
+              <p>Include the page you were on, what you clicked, what account you used, and what happened.</p>
             </article>
             <article className="support-readiness-card">
               <div className="section-label">Account matching</div>
               <strong>Same Google account helps</strong>
-              <p>Using the same account as the extension makes it easier to match support, billing, and entitlement state correctly.</p>
+              <p>Using the same account as the extension makes support and billing checks easier.</p>
             </article>
           </section>
           <section className="content-panel compact-support-panel">
@@ -1480,8 +1480,8 @@ function SupportPage({ extension }: { extension: ExtensionDefinition }) {
           </section>
           <div className="editorial-section">
             <div className="editorial-copy">
-              <p>Use support for install issues, account sync problems, billing or Patreon questions, and product-specific bugs.</p>
-              <p>If you only need to reconnect your account or continue with payment, use the login or payment routes from this same product page instead of leaving the flow.</p>
+              <p>Use support for install issues, account sync problems, billing questions, and product-specific bugs.</p>
+              <p>If you only need to reconnect your account or continue with payment, use the login or payment routes from this same product page.</p>
             </div>
           </div>
         </div>
