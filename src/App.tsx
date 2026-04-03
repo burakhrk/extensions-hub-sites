@@ -803,7 +803,6 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
 
 function PricingPage({ extension }: { extension: ExtensionDefinition }) {
   const params = new URLSearchParams(window.location.search)
-  const mode = params.get('mode') === 'manage' ? 'manage' : 'upgrade'
   const patreonStatus = params.get('patreon')
   const [identity] = useState(() => readWebsiteHandoff(extension, 'pricing'))
   const auth = useWebsiteAuthState()
@@ -846,23 +845,57 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
   const isSyncedUser = Boolean(auth.user && identity.accountId && auth.user.id === identity.accountId)
   const isDifferentUser = Boolean(auth.user && identity.accountId && auth.user.id !== identity.accountId)
   const isPatreonBilling = extension.billingProvider === 'patreon'
+  const planLabel = loading ? 'Checking...' : state?.plan === 'pro' ? 'Pro active' : 'Free plan'
+  const patreonStatusLabel = state?.patreonConnected ? 'Linked' : 'Not linked'
 
   return (
       <div className="stack-lg">
-        <section className="hero-card">
-          <div className="pill">{extension.name} pricing</div>
-          <h1>{extension.pricingTitle}</h1>
-          <p>{extension.pricingBody}</p>
+        <section className="hero-card pricing-hero-card">
+          <div className="pricing-hero-grid">
+            <div className="pricing-hero-copy">
+              <div className="pill">{extension.name} pricing</div>
+              <h1>{extension.pricingTitle}</h1>
+              <p>{extension.pricingBody}</p>
+              <div className="pricing-hero-inline">
+                <div className="hero-meta-pill">
+                  <span>Current plan</span>
+                  <strong>{planLabel}</strong>
+                </div>
+                <div className="hero-meta-pill">
+                  <span>Patreon</span>
+                  <strong>{patreonStatusLabel}</strong>
+                </div>
+                <div className="hero-meta-pill">
+                  <span>Price</span>
+                  <strong>{extension.priceLabel || '$5 / month'}</strong>
+                </div>
+              </div>
+            </div>
+            <div className="pricing-preview-card" aria-hidden="true">
+              <div className="pricing-preview-top">
+                <span className="mini-pill">Pro preview</span>
+                <span className="hero-preview-dot" />
+              </div>
+              <strong>What Pro feels like</strong>
+              <p>Save a note, get an instant summary, sort it into the right folder, and come back later with the context already organized.</p>
+              <div className="pricing-preview-tags">
+                <span>AI summary</span>
+                <span>Smart tags</span>
+                <span>Folder suggestions</span>
+              </div>
+            </div>
+          </div>
         </section>
-          <section className="two-col pricing-layout">
-            <div className="content-panel">
-              <div className="stack-sm content-flow">
-                <p><strong>Google account:</strong> {auth.user?.email || identityEmail || 'Sign in from the extension first'}</p>
-                {identity.source ? <p><strong>Opened from:</strong> {identity.source}</p> : null}
-                {auth.loading ? <p>Checking website session...</p> : null}
+        <section className="two-col pricing-layout pricing-system-grid">
+          <div className="stack-md">
+            <section className="story-panel pricing-panel">
+              <div className="section-label">Account</div>
+              <p><strong>Google account:</strong> {auth.user?.email || identityEmail || 'Sign in from the extension first'}</p>
+              {identity.source ? <p><strong>Opened from:</strong> {identity.source}</p> : null}
+              {auth.loading ? <p>Checking website session...</p> : null}
               {auth.configured && !auth.user ? (
                 <div className="auth-inline-box">
-                  <p>Sign in on the website with the same Google account you use in the extension.</p>
+                  <p>Sign in with the same Google account you use in the extension.</p>
                   <button
                     className="button-cta inline-cta"
                     onClick={() => {
@@ -874,9 +907,9 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
                   </button>
                 </div>
               ) : null}
-            {auth.user ? (
-              <div className={`sync-status-card ${isDifferentUser ? 'is-warning' : 'is-success'}`}>
-                <strong>{isDifferentUser ? 'Different account detected' : isSyncedUser ? 'Website and extension are synced' : 'Website session active'}</strong>
+              {auth.user ? (
+                <div className={`sync-status-card ${isDifferentUser ? 'is-warning' : 'is-success'}`}>
+                  <strong>{isDifferentUser ? 'Different account detected' : isSyncedUser ? 'Website and extension are synced' : 'Website session active'}</strong>
                   <p>
                     {isDifferentUser
                       ? `Website: ${auth.user.email || auth.user.id} | Extension: ${identityEmail || identity.accountId}`
@@ -886,45 +919,67 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
                     <button className="secondary-cta" onClick={() => void signOutOnWebsite().catch((err) => setAuthError(err instanceof Error ? err.message : 'Sign out failed.'))}>Sign out</button>
                   </div>
                 </div>
-            ) : null}
-            {loading ? <p>Loading billing state...</p> : null}
-            {authError ? <p className="warning">{authError}</p> : null}
-            {error ? <p className="warning">{error}</p> : null}
-            {patreonStatus === 'connected' ? <p><strong>Patreon connected.</strong> Your membership was synced back to this extension account. Continue below to review your access status.</p> : null}
-            {patreonStatus === 'failed' ? <p className="warning">Patreon connection did not complete. Try again from this page.</p> : null}
-            {!loading && state?.isTrialActive ? <p><strong>Trial active.</strong> {trialEndsLabel ? ` Ends ${trialEndsLabel}.` : ''}</p> : null}
-              {!loading && state?.source === 'promo' ? <p><strong>Promo active.</strong> {trialEndsLabel ? ` Pro access ends ${trialEndsLabel}.` : ' Pro access lasts 30 days from redemption.'}</p> : null}
-              {!loading && state && !state.isTrialActive && state.source !== 'promo' ? <p><strong>Current plan:</strong> {state.plan}</p> : null}
-              {!loading && state ? <p><strong>Access source:</strong> {state.source}</p> : null}
-              {isPatreonBilling ? (
-                <>
-                  <div className="editorial-section compact-editorial-section">
-                    <div className="section-label">How Patreon access works</div>
-                    <div className="editorial-copy">
-                      <p>Sign in on this website with the same Google account you use inside the extension.</p>
-                      <p>Then open the payment handoff page and connect the Patreon account that owns your membership.</p>
-                      <p>When the handoff completes, this extension account will show whether it is on Free or Pro.</p>
-                    </div>
-                  </div>
-                  {state?.patreonConnected ? <p><strong>Connected Patreon user:</strong> {state.patreonUserId || 'Connected'}</p> : null}
-                  {state?.patreonTierIds?.length ? <p><strong>Entitled tiers:</strong> {state.patreonTierIds.join(', ')}</p> : null}
-                  {patreonLastSyncedLabel ? <p><strong>Last Patreon sync:</strong> {patreonLastSyncedLabel}</p> : null}
-                  <p className="muted-copy">Membership access refreshes automatically about every 6 hours. If you upgraded, cancelled, or got refunded, the change may take a little time to appear here.</p>
-                <div className="cta-row compact-cta-row">
-                  <a className="button-cta inline-cta" href={`/${extension.slug}/payment`}>{state?.patreonConnected ? 'Review Patreon access' : 'Continue to payment'}</a>
-                </div>
-              </>
-            ) : mode === 'manage'
-              ? <p>{state?.portalUrl ? 'Billing portal is available below.' : 'Billing portal will appear here once it is connected.'}</p>
-                : <p>{state?.checkoutUrl ? 'Checkout is available below.' : 'This page is ready for website billing once the provider is connected.'}</p>}
-              {!isPatreonBilling && mode === 'manage' && state?.portalUrl ? <a className="primary-cta inline-cta" href={state.portalUrl}>Open billing portal</a> : null}
-              {!isPatreonBilling && mode !== 'manage' && state?.checkoutUrl ? <a className="primary-cta inline-cta" href={state.checkoutUrl}>Continue to checkout</a> : null}
-            </div>
+              ) : null}
+              {authError ? <p className="warning">{authError}</p> : null}
+            </section>
+
+            <section className="story-panel pricing-panel">
+              <div className="section-label">How it works</div>
+              <ol className="step-list pricing-step-list">
+                <li>
+                  <span>1</span>
+                  <p>Sign in on the website with the same Google account you use inside the extension.</p>
+                </li>
+                <li>
+                  <span>2</span>
+                  <p>Open the payment page and connect the Patreon account that owns your membership.</p>
+                </li>
+                <li>
+                  <span>3</span>
+                  <p>Return to the extension with the same account already carrying the right plan.</p>
+                </li>
+              </ol>
+            </section>
           </div>
-          <div className="content-panel content-panel-soft">
-            <div className="section-label accent-text">What Pro unlocks</div>
-            <div className="editorial-copy">
-              {extension.proFeatures.map((item) => <p key={item}>{item}</p>)}
+
+          <div className="stack-md">
+            <section className="story-panel story-panel-accent pricing-panel pricing-panel-accent">
+              <div className="section-label">Plans</div>
+              <div className="compact-plan-hero">
+                <div className="plan-compare-card">
+                  <div className="section-label">Free</div>
+                  <h3>Use the core workflow.</h3>
+                  <ul className="simple-list feature-list">
+                    <li>Capture and organize notes inside the extension.</li>
+                    <li>Keep the same account connected across extension and website.</li>
+                    <li>Upgrade later only if the premium workflow is worth it.</li>
+                  </ul>
+                </div>
+                <div className="plan-compare-card plan-compare-card-accent">
+                  <div className="section-label">Pro</div>
+                  <h3>{extension.priceLabel || '$5 / month'}</h3>
+                  <ul className="simple-list feature-list">
+                    {extension.proFeatures.map((item) => <li key={item}>{item}</li>)}
+                  </ul>
+                </div>
+              </div>
+              {loading ? <p>Loading billing state...</p> : null}
+              {error ? <p className="warning">{error}</p> : null}
+              {patreonStatus === 'connected' ? <p className="success"><strong>Patreon connected.</strong> Your membership was synced back to this extension account.</p> : null}
+              {patreonStatus === 'failed' ? <p className="warning">Patreon connection did not complete. Try again from this page.</p> : null}
+              {!loading && state?.source === 'promo' ? <p><strong>Promo active.</strong> {trialEndsLabel ? ` Pro access ends ${trialEndsLabel}.` : ' Pro access lasts 30 days from redemption.'}</p> : null}
+              {!loading && state?.isTrialActive ? <p><strong>Trial active.</strong> {trialEndsLabel ? ` Ends ${trialEndsLabel}.` : ''}</p> : null}
+              {state?.patreonConnected ? <p><strong>Connected Patreon:</strong> {state.patreonUserId || 'Connected'}</p> : null}
+              {state?.patreonTierIds?.length ? <p><strong>Entitled tiers:</strong> {state.patreonTierIds.join(', ')}</p> : null}
+              {patreonLastSyncedLabel ? <p><strong>Last Patreon sync:</strong> {patreonLastSyncedLabel}</p> : null}
+              {isPatreonBilling ? <p className="muted-copy">Membership access refreshes automatically about every 6 hours, so billing changes may take a little time to appear.</p> : null}
+              <div className="cta-row compact-cta-row">
+                <a className="button-cta inline-cta" href={`/${extension.slug}/payment`}>{state?.patreonConnected ? 'Review Pro access' : 'Continue to payment'}</a>
+              </div>
+            </section>
+            <div className="pricing-inline-note">
+              <span>Current access</span>
+              <strong>{planLabel}</strong>
             </div>
           </div>
         </section>
@@ -1088,7 +1143,7 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
             <h1>Upgrade to Deep Note Pro.</h1>
             <p>{extension.priceLabel || '$5 / month'} billed through Patreon. Sign in, connect Patreon, and the same account unlocks Pro in the extension.</p>
           </div>
-          <div className="payment-price-card">
+          <div className="payment-price-card payment-price-card-preview">
             <span>Deep Note Pro</span>
             <strong>{extension.priceLabel || '$5 / month'}</strong>
             <p>AI summaries, smart organization, and knowledge chat across your saved notes.</p>
@@ -1096,6 +1151,24 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
               <span>Summaries</span>
               <span>Folders</span>
               <span>Knowledge chat</span>
+            </div>
+            <div className="payment-preview-stack">
+              <div className="payment-preview-card">
+                <div className="payment-preview-top">
+                  <span className="mini-pill">Saved note</span>
+                  <span className="example-note-color tone-mint" />
+                </div>
+                <strong>Article insight saved cleanly</strong>
+                <p>Keep the key quote, add your own thought, and revisit it later with a generated summary.</p>
+              </div>
+              <div className="payment-preview-card payment-preview-card-secondary">
+                <div className="section-label">With Pro</div>
+                <ul className="simple-list feature-list">
+                  <li>Ask across your saved notes</li>
+                  <li>Sort faster with suggestions</li>
+                  <li>Keep one account everywhere</li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
