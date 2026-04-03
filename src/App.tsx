@@ -683,6 +683,23 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
             <p>{extension.summary}</p>
             <p>{extension.heroBody}</p>
           </div>
+          <div className="review-facts-grid">
+            <article className="review-fact-card">
+              <span>Works in</span>
+              <strong>Chrome extension workflow</strong>
+              <p>Deep Note is built for quick capture while browsing, then returning later to review and organize saved notes.</p>
+            </article>
+            <article className="review-fact-card">
+              <span>Billing</span>
+              <strong>Handled on the website</strong>
+              <p>Upgrade and billing stay outside the extension so the same signed-in account can safely carry the right plan back in.</p>
+            </article>
+            <article className="review-fact-card">
+              <span>Data style</span>
+              <strong>Local-first with account features</strong>
+              <p>Core notes stay local by default, while optional account-linked features handle sync, billing, sharing, and support flows.</p>
+            </article>
+          </div>
           <div className="highlight-grid">
             {extension.callouts.map((item) => (
               <article key={item} className="highlight-card">
@@ -778,6 +795,23 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
             </li>
           ))}
         </ol>
+      </section>
+      <section className="editorial-section story-panel story-panel-accent">
+        <div className="section-label">Before you install</div>
+        <div className="submission-checklist">
+          <div className="submission-check-card">
+            <strong>Capture while browsing</strong>
+            <p>Use Deep Note when you want to save useful text, screenshots, or quick thoughts from the page you are on.</p>
+          </div>
+          <div className="submission-check-card">
+            <strong>Sign in only when needed</strong>
+            <p>Google sign-in is for account-linked restore, website billing, support context, and future synced access.</p>
+          </div>
+          <div className="submission-check-card">
+            <strong>Get help quickly</strong>
+            <p>Public privacy, terms, support, and payment pages stay on this site so users always know where those flows live.</p>
+          </div>
+        </div>
       </section>
       <section className="editorial-section products-footer-section">
         <div className="section-label">Our products</div>
@@ -996,7 +1030,7 @@ function LoginPage({ extension }: { extension: ExtensionDefinition }) {
 
     return (
       <section className="article-card">
-        <div className="pill">Login</div>
+        <div className="pill">Google sign-in</div>
         <h1>{extension.name} login</h1>
         <p className="article-intro">Use the same Google account you use inside {extension.name} so your website access, billing state, and extension identity stay in sync.</p>
         <div className="editorial-section compact-editorial-section">
@@ -1390,6 +1424,23 @@ function SupportPage({ extension }: { extension: ExtensionDefinition }) {
         <h1>{extension.name} support</h1>
         <p className="article-intro">{extension.supportBody}</p>
         <div className="stack-md">
+          <section className="support-readiness-grid">
+            <article className="support-readiness-card">
+              <div className="section-label">Best for</div>
+              <strong>Billing, login, and product issues</strong>
+              <p>Use this route for install problems, billing questions, Patreon access issues, or extension behavior that looks wrong.</p>
+            </article>
+            <article className="support-readiness-card">
+              <div className="section-label">What to include</div>
+              <strong>Enough context to reproduce it</strong>
+              <p>Include the page you were on, what you clicked, what account you used, and what happened instead of the expected result.</p>
+            </article>
+            <article className="support-readiness-card">
+              <div className="section-label">Account matching</div>
+              <strong>Same Google account helps</strong>
+              <p>Using the same account as the extension makes it easier to match support, billing, and entitlement state correctly.</p>
+            </article>
+          </section>
           <section className="content-panel compact-support-panel">
             <div className="section-label">Send a support request</div>
             <div className="stack-md support-form-stack">
