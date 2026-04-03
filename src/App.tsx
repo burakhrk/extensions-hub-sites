@@ -501,7 +501,7 @@ function AppShell({ children, extension, page }: { children: ReactNode; extensio
                     Login
                   </button>
                 ) : null}
-                <a className={page === 'payment' || page === 'pricing' ? 'is-active' : ''} href={`/${extension.slug}/payment`}>Get Pro</a>
+                <a className={page === 'payment' || page === 'pricing' ? 'is-active' : ''} href={`/${extension.slug}/payment`}>Upgrade to Pro</a>
                 {auth.user ? (
                   <button
                     className="topnav-button"
@@ -623,7 +623,7 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
                   Login
                 </button>
               ) : null}
-              <a className="primary-cta" href={`/${extension.slug}/payment`}>Get Pro</a>
+              <a className="primary-cta" href={`/${extension.slug}/payment`}>Upgrade to Pro</a>
             </div>
             <div className="hero-meta-row">
               <div className="hero-meta-pill">
@@ -1008,7 +1008,7 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
               {patreonLastSyncedLabel ? <p><strong>Last Patreon sync:</strong> {patreonLastSyncedLabel}</p> : null}
               {isPatreonBilling ? <p className="muted-copy">Membership access refreshes automatically about every 6 hours, so billing changes may take a little time to appear.</p> : null}
               <div className="cta-row compact-cta-row">
-                <a className="button-cta inline-cta" href={`/${extension.slug}/payment`}>{state?.patreonConnected ? 'Review Pro access' : 'Continue to payment'}</a>
+                <a className="button-cta inline-cta" href={`/${extension.slug}/payment`}>{state?.patreonConnected ? 'View Pro access' : 'Open upgrade page'}</a>
               </div>
             </section>
             <div className="pricing-inline-note">
@@ -1088,7 +1088,7 @@ function LoginPage({ extension }: { extension: ExtensionDefinition }) {
         </div>
         <div className="cta-row">
           {extension.installUrl ? <a className="primary-cta" href={extension.installUrl} target="_blank" rel="noreferrer">Install extension</a> : null}
-          <a className="primary-cta" href={`/${extension.slug}/payment`}>Continue to Pro</a>
+          <a className="primary-cta" href={`/${extension.slug}/payment`}>Open upgrade page</a>
       </div>
     </section>
   )
@@ -1176,7 +1176,7 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
         <div className="payment-header">
           <div className="payment-header-copy">
             <h1>Upgrade to Deep Note Pro.</h1>
-            <p>{extension.priceLabel || '$5 / month'} billed through Patreon. Sign in, connect Patreon, and the same account unlocks Pro in the extension.</p>
+            <p>{extension.priceLabel || '$5 / month'} billed through Patreon. Sign in, link Patreon, and unlock Pro on the same Deep Note account.</p>
             <div className="payment-confidence-row">
               <span>Same Google account on extension and website</span>
               <span>Patreon handles billing</span>
@@ -1294,11 +1294,11 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
           <div className="payment-column stack-md">
             <section className="payment-panel payment-panel-accent">
               <div className="section-label">Upgrade</div>
-              <h2>{state?.patreonConnected ? 'Refresh your Pro access' : 'Connect Patreon for Pro'}</h2>
+              <h2>{state?.patreonConnected ? 'Refresh your Pro access' : 'Link Patreon to unlock Pro'}</h2>
               <p className="payment-lead-copy">
                 {state?.patreonConnected
                   ? 'This account is already linked. Refresh if your membership changed.'
-                  : `Pro is ${extension.priceLabel || '$5 / month'}. Connect Patreon once and this account will come back with the right plan.`}
+                  : `Pro is ${extension.priceLabel || '$5 / month'}. Link Patreon once and this account comes back with Pro unlocked.`}
               </p>
               {isPatreonBilling ? <p className="muted-copy">Membership changes usually appear on the next sync window.</p> : null}
               {!canConnectPatreon ? (
@@ -1318,11 +1318,11 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
               <div className="cta-row">
                 {isPatreonBilling ? (
                   <button className="button-cta payment-primary-cta" onClick={() => void handleConnectPatreon()} disabled={patreonLoading || !canConnectPatreon}>
-                    {patreonLoading ? 'Opening Patreon...' : 'Connect Patreon'}
+                    {patreonLoading ? 'Opening Patreon...' : 'Link Patreon to Pro'}
                   </button>
                 ) : null}
                 {!isPatreonBilling && state?.checkoutUrl ? <a className="secondary-cta" href={state.checkoutUrl} target="_blank" rel="noreferrer">Continue to checkout</a> : null}
-                {state?.portalUrl && state?.plan === 'pro' ? <a className="secondary-cta" href={state.portalUrl} target="_blank" rel="noreferrer">{isPatreonBilling ? 'Manage membership on Patreon' : 'Open billing portal'}</a> : null}
+                {state?.portalUrl && state?.plan === 'pro' ? <a className="secondary-cta" href={state.portalUrl} target="_blank" rel="noreferrer">{isPatreonBilling ? 'Open Patreon membership' : 'Open billing portal'}</a> : null}
               </div>
               {!canConnectPatreon ? <p className="muted-copy">The button unlocks once the correct website account is signed in.</p> : null}
               <div className="payment-status-strip">
