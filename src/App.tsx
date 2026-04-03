@@ -1109,6 +1109,7 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
   const isDifferentUser = Boolean(auth.user && identity.accountId && auth.user.id !== identity.accountId)
   const planLabel = loading ? 'Checking...' : state?.plan === 'pro' ? 'Pro active' : 'Free plan'
   const patreonStatusLabel = state?.patreonConnected ? 'Linked' : 'Not linked'
+  const canConnectPatreon = Boolean(auth.user && !isDifferentUser)
 
   const handleConnectPatreon = async () => {
     if (!extension.apiBase || !effectiveClientId || !effectiveAccountId) {
@@ -1142,6 +1143,11 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
           <div className="payment-header-copy">
             <h1>Upgrade to Deep Note Pro.</h1>
             <p>{extension.priceLabel || '$5 / month'} billed through Patreon. Sign in, connect Patreon, and the same account unlocks Pro in the extension.</p>
+            <div className="payment-confidence-row">
+              <span>Same Google account on extension and website</span>
+              <span>Patreon handles billing</span>
+              <span>Pro syncs back automatically</span>
+            </div>
           </div>
           <div className="payment-price-card payment-price-card-preview">
             <span>Deep Note Pro</span>
@@ -1189,6 +1195,7 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
                   </p>
                 </div>
               ) : null}
+              {!auth.user ? <p className="muted-copy">Sign in first so the Patreon membership attaches to the correct Deep Note account.</p> : null}
               {!auth.user && auth.configured ? (
                 <div className="auth-inline-box">
                   <p>Use the same Google account you use inside the extension before you continue to Patreon.</p>
@@ -1260,6 +1267,15 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
                   : `Pro is ${extension.priceLabel || '$5 / month'}. Connect Patreon once and this account will come back with the right plan.`}
               </p>
               {isPatreonBilling ? <p className="muted-copy">Membership changes usually appear on the next sync window.</p> : null}
+              {!canConnectPatreon ? (
+                <div className="payment-checklist-card">
+                  <strong>Before you continue</strong>
+                  <ul className="simple-list feature-list">
+                    <li>Sign in on the website with the same Google account you use in the extension.</li>
+                    <li>Make sure the website and extension are using the same account before connecting Patreon.</li>
+                  </ul>
+                </div>
+              ) : null}
               <ul className="payment-feature-list">
                 <li>AI summaries and smart tags</li>
                 <li>Folder suggestions and knowledge chat</li>
@@ -1267,13 +1283,14 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
               </ul>
               <div className="cta-row">
                 {isPatreonBilling ? (
-                  <button className="button-cta" onClick={() => void handleConnectPatreon()} disabled={patreonLoading || !auth.user}>
+                  <button className="button-cta payment-primary-cta" onClick={() => void handleConnectPatreon()} disabled={patreonLoading || !canConnectPatreon}>
                     {patreonLoading ? 'Opening Patreon...' : 'Connect Patreon'}
                   </button>
                 ) : null}
                 {!isPatreonBilling && state?.checkoutUrl ? <a className="secondary-cta" href={state.checkoutUrl} target="_blank" rel="noreferrer">Continue to checkout</a> : null}
                 {state?.portalUrl && state?.plan === 'pro' ? <a className="secondary-cta" href={state.portalUrl} target="_blank" rel="noreferrer">{isPatreonBilling ? 'Manage membership on Patreon' : 'Open billing portal'}</a> : null}
               </div>
+              {!canConnectPatreon ? <p className="muted-copy">The button unlocks once the correct website account is signed in.</p> : null}
               <div className="payment-status-strip">
                 <div>
                   <span>Current access</span>

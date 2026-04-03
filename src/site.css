@@ -605,6 +605,21 @@ button { border: 0; cursor: pointer; }
   max-width: 720px;
   font-size: 1.05rem;
 }
+.payment-confidence-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
+.payment-confidence-row span {
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.8);
+  border: 1px solid rgba(219, 226, 232, 0.92);
+  color: #355065;
+  font-size: .76rem;
+  font-weight: 700;
+}
 .payment-price-card {
   align-self: start;
   padding: 22px 22px 20px;
@@ -744,6 +759,20 @@ button { border: 0; cursor: pointer; }
 }
 .payment-feature-list li {
   line-height: 1.6;
+}
+.payment-checklist-card {
+  margin-top: 16px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255,255,255,0.72);
+}
+.payment-checklist-card strong {
+  display: block;
+  font-size: .95rem;
+}
+.payment-primary-cta {
+  min-width: 220px;
 }
 .payment-footer-link {
   margin-top: 16px;
