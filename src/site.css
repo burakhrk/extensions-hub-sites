@@ -9,6 +9,9 @@
   --accent: #0f766e;
   --accent-soft: #dff7f4;
   --accent-deep: #0c5f59;
+  --support: #5a7cff;
+  --support-soft: #eef3ff;
+  --support-deep: #355065;
   --shadow: 0 28px 90px rgba(15, 23, 42, 0.08);
   --panel-shadow: 0 16px 40px rgba(15, 23, 42, 0.05);
 }
@@ -21,7 +24,7 @@ body {
   color: var(--ink);
   background:
     radial-gradient(circle at top left, rgba(223, 247, 244, 0.95), transparent 28%),
-    radial-gradient(circle at top right, rgba(207, 227, 255, 0.42), transparent 24%),
+    radial-gradient(circle at top right, rgba(90, 124, 255, 0.18), transparent 24%),
     linear-gradient(180deg, #f7f9fa 0%, #f1f5f6 100%);
 }
 a, button, input, textarea { font: inherit; }
@@ -256,7 +259,7 @@ button { border: 0; cursor: pointer; }
   border-radius: 999px;
   background: rgba(255,255,255,0.84);
   border: 1px solid rgba(201, 236, 230, 0.95);
-  color: #355065;
+  color: var(--support-deep);
   font-size: .76rem;
   font-weight: 700;
 }
@@ -459,8 +462,8 @@ button { border: 0; cursor: pointer; }
 .hero-preview-tags span {
   padding: 8px 10px;
   border-radius: 999px;
-  background: #eef7fb;
-  color: #355065;
+  background: var(--support-soft);
+  color: var(--support-deep);
   font-size: .78rem;
   font-weight: 700;
 }
@@ -614,9 +617,9 @@ button { border: 0; cursor: pointer; }
 .payment-confidence-row span {
   padding: 8px 10px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.8);
-  border: 1px solid rgba(219, 226, 232, 0.92);
-  color: #355065;
+  background: linear-gradient(180deg, rgba(255,255,255,0.88) 0%, var(--support-soft) 100%);
+  border: 1px solid rgba(90, 124, 255, 0.18);
+  color: var(--support-deep);
   font-size: .76rem;
   font-weight: 700;
 }
@@ -953,8 +956,8 @@ button { border: 0; cursor: pointer; }
   box-shadow: 0 0 0 6px rgba(15,118,110,0.12);
 }
 .example-note-color.tone-sky {
-  background: #4f7cff;
-  box-shadow: 0 0 0 6px rgba(79,124,255,0.12);
+  background: var(--support);
+  box-shadow: 0 0 0 6px rgba(90,124,255,0.12);
 }
 .example-note-color.tone-ink {
   background: #0f172a;
@@ -1187,7 +1190,7 @@ button { border: 0; cursor: pointer; }
   background: linear-gradient(180deg, #93e1d5 0%, #0f766e 100%);
 }
 .mini-chart-fill.tone-events {
-  background: linear-gradient(180deg, #cfd9ff 0%, #334155 100%);
+  background: linear-gradient(180deg, #d7e1ff 0%, var(--support-deep) 100%);
 }
 .mini-chart-col span {
   font-size: .68rem;
@@ -1423,7 +1426,7 @@ button { border: 0; cursor: pointer; }
   background: #eef2f7; color: #334155;
 }
 .mini-pill {
-  padding: 5px 8px; border-radius: 999px; background: #e2f3f1; color: var(--accent);
+  padding: 5px 8px; border-radius: 999px; background: var(--support-soft); color: var(--support-deep);
   font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
 }
 .metric-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin-top: 16px; }
