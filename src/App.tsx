@@ -112,6 +112,8 @@ type AdminAnalyticsResponse = {
     clientId?: string
     accountEmail?: string | null
     accountId?: string | null
+    plan?: 'basic' | 'pro'
+    subscriptionKind?: 'basic' | 'trial' | 'promo' | 'pro'
     properties?: Record<string, unknown>
   }>
   uninstallFeedback?: Array<{
@@ -185,6 +187,28 @@ type AdminUserSummary = {
   trialEndsAt: number | null
   promoCodeApplied: string | null
 }
+
+type WebsiteTrackedPage = 'product' | 'pricing' | 'payment' | 'login' | 'support' | 'privacy' | 'terms'
+
+type WebsitePendingAction = {
+  slug: ExtensionSlug
+  startedAt: number
+  location: string
+}
+
+const WEBSITE_ANALYTICS_PAGE_MAP: Partial<Record<PageKey, WebsiteTrackedPage>> = {
+  product: 'product',
+  pricing: 'pricing',
+  payment: 'payment',
+  login: 'login',
+  support: 'support',
+  privacy: 'privacy',
+  terms: 'terms',
+}
+
+const WEBSITE_ANALYTICS_CLIENT_KEY = 'extensions-hub:website-client-id'
+const WEBSITE_SIGNIN_PENDING_KEY = 'extensions-hub:pending-google-signin'
+const WEBSITE_PATREON_PENDING_KEY = 'extensions-hub:pending-patreon-connect'
 
 function readWebsiteHandoff(extension: ExtensionDefinition, scope: 'login' | 'pricing' | 'leave'): WebsiteHandoffIdentity {
   const params = new URLSearchParams(window.location.search)
@@ -337,6 +361,128 @@ function getUserLabel(user: { accountEmail?: string | null; accountId?: string |
   return user.accountEmail || user.accountId || user.clientId || 'Anonymous user'
 }
 
+function getWebsiteAnalyticsClientId(): string {
+  const existing = window.localStorage.getItem(WEBSITE_ANALYTICS_CLIENT_KEY)
+  if (existing) return existing
+  const next = crypto.randomUUID()
+  window.localStorage.setItem(WEBSITE_ANALYTICS_CLIENT_KEY, next)
+  return next
+}
+
+function getReferrerHost(): string | null {
+  if (!document.referrer) return null
+  try {
+    return new URL(document.referrer).hostname || null
+  } catch {
+    return null
+  }
+}
+
+function getVisitSource(): string {
+  const params = new URLSearchParams(window.location.search)
+  const handoffSource = params.get('source')
+  if (handoffSource) return handoffSource
+  const utmSource = params.get('utm_source')
+  if (utmSource) return utmSource
+  const referrerHost = getReferrerHost()
+  if (!referrerHost) return 'direct'
+  if (referrerHost === window.location.hostname) return 'internal'
+  return referrerHost
+}
+
+function readPendingAction(storageKey: string): WebsitePendingAction | null {
+  const raw = window.localStorage.getItem(storageKey)
+  if (!raw) return null
+  try {
+    return JSON.parse(raw) as WebsitePendingAction
+  } catch {
+    return null
+  }
+}
+
+function writePendingAction(storageKey: string, slug: ExtensionSlug): void {
+  window.localStorage.setItem(storageKey, JSON.stringify({
+    slug,
+    startedAt: Date.now(),
+    location: window.location.pathname,
+  } satisfies WebsitePendingAction))
+}
+
+function clearPendingAction(storageKey: string): void {
+  window.localStorage.removeItem(storageKey)
+}
+
+function getWebsiteSubscriptionKind(state?: BillingState | null): 'basic' | 'trial' | 'promo' | 'pro' {
+  if (!state) return 'basic'
+  if (state.source === 'trial') return 'trial'
+  if (state.source === 'promo') return 'promo'
+  if (state.source === 'pro' || state.source === 'patreon' || state.plan === 'pro') return 'pro'
+  return 'basic'
+}
+
+async function trackWebsiteEvent(options: {
+  extension: ExtensionDefinition
+  page: WebsiteTrackedPage
+  eventName: string
+  authUser?: { id: string; email: string | null } | null
+  identity?: Partial<WebsiteHandoffIdentity> | null
+  billingState?: BillingState | null
+  properties?: Record<string, unknown>
+}): Promise<void> {
+  const { extension, page, eventName, authUser, identity, billingState, properties } = options
+  if (!extension.apiBase) return
+
+  const params = new URLSearchParams(window.location.search)
+  const clientId = identity?.clientId || identity?.accountId || authUser?.id || getWebsiteAnalyticsClientId()
+  const accountId = identity?.accountId || authUser?.id || null
+  const accountEmail = identity?.email || authUser?.email || null
+
+  const payload = {
+    id: crypto.randomUUID(),
+    appId: extension.appId,
+    clientId,
+    accountId,
+    accountEmail,
+    eventName,
+    timestamp: Date.now(),
+    plan: billingState?.plan === 'pro' ? 'pro' : 'basic',
+    subscriptionKind: getWebsiteSubscriptionKind(billingState),
+    properties: {
+      appId: extension.appId,
+      pageKey: page,
+      screen: `website-${page}`,
+      routePath: window.location.pathname,
+      visitSource: getVisitSource(),
+      handoffSource: params.get('source') || null,
+      referrerHost: getReferrerHost(),
+      utmSource: params.get('utm_source'),
+      utmMedium: params.get('utm_medium'),
+      utmCampaign: params.get('utm_campaign'),
+      ...properties,
+    },
+  }
+
+  await fetch(`${extension.apiBase}/api/analytics/event`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+    keepalive: true,
+  }).catch(() => undefined)
+}
+
+async function startWebsiteGoogleSignIn(extension: ExtensionDefinition, origin: string): Promise<void> {
+  writePendingAction(WEBSITE_SIGNIN_PENDING_KEY, extension.slug)
+  await trackWebsiteEvent({
+    extension,
+    page: WEBSITE_ANALYTICS_PAGE_MAP[parseRoute(window.location.pathname).page] || 'login',
+    eventName: 'Website Sign In Started',
+    properties: {
+      ctaOrigin: origin,
+    },
+  })
+  await signInOnWebsiteWithGoogle(window.location.href)
+}
+
 function parseRoute(pathname: string): { page: PageKey; extension: ExtensionDefinition | null; shareSlug: string | null } {
   if (pathname === '/' || pathname === '') return { page: 'hub', extension: null, shareSlug: null }
   const parts = pathname.split('/').filter(Boolean)
@@ -469,6 +615,34 @@ function AppShell({ children, extension, page }: { children: ReactNode; extensio
   const auth = useWebsiteAuthState()
   const brandHref = extension ? `/${extension.slug}` : '/'
 
+  useEffect(() => {
+    const trackedPage = WEBSITE_ANALYTICS_PAGE_MAP[page]
+    if (!extension || !trackedPage) return
+    void trackWebsiteEvent({
+      extension,
+      page: trackedPage,
+      eventName: `Website ${trackedPage[0].toUpperCase()}${trackedPage.slice(1)} Viewed`,
+      authUser: auth.user,
+    })
+  }, [extension, page])
+
+  useEffect(() => {
+    if (!extension || !auth.user) return
+    const pending = readPendingAction(WEBSITE_SIGNIN_PENDING_KEY)
+    if (!pending || pending.slug !== extension.slug) return
+    clearPendingAction(WEBSITE_SIGNIN_PENDING_KEY)
+    void trackWebsiteEvent({
+      extension,
+      page: WEBSITE_ANALYTICS_PAGE_MAP[page] || 'login',
+      eventName: 'Website Sign In Completed',
+      authUser: auth.user,
+      properties: {
+        startedAt: pending.startedAt,
+        returnPage: page,
+      },
+    })
+  }, [auth.user, extension, page])
+
   return (
     <div className="site-shell">
       {page !== 'admin' ? (
@@ -495,13 +669,27 @@ function AppShell({ children, extension, page }: { children: ReactNode; extensio
                   <button
                     className={`topnav-button ${page === 'login' ? 'is-active' : ''}`}
                     onClick={() => {
-                      void signInOnWebsiteWithGoogle(window.location.href)
+                      void startWebsiteGoogleSignIn(extension, 'topnav')
                     }}
                   >
                     Login
                   </button>
                 ) : null}
-                <a className={page === 'payment' || page === 'pricing' ? 'is-active' : ''} href={`/${extension.slug}/payment`}>Upgrade to Pro</a>
+                <a
+                  className={page === 'payment' || page === 'pricing' ? 'is-active' : ''}
+                  href={`/${extension.slug}/payment`}
+                  onClick={() => {
+                    void trackWebsiteEvent({
+                      extension,
+                      page: WEBSITE_ANALYTICS_PAGE_MAP[page] || 'product',
+                      eventName: 'Website Upgrade Opened',
+                      authUser: auth.user,
+                      properties: { ctaOrigin: 'topnav' },
+                    })
+                  }}
+                >
+                  Upgrade to Pro
+                </a>
                 {auth.user ? (
                   <button
                     className="topnav-button"
@@ -612,18 +800,51 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
             </div>
             <p>{extension.summary}</p>
             <div className="cta-row">
-              {extension.installUrl ? <a className="primary-cta" href={extension.installUrl} target="_blank" rel="noreferrer">Install extension</a> : null}
+              {extension.installUrl ? (
+                <a
+                  className="primary-cta"
+                  href={extension.installUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() => {
+                    void trackWebsiteEvent({
+                      extension,
+                      page: 'product',
+                      eventName: 'Website Install Clicked',
+                      authUser: auth.user,
+                      billingState: state,
+                    })
+                  }}
+                >
+                  Install extension
+                </a>
+              ) : null}
               {!auth.user ? (
                 <button
                   className="secondary-cta"
                   onClick={() => {
-                    void signInOnWebsiteWithGoogle(window.location.href)
+                    void startWebsiteGoogleSignIn(extension, 'product-hero')
                   }}
                 >
                   Login
                 </button>
               ) : null}
-              <a className="primary-cta" href={`/${extension.slug}/payment`}>Upgrade to Pro</a>
+              <a
+                className="primary-cta"
+                href={`/${extension.slug}/payment`}
+                onClick={() => {
+                  void trackWebsiteEvent({
+                    extension,
+                    page: 'product',
+                    eventName: 'Website Upgrade Opened',
+                    authUser: auth.user,
+                    billingState: state,
+                    properties: { ctaOrigin: 'product-hero' },
+                  })
+                }}
+              >
+                Upgrade to Pro
+              </a>
             </div>
             <div className="hero-meta-row">
               <div className="hero-meta-pill">
@@ -934,7 +1155,7 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
                     className="button-cta inline-cta"
                     onClick={() => {
                       setAuthError(null)
-                      void signInOnWebsiteWithGoogle(window.location.href).catch((err) => setAuthError(err instanceof Error ? err.message : 'Website sign-in failed.'))
+                      void startWebsiteGoogleSignIn(extension, 'pricing-account').catch((err) => setAuthError(err instanceof Error ? err.message : 'Website sign-in failed.'))
                     }}
                   >
                     Sign in with Google
@@ -1008,7 +1229,23 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
               {patreonLastSyncedLabel ? <p><strong>Last Patreon sync:</strong> {patreonLastSyncedLabel}</p> : null}
               {isPatreonBilling ? <p className="muted-copy">Membership access refreshes automatically about every 6 hours, so billing changes may take a little time to appear.</p> : null}
               <div className="cta-row compact-cta-row">
-                <a className="button-cta inline-cta" href={`/${extension.slug}/payment`}>{state?.patreonConnected ? 'View Pro access' : 'Open upgrade page'}</a>
+                <a
+                  className="button-cta inline-cta"
+                  href={`/${extension.slug}/payment`}
+                  onClick={() => {
+                    void trackWebsiteEvent({
+                      extension,
+                      page: 'pricing',
+                      eventName: 'Website Upgrade Opened',
+                      authUser: auth.user,
+                      identity,
+                      billingState: state,
+                      properties: { ctaOrigin: 'pricing-primary' },
+                    })
+                  }}
+                >
+                  {state?.patreonConnected ? 'View Pro access' : 'Open upgrade page'}
+                </a>
               </div>
             </section>
             <div className="pricing-inline-note">
@@ -1062,7 +1299,7 @@ function LoginPage({ extension }: { extension: ExtensionDefinition }) {
                 className="button-cta inline-cta"
                 onClick={() => {
                   setAuthError(null)
-                  void signInOnWebsiteWithGoogle(window.location.href).catch((err) => setAuthError(err instanceof Error ? err.message : 'Website sign-in failed.'))
+                  void startWebsiteGoogleSignIn(extension, 'login-page').catch((err) => setAuthError(err instanceof Error ? err.message : 'Website sign-in failed.'))
                 }}
                 disabled={!auth.configured}
               >
@@ -1088,7 +1325,22 @@ function LoginPage({ extension }: { extension: ExtensionDefinition }) {
         </div>
         <div className="cta-row">
           {extension.installUrl ? <a className="primary-cta" href={extension.installUrl} target="_blank" rel="noreferrer">Install extension</a> : null}
-          <a className="primary-cta" href={`/${extension.slug}/payment`}>Open upgrade page</a>
+          <a
+            className="primary-cta"
+            href={`/${extension.slug}/payment`}
+            onClick={() => {
+              void trackWebsiteEvent({
+                extension,
+                page: 'login',
+                eventName: 'Website Upgrade Opened',
+                authUser: auth.user,
+                identity,
+                properties: { ctaOrigin: 'login-page' },
+              })
+            }}
+          >
+            Open upgrade page
+          </a>
       </div>
     </section>
   )
@@ -1134,6 +1386,25 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
     return () => { cancelled = true }
   }, [auth.user?.email, auth.user?.id, extension.apiBase, extension.appId, identity])
 
+  useEffect(() => {
+    if (!paymentStatus || !extension.apiBase) return
+    const pending = readPendingAction(WEBSITE_PATREON_PENDING_KEY)
+    if (!pending || pending.slug !== extension.slug) return
+    clearPendingAction(WEBSITE_PATREON_PENDING_KEY)
+    void trackWebsiteEvent({
+      extension,
+      page: 'payment',
+      eventName: paymentStatus === 'connected' ? 'Website Patreon Connect Completed' : 'Website Patreon Connect Failed',
+      authUser: auth.user,
+      identity,
+      billingState: state,
+      properties: {
+        startedAt: pending.startedAt,
+        callbackStatus: paymentStatus,
+      },
+    })
+  }, [auth.user, extension, identity, paymentStatus, state])
+
   const isPatreonBilling = extension.billingProvider === 'patreon'
   const patreonLastSyncedLabel = state?.patreonLastSyncedAt ? new Date(state.patreonLastSyncedAt).toLocaleString() : null
   const effectiveClientId = identity.clientId || identity.accountId || auth.user?.id || ''
@@ -1153,6 +1424,18 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
     setError(null)
     setPatreonLoading(true)
     try {
+      writePendingAction(WEBSITE_PATREON_PENDING_KEY, extension.slug)
+      await trackWebsiteEvent({
+        extension,
+        page: 'payment',
+        eventName: 'Website Patreon Connect Started',
+        authUser: auth.user,
+        identity,
+        billingState: state,
+        properties: {
+          ctaOrigin: 'payment-primary',
+        },
+      })
       const query = new URLSearchParams({
         appId: extension.appId,
         clientId: effectiveClientId,
@@ -1237,7 +1520,7 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
                     className="button-cta inline-cta"
                     onClick={() => {
                       setAuthError(null)
-                      void signInOnWebsiteWithGoogle(window.location.href).catch((err) => setAuthError(err instanceof Error ? err.message : 'Website sign-in failed.'))
+                      void startWebsiteGoogleSignIn(extension, 'payment-account').catch((err) => setAuthError(err instanceof Error ? err.message : 'Website sign-in failed.'))
                     }}
                   >
                     Sign in with Google
@@ -1321,8 +1604,46 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
                     {patreonLoading ? 'Opening Patreon...' : 'Link Patreon to Pro'}
                   </button>
                 ) : null}
-                {!isPatreonBilling && state?.checkoutUrl ? <a className="secondary-cta" href={state.checkoutUrl} target="_blank" rel="noreferrer">Continue to checkout</a> : null}
-                {state?.portalUrl && state?.plan === 'pro' ? <a className="secondary-cta" href={state.portalUrl} target="_blank" rel="noreferrer">{isPatreonBilling ? 'Open Patreon membership' : 'Open billing portal'}</a> : null}
+                {!isPatreonBilling && state?.checkoutUrl ? (
+                  <a
+                    className="secondary-cta"
+                    href={state.checkoutUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={() => {
+                      void trackWebsiteEvent({
+                        extension,
+                        page: 'payment',
+                        eventName: 'Website Checkout Opened',
+                        authUser: auth.user,
+                        identity,
+                        billingState: state,
+                      })
+                    }}
+                  >
+                    Continue to checkout
+                  </a>
+                ) : null}
+                {state?.portalUrl && state?.plan === 'pro' ? (
+                  <a
+                    className="secondary-cta"
+                    href={state.portalUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={() => {
+                      void trackWebsiteEvent({
+                        extension,
+                        page: 'payment',
+                        eventName: 'Website Billing Portal Opened',
+                        authUser: auth.user,
+                        identity,
+                        billingState: state,
+                      })
+                    }}
+                  >
+                    {isPatreonBilling ? 'Open Patreon membership' : 'Open billing portal'}
+                  </a>
+                ) : null}
               </div>
               {!canConnectPatreon ? <p className="muted-copy">The button unlocks once the correct website account is signed in.</p> : null}
               <div className="payment-status-strip">
@@ -1408,6 +1729,14 @@ function SupportPage({ extension }: { extension: ExtensionDefinition }) {
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data.error || 'Support request could not be sent.')
+      void trackWebsiteEvent({
+        extension,
+        page: 'support',
+        eventName: 'Website Support Submitted',
+        authUser: auth.user,
+        identity,
+        properties: { category },
+      })
       setStatus('done')
       setStatusMessage('Support request sent. It is now visible in the admin workspace for this extension.')
       setSubject('')
@@ -1795,6 +2124,85 @@ function AdminPage() {
       .sort((a, b) => b.count - a.count)
       .slice(0, 10)
   }, [filteredRecentEvents])
+
+  const websiteEvents = useMemo(
+    () => filteredRecentEvents.filter((event) => typeof event.properties?.screen === 'string' && String(event.properties.screen).startsWith('website-')),
+    [filteredRecentEvents],
+  )
+
+  const websitePageViews = useMemo(() => {
+    const counts = new Map<string, number>()
+    websiteEvents.forEach((event) => {
+      if (!event.eventName.endsWith('Viewed')) return
+      const pageKey = typeof event.properties?.pageKey === 'string' ? event.properties.pageKey : 'other'
+      counts.set(pageKey, (counts.get(pageKey) || 0) + 1)
+    })
+    return Array.from(counts.entries())
+      .map(([page, count]) => ({ page, count }))
+      .sort((a, b) => b.count - a.count)
+  }, [websiteEvents])
+
+  const websiteVisitSources = useMemo(() => {
+    const counts = new Map<string, number>()
+    websiteEvents.forEach((event) => {
+      if (!event.eventName.endsWith('Viewed')) return
+      const source = typeof event.properties?.visitSource === 'string' ? event.properties.visitSource : 'direct'
+      counts.set(source, (counts.get(source) || 0) + 1)
+    })
+    return Array.from(counts.entries())
+      .map(([source, count]) => ({ source, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8)
+  }, [websiteEvents])
+
+  const websiteConversionSteps = useMemo(() => {
+    const sets = {
+      visitors: new Set<string>(),
+      pricing: new Set<string>(),
+      payment: new Set<string>(),
+      signIn: new Set<string>(),
+      patreon: new Set<string>(),
+      pro: new Set<string>(),
+    }
+
+    websiteEvents.forEach((event) => {
+      const key = buildUserKey(event.accountId, event.clientId)
+      if (event.eventName === 'Website Product Viewed') sets.visitors.add(key)
+      if (event.eventName === 'Website Pricing Viewed' || event.eventName === 'Website Upgrade Opened') sets.pricing.add(key)
+      if (event.eventName === 'Website Payment Viewed') sets.payment.add(key)
+      if (event.eventName === 'Website Sign In Completed') sets.signIn.add(key)
+      if (event.eventName === 'Website Patreon Connect Completed') sets.patreon.add(key)
+      if (event.plan === 'pro' || event.subscriptionKind === 'pro') sets.pro.add(key)
+    })
+
+    const base = sets.visitors.size || 0
+    return [
+      { key: 'visitors', label: 'Product visitors', count: sets.visitors.size, rate: '100%' },
+      { key: 'pricing', label: 'Upgrade interest', count: sets.pricing.size, rate: formatPercent(sets.pricing.size, base) },
+      { key: 'payment', label: 'Payment visits', count: sets.payment.size, rate: formatPercent(sets.payment.size, base) },
+      { key: 'signIn', label: 'Signed in on web', count: sets.signIn.size, rate: formatPercent(sets.signIn.size, base) },
+      { key: 'patreon', label: 'Patreon linked', count: sets.patreon.size, rate: formatPercent(sets.patreon.size, base) },
+      { key: 'pro', label: 'Pro identified', count: sets.pro.size, rate: formatPercent(sets.pro.size, base) },
+    ]
+  }, [websiteEvents])
+
+  const websiteOverviewCards = useMemo(() => {
+    const totalViews = websitePageViews.reduce((sum, item) => sum + item.count, 0)
+    const uniqueVisitors = new Set(websiteEvents.filter((event) => event.eventName.endsWith('Viewed')).map((event) => buildUserKey(event.accountId, event.clientId))).size
+    const pricingCount = websitePageViews.find((item) => item.page === 'pricing')?.count || 0
+    const paymentCount = websitePageViews.find((item) => item.page === 'payment')?.count || 0
+    const signInCount = websiteConversionSteps.find((item) => item.key === 'signIn')?.count || 0
+    const patreonCount = websiteConversionSteps.find((item) => item.key === 'patreon')?.count || 0
+
+    return [
+      { label: 'Website visits', value: totalViews, tone: 'default' },
+      { label: 'Unique visitors', value: uniqueVisitors, tone: 'default' },
+      { label: 'Pricing visits', value: pricingCount, tone: 'support' },
+      { label: 'Payment visits', value: paymentCount, tone: 'support' },
+      { label: 'Website sign-ins', value: signInCount, tone: 'accent' },
+      { label: 'Patreon links', value: patreonCount, tone: 'warm' },
+    ]
+  }, [websiteConversionSteps, websiteEvents, websitePageViews])
 
   const journeyRows = useMemo<AdminJourney[]>(() => {
     const grouped = new Map<string, AdminJourney>()
@@ -2410,6 +2818,55 @@ function AdminPage() {
                     <strong>{card.value}</strong>
                   </div>
                 ))}
+              </section>
+
+              <section className="info-card stack-md">
+                <div className="section-label">Website conversion</div>
+                <div className="admin-overview-grid admin-overview-grid-website">
+                  {websiteOverviewCards.map((card) => (
+                    <div key={card.label} className={`overview-card tone-${card.tone}`}>
+                      <span>{card.label}</span>
+                      <strong>{card.value}</strong>
+                    </div>
+                  ))}
+                </div>
+                <div className="website-insights-grid">
+                  <section className="website-insight-panel">
+                    <div className="section-label">Conversion path</div>
+                    <div className="funnel-grid website-funnel-grid">
+                      {websiteConversionSteps.map((step, index) => (
+                        <div key={step.key} className="funnel-card">
+                          <div className="funnel-step">{index + 1}</div>
+                          <strong>{step.count}</strong>
+                          <span>{step.label}</span>
+                          <small>{step.rate}</small>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                  <section className="website-insight-panel">
+                    <div className="section-label">Visit sources</div>
+                    <div className="table-list">
+                      {websiteVisitSources.length ? websiteVisitSources.map((item) => (
+                        <div key={item.source} className="table-row source-row">
+                          <strong>{item.source}</strong>
+                          <span>{item.count} visits</span>
+                        </div>
+                      )) : <p className="muted-copy">Website page views will start showing sources once people enter the product routes.</p>}
+                    </div>
+                  </section>
+                  <section className="website-insight-panel">
+                    <div className="section-label">Page visits</div>
+                    <div className="table-list">
+                      {websitePageViews.length ? websitePageViews.map((item) => (
+                        <div key={item.page} className="table-row source-row">
+                          <strong>{formatMetricLabel(item.page)}</strong>
+                          <span>{item.count} views</span>
+                        </div>
+                      )) : <p className="muted-copy">No website page views tracked yet for this product and date range.</p>}
+                    </div>
+                  </section>
+                </div>
               </section>
 
               <section className="admin-analysis-grid">
