@@ -2011,10 +2011,14 @@ function AdminPage() {
   const [selectedUserKey, setSelectedUserKey] = useState<string | null>(null)
 
   useEffect(() => {
-    const storedPasscode = localStorage.getItem('admin-passcode')
-    const storedAuth = localStorage.getItem('admin-authenticated')
-    if (storedPasscode) setPasscode(storedPasscode)
-    if (storedAuth === 'true') setIsAuthenticated(true)
+    try {
+      const storedPasscode = localStorage.getItem('admin-passcode')
+      const storedAuth = localStorage.getItem('admin-authenticated')
+      if (storedPasscode) setPasscode(storedPasscode)
+      if (storedAuth === 'true' && storedPasscode) setIsAuthenticated(true)
+    } catch {
+      // Ignore storage errors and require manual sign-in.
+    }
   }, [])
 
   const extension = extensionMap.get(selectedSlug) || extensions[0]
@@ -2062,14 +2066,22 @@ function AdminPage() {
       const payload = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(payload.error || 'Admin analytics could not be loaded.')
       setIsAuthenticated(true)
-      localStorage.setItem('admin-authenticated', 'true')
-      localStorage.setItem('admin-passcode', passcode.trim())
+      try {
+        localStorage.setItem('admin-authenticated', 'true')
+        localStorage.setItem('admin-passcode', passcode.trim())
+      } catch {
+        // Ignore storage errors and keep session in memory only.
+      }
       if (!authenticateOnly) {
         setData(payload as AdminAnalyticsResponse)
       }
     } catch (err) {
       setIsAuthenticated(false)
-      localStorage.removeItem('admin-authenticated')
+      try {
+        localStorage.removeItem('admin-authenticated')
+      } catch {
+        // Ignore storage errors.
+      }
       setError(err instanceof Error ? err.message : 'Admin analytics could not be loaded.')
       setData(null)
     } finally {
@@ -2087,8 +2099,12 @@ function AdminPage() {
     setData(null)
     setError(null)
     setActionStatus(null)
-    localStorage.removeItem('admin-authenticated')
-    localStorage.removeItem('admin-passcode')
+    try {
+      localStorage.removeItem('admin-authenticated')
+      localStorage.removeItem('admin-passcode')
+    } catch {
+      // Ignore storage errors.
+    }
   }
 
   const isWithinRange = (timestamp?: number | null) => {
