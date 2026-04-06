@@ -210,7 +210,7 @@ const WEBSITE_ANALYTICS_CLIENT_KEY = 'extensions-hub:website-client-id'
 const WEBSITE_SIGNIN_PENDING_KEY = 'extensions-hub:pending-google-signin'
 const WEBSITE_PATREON_PENDING_KEY = 'extensions-hub:pending-patreon-connect'
 
-function readWebsiteHandoff(extension: ExtensionDefinition, scope: 'login' | 'pricing' | 'leave'): WebsiteHandoffIdentity {
+function readWebsiteHandoff(extension: ExtensionDefinition, scope: 'login' | 'pricing' | 'payment' | 'leave'): WebsiteHandoffIdentity {
   const params = new URLSearchParams(window.location.search)
   const storageKey = `${extension.slug}:${scope}-identity`
   const stored = window.localStorage.getItem(storageKey)
@@ -1349,7 +1349,7 @@ function LoginPage({ extension }: { extension: ExtensionDefinition }) {
 function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
   const params = new URLSearchParams(window.location.search)
   const paymentStatus = params.get('status')
-  const [identity] = useState(() => readWebsiteHandoff(extension, 'pricing'))
+  const [identity] = useState(() => readWebsiteHandoff(extension, 'payment'))
   const auth = useWebsiteAuthState()
   const [state, setState] = useState<BillingState | null>(null)
   const [loading, setLoading] = useState(Boolean(extension.apiBase && (identity.clientId || auth.user?.id)))
@@ -1360,7 +1360,7 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
   useEffect(() => {
     let cancelled = false
     const load = async () => {
-      const effectiveClientId = identity.clientId || identity.accountId || auth.user?.id || ''
+      const effectiveClientId = identity.clientId || ''
       const effectiveAccountId = identity.accountId || auth.user?.id || ''
       const effectiveEmail = identity.email || auth.user?.email || ''
       if (!extension.apiBase || !effectiveClientId || !effectiveAccountId) {
@@ -1384,7 +1384,7 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
 
     void load()
     return () => { cancelled = true }
-  }, [auth.user?.email, auth.user?.id, extension.apiBase, extension.appId, identity])
+  }, [auth.user?.email, auth.user?.id, extension.apiBase, extension.appId, identity, paymentStatus])
 
   useEffect(() => {
     if (!paymentStatus || !extension.apiBase) return
@@ -1407,7 +1407,7 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
 
   const isPatreonBilling = extension.billingProvider === 'patreon'
   const patreonLastSyncedLabel = state?.patreonLastSyncedAt ? new Date(state.patreonLastSyncedAt).toLocaleString() : null
-  const effectiveClientId = identity.clientId || identity.accountId || auth.user?.id || ''
+  const effectiveClientId = identity.clientId || ''
   const effectiveAccountId = identity.accountId || auth.user?.id || ''
   const effectiveEmail = identity.email || auth.user?.email || ''
   const isSyncedUser = Boolean(auth.user && identity.accountId && auth.user.id === identity.accountId)
