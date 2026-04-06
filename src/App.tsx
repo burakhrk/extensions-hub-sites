@@ -1610,7 +1610,7 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
                     {patreonLoading ? 'Opening Patreon...' : 'Link Patreon to Pro'}
                   </button>
                 ) : null}
-                {!isPatreonBilling && state?.checkoutUrl ? (
+                {state?.billingProvider === 'website' && state?.checkoutUrl ? (
                   <a
                     className="secondary-cta"
                     href={state.checkoutUrl}
@@ -1627,7 +1627,7 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
                       })
                     }}
                   >
-                    Continue to checkout
+                    Open checkout
                   </a>
                 ) : null}
                 {state?.portalUrl && state?.plan === 'pro' ? (
