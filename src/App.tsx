@@ -2493,7 +2493,7 @@ function AdminPage() {
     return derivedUsers.filter((user) => isWithinRange(user.firstSeen)).length
   }, [datePreset, derivedUsers, dateRange.end, dateRange.start])
 
-  const runSubscriptionAction = async (action: 'grant_pro' | 'revoke_pro') => {
+  const runSubscriptionAction = async (action: 'grant_pro' | 'revoke_pro' | 'refresh_patreon') => {
     if (!supportsSubscriptionActions || !selectedUser || !extension.adminApiBase || !extension.adminSubscriptionPath) {
       setActionStatus('This extension does not expose admin subscription actions yet.')
       return
@@ -2525,7 +2525,11 @@ function AdminPage() {
       })
       const payload = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(payload.error || 'Admin action failed.')
-      setActionStatus(action === 'grant_pro' ? 'Pro granted for the selected user.' : 'Pro removed for the selected user.')
+      if (action === 'refresh_patreon') {
+        setActionStatus('Patreon status refreshed for the selected user.')
+      } else {
+        setActionStatus(action === 'grant_pro' ? 'Pro granted for the selected user.' : 'Pro removed for the selected user.')
+      }
       await loadAnalytics()
     } catch (err) {
       setActionStatus(err instanceof Error ? err.message : 'Admin action failed.')
@@ -2806,6 +2810,11 @@ function AdminPage() {
                             <button className="secondary-cta" onClick={() => void runSubscriptionAction('revoke_pro')} disabled={actionLoading}>
                               Revoke Pro
                             </button>
+                            {extension.billingProvider === 'patreon' ? (
+                              <button className="secondary-cta" onClick={() => void runSubscriptionAction('refresh_patreon')} disabled={actionLoading}>
+                                Refresh Patreon
+                              </button>
+                            ) : null}
                           </div>
                           {actionStatus ? <p className="muted-copy">{actionStatus}</p> : null}
                         </div>
