@@ -2466,6 +2466,8 @@ function AdminPage() {
     return derivedFunnel
   }, [derivedFunnel, funnelView])
 
+  const [adminSection, setAdminSection] = useState<'overview' | 'users' | 'funnel' | 'website' | 'events'>('overview')
+
   const overviewCards = useMemo(() => {
     const summary = data?.summary || {}
     const aiUsageTotal = Object.entries(data?.aiUsage || {}).reduce((total, [key, value]) => {
@@ -2701,6 +2703,26 @@ function AdminPage() {
                 </div>
               </section>
 
+              <div className="admin-section-tabs">
+                {[
+                  { key: 'overview', label: 'Overview' },
+                  { key: 'users', label: 'Users' },
+                  { key: 'funnel', label: 'Funnel' },
+                  { key: 'website', label: 'Website' },
+                  { key: 'events', label: 'Events' },
+                ].map((tab) => (
+                  <button
+                    key={tab.key}
+                    className={`admin-section-tab ${adminSection === tab.key ? 'is-active' : ''}`}
+                    onClick={() => setAdminSection(tab.key as typeof adminSection)}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {adminSection === 'overview' ? (
+              <>
               <section className="admin-visual-grid">
                 <section className="info-card compact-info-card">
                   <div className="section-label">New users</div>
@@ -2775,6 +2797,7 @@ function AdminPage() {
                 </section>
               </section>
 
+              {adminSection === 'users' ? (
               <section className="admin-user-workspace admin-user-workspace-priority">
                 <section className="info-card">
                   <div className="section-label">Users</div>
@@ -2903,6 +2926,7 @@ function AdminPage() {
                   )}
                 </section>
               </section>
+              ) : null}
 
               <section className="admin-overview-grid">
                 {overviewCards.map((card) => (
@@ -2912,6 +2936,10 @@ function AdminPage() {
                   </div>
                 ))}
               </section>
+              </>
+              ) : null}
+
+              {adminSection === 'website' ? (
 
               <section className="info-card stack-md">
                 <div className="section-label">Website conversion</div>
@@ -2961,7 +2989,9 @@ function AdminPage() {
                   </section>
                 </div>
               </section>
+              ) : null}
 
+              {adminSection === 'funnel' ? (
               <section className="admin-analysis-grid">
                 <section className="info-card">
                   <div className="section-label">Funnel analysis</div>
@@ -3010,7 +3040,9 @@ function AdminPage() {
                   <p className="muted-copy">This is the quick read before dropping into a single user journey.</p>
                 </section>
               </section>
+              ) : null}
 
+              {adminSection === 'events' ? (
               <section className="admin-detail-grid">
                 {data?.summary ? <MetricGrid title="Summary" data={data.summary} /> : null}
                 {data?.aiUsage ? <MetricGrid title="AI usage" data={data.aiUsage} /> : null}
@@ -3149,6 +3181,7 @@ function AdminPage() {
                     ))}
                   </div>
                 </section>
+              ) : null}
               ) : null}
             </div>
           </section>

@@ -1229,6 +1229,28 @@ button { border: 0; cursor: pointer; }
   color: #fff;
   border-color: #0f172a;
 }
+.admin-section-tabs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px 0 4px;
+}
+.admin-section-tab {
+  border-radius: 999px;
+  padding: 10px 16px;
+  border: 1px solid var(--line);
+  background: #f8fafc;
+  color: #334155;
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.admin-section-tab.is-active {
+  background: #0f172a;
+  color: #fff;
+  border-color: #0f172a;
+}
 .journey-timeline {
   display: grid;
   gap: 10px;
