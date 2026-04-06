@@ -2372,11 +2372,24 @@ function AdminPage() {
 
   const selectedUserEvents = useMemo(() => {
     if (!selectedUser) return filteredRecentEvents.slice().sort((a, b) => b.timestamp - a.timestamp)
+    const linkedClients = new Set(selectedUser.linkedClientIds || [])
     return filteredRecentEvents
-      .filter((event) => buildUserKey(event.accountId, event.clientId) === selectedUser.userKey)
+      .filter((event) => {
+        if (selectedUser.accountId && event.accountId && event.accountId === selectedUser.accountId) return true
+        if (event.clientId && linkedClients.has(event.clientId)) return true
+        return buildUserKey(event.accountId, event.clientId) === selectedUser.userKey
+      })
       .slice()
       .sort((a, b) => b.timestamp - a.timestamp)
   }, [filteredRecentEvents, selectedUser])
+
+  const selectedUserTimeline = useMemo(() => {
+    if (!selectedUserEvents.length) return []
+    return selectedUserEvents
+      .slice()
+      .sort((a, b) => a.timestamp - b.timestamp)
+      .slice(-30)
+  }, [selectedUserEvents])
 
   const selectedUserFeedback = useMemo(() => {
     if (!selectedUser) return filteredUninstallFeedback
@@ -2683,6 +2696,7 @@ function AdminPage() {
                     <div className="mini-chart-grid">
                       {activityBars.slice(-10).map((bar) => (
                         <div key={`users-${bar.label}`} className="mini-chart-col" title={`${bar.shortLabel}: ${bar.newUsers} new users`}>
+                          <span className="mini-chart-value">{bar.newUsers}</span>
                           <div className="mini-chart-track">
                             <div className="mini-chart-fill tone-users" style={{ height: `${bar.userHeight}%` }} />
                           </div>
@@ -2707,6 +2721,7 @@ function AdminPage() {
                     <div className="mini-chart-grid">
                       {activityBars.slice(-10).map((bar) => (
                         <div key={`events-${bar.label}`} className="mini-chart-col" title={`${bar.shortLabel}: ${bar.eventCount} events`}>
+                          <span className="mini-chart-value">{bar.eventCount}</span>
                           <div className="mini-chart-track">
                             <div className="mini-chart-fill tone-events" style={{ height: `${bar.eventHeight}%` }} />
                           </div>
@@ -2804,6 +2819,22 @@ function AdminPage() {
                         <div className="mini-detail-card">
                           <span>Journey snapshot</span>
                           <strong>{selectedJourney.path.slice(0, 4).join(' -> ')}</strong>
+                        </div>
+                      ) : null}
+                      {selectedUserTimeline.length ? (
+                        <div className="mini-detail-card">
+                          <span>Detailed journey</span>
+                          <div className="journey-timeline">
+                            {selectedUserTimeline.map((event) => (
+                              <div key={`${event.eventName}-${event.timestamp}`} className="journey-timeline-row">
+                                <div>
+                                  <strong>{event.eventName}</strong>
+                                  {event.properties?.screen ? <span>{String(event.properties.screen)}</span> : null}
+                                </div>
+                                <small>{new Date(event.timestamp).toLocaleString()}</small>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       ) : null}
                       {supportsSubscriptionActions ? (

@@ -1172,6 +1172,16 @@ button { border: 0; cursor: pointer; }
   gap: 6px;
   justify-items: center;
 }
+.mini-chart-value {
+  font-size: .7rem;
+  font-weight: 700;
+  color: #0f172a;
+  opacity: 0;
+  transition: opacity .2s ease;
+}
+.mini-chart-col:hover .mini-chart-value {
+  opacity: 1;
+}
 .mini-chart-track {
   width: 100%;
   height: 82px;
@@ -1196,6 +1206,34 @@ button { border: 0; cursor: pointer; }
   font-size: .68rem;
   color: var(--muted);
   text-align: center;
+}
+.journey-timeline {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+.journey-timeline-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+}
+.journey-timeline-row div {
+  display: grid;
+  gap: 4px;
+}
+.journey-timeline-row span {
+  font-size: .72rem;
+  color: var(--muted);
+}
+.journey-timeline-row small {
+  font-size: .72rem;
+  color: #64748b;
+  white-space: nowrap;
 }
 .focus-stack {
   display: grid;
