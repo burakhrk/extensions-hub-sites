@@ -230,6 +230,44 @@ Rules:
 - always send and enforce `app_id`
 - never render mixed event streams by default
 
+### Analytics contract (required for every new extension)
+
+If you want the unified admin panel to read clearly, every product should emit the same baseline metrics and event names.
+
+Required identity fields on every event:
+
+- `appId` (must match the extension `appId`)
+- `clientId` (stable per install)
+- `accountId` (when signed in)
+- `accountEmail` (when signed in)
+- `plan` (basic or pro)
+- `subscriptionKind` (basic, trial, promo, pro, patreon)
+- `timestamp`
+- `eventName`
+- `properties.screen` (page or surface name)
+
+Required event names (use these exact labels):
+
+- `Dashboard Opened`
+- `Saved Quick Note` (or product equivalent: a “primary save” event)
+- `Opened Checkout`
+- `Started Trial` (only if used)
+- `Linked Patreon`
+- `Opened Billing Portal`
+
+Optional but recommended:
+
+- `Opened Paywall`
+- `Opened Pricing`
+- `Generated Share Link`
+- `Support Submitted`
+
+Important:
+
+- If a user signs in, keep the same `clientId` and add `accountId`. This lets the admin panel merge pre-login and post-login events.
+- Make sure `accountId` and `accountEmail` are written to events after sign-in so users are deduped correctly.
+- If you introduce new event names, update this doc and the admin panel funnel mapping together.
+
 ## How to add a new extension correctly
 
 ### Step 1
