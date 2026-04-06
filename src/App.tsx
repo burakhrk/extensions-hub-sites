@@ -1349,6 +1349,7 @@ function LoginPage({ extension }: { extension: ExtensionDefinition }) {
 function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
   const params = new URLSearchParams(window.location.search)
   const paymentStatus = params.get('status')
+  const paymentReason = params.get('reason')
   const [identity] = useState(() => readWebsiteHandoff(extension, 'payment'))
   const auth = useWebsiteAuthState()
   const [state, setState] = useState<BillingState | null>(null)
@@ -1496,7 +1497,12 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
           </div>
         </div>
         {paymentStatus === 'connected' ? <p className="success"><strong>Patreon connected.</strong> Your membership is now linked back to this extension account.</p> : null}
-        {paymentStatus === 'failed' ? <p className="warning">Patreon connection did not complete. You can retry from this page.</p> : null}
+        {paymentStatus === 'failed' ? (
+          <p className="warning">
+            Patreon connection did not complete. You can retry from this page.
+            {paymentReason ? <span className="inline-note">Reason: {paymentReason}</span> : null}
+          </p>
+        ) : null}
         <div className="two-col payment-layout">
           <div className="payment-column stack-md">
             <section className="payment-panel">
