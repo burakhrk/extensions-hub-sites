@@ -2251,9 +2251,15 @@ function AdminPage() {
 
   const derivedUsers = useMemo<AdminUserSummary[]>(() => {
     const byKey = new Map<string, AdminUserSummary>()
+    const clientAccountMap = new Map<string, string>()
 
     data?.users?.forEach((user) => {
       const key = buildUserKey(user.accountId, user.clientId)
+      user.linkedClientIds?.forEach((clientId) => {
+        if (user.accountId) {
+          clientAccountMap.set(clientId, user.accountId)
+        }
+      })
       byKey.set(key, {
         userKey: key,
         label: getUserLabel(user),
@@ -2276,14 +2282,15 @@ function AdminPage() {
     })
 
     filteredRecentEvents.forEach((event) => {
-      const key = buildUserKey(event.accountId, event.clientId)
+      const resolvedAccountId = event.accountId || (event.clientId ? clientAccountMap.get(event.clientId) : null)
+      const key = buildUserKey(resolvedAccountId, event.clientId)
       const existing = byKey.get(key)
       if (!existing) {
         byKey.set(key, {
           userKey: key,
-          label: getUserLabel(event),
+          label: getUserLabel({ ...event, accountId: resolvedAccountId }),
           clientId: event.clientId || null,
-          accountId: event.accountId || null,
+          accountId: resolvedAccountId || null,
           accountEmail: event.accountEmail || null,
           billingOverride: null,
           totalEvents: 1,
@@ -2446,6 +2453,18 @@ function AdminPage() {
       { key: 'checkoutUsers', label: 'Checkout Intent', count: checkoutUsers.size, rate: formatPercent(checkoutUsers.size, firstStep) },
     ]
   }, [data?.funnels, filteredRecentEvents])
+
+  const [funnelView, setFunnelView] = useState<'full' | 'activation' | 'monetization'>('full')
+
+  const filteredFunnel = useMemo(() => {
+    if (funnelView === 'activation') {
+      return derivedFunnel.filter((step) => ['openedDashboardUsers', 'savedNoteUsers', 'engagedUsers'].includes(step.key))
+    }
+    if (funnelView === 'monetization') {
+      return derivedFunnel.filter((step) => ['trialUsers', 'checkoutUsers', 'paidUsers'].includes(step.key))
+    }
+    return derivedFunnel
+  }, [derivedFunnel, funnelView])
 
   const overviewCards = useMemo(() => {
     const summary = data?.summary || {}
@@ -2946,8 +2965,23 @@ function AdminPage() {
               <section className="admin-analysis-grid">
                 <section className="info-card">
                   <div className="section-label">Funnel analysis</div>
+                  <div className="funnel-tabs">
+                    {[
+                      { value: 'full', label: 'Full' },
+                      { value: 'activation', label: 'Activation' },
+                      { value: 'monetization', label: 'Monetization' },
+                    ].map((option) => (
+                      <button
+                        key={option.value}
+                        className={`funnel-tab ${funnelView === option.value ? 'is-active' : ''}`}
+                        onClick={() => setFunnelView(option.value as 'full' | 'activation' | 'monetization')}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
                   <div className="funnel-grid">
-                    {derivedFunnel.map((step, index) => (
+                    {filteredFunnel.map((step, index) => (
                       <div key={step.key} className="funnel-card">
                         <div className="funnel-step">Step {index + 1}</div>
                         <strong>{step.label}</strong>
