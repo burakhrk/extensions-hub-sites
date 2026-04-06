@@ -74,6 +74,7 @@ type AdminAnalyticsResponse = {
     clientId: string
     accountId?: string | null
     accountEmail?: string | null
+    billingOverride?: 'force_basic' | null
     firstSeenAt: number
     lastSeenAt: number
     lastActiveDay: string
@@ -175,6 +176,7 @@ type AdminUserSummary = {
   clientId: string | null
   accountId: string | null
   accountEmail: string | null
+  billingOverride: 'force_basic' | null
   totalEvents: number
   firstSeen: number
   lastSeen: number
@@ -2258,6 +2260,7 @@ function AdminPage() {
         clientId: user.clientId || null,
         accountId: user.accountId || null,
         accountEmail: user.accountEmail || null,
+        billingOverride: user.billingOverride ?? null,
         totalEvents: user.totalEvents,
         firstSeen: user.firstSeenAt,
         lastSeen: user.lastSeenAt,
@@ -2282,6 +2285,7 @@ function AdminPage() {
           clientId: event.clientId || null,
           accountId: event.accountId || null,
           accountEmail: event.accountEmail || null,
+          billingOverride: null,
           totalEvents: 1,
           firstSeen: event.timestamp,
           lastSeen: event.timestamp,
@@ -2316,6 +2320,7 @@ function AdminPage() {
           clientId: request.clientId || null,
           accountId: request.accountId || null,
           accountEmail: request.accountEmail || request.replyEmail || null,
+          billingOverride: null,
           totalEvents: 0,
           firstSeen: request.timestamp,
           lastSeen: request.timestamp,
@@ -2493,7 +2498,7 @@ function AdminPage() {
     return derivedUsers.filter((user) => isWithinRange(user.firstSeen)).length
   }, [datePreset, derivedUsers, dateRange.end, dateRange.start])
 
-  const runSubscriptionAction = async (action: 'grant_pro' | 'revoke_pro' | 'refresh_patreon') => {
+  const runSubscriptionAction = async (action: 'grant_pro' | 'revoke_pro' | 'refresh_patreon' | 'lock_basic' | 'clear_override') => {
     if (!supportsSubscriptionActions || !selectedUser || !extension.adminApiBase || !extension.adminSubscriptionPath) {
       setActionStatus('This extension does not expose admin subscription actions yet.')
       return
@@ -2527,6 +2532,10 @@ function AdminPage() {
       if (!res.ok) throw new Error(payload.error || 'Admin action failed.')
       if (action === 'refresh_patreon') {
         setActionStatus('Patreon status refreshed for the selected user.')
+      } else if (action === 'lock_basic') {
+        setActionStatus('Billing locked to Free for the selected user.')
+      } else if (action === 'clear_override') {
+        setActionStatus('Billing override removed for the selected user.')
       } else {
         setActionStatus(action === 'grant_pro' ? 'Pro granted for the selected user.' : 'Pro removed for the selected user.')
       }
@@ -2802,6 +2811,9 @@ function AdminPage() {
                           <div>
                             <div className="section-label">Quick actions</div>
                             <p className="muted-copy">Grant or revoke Pro using the selected Google-linked account or client identity.</p>
+                            {selectedUser.billingOverride === 'force_basic' ? (
+                              <p className="muted-copy">Billing is locked to Free for this user.</p>
+                            ) : null}
                           </div>
                           <div className="cta-row">
                             <button className="button-cta inline-cta" onClick={() => void runSubscriptionAction('grant_pro')} disabled={actionLoading}>
@@ -2809,6 +2821,22 @@ function AdminPage() {
                             </button>
                             <button className="secondary-cta" onClick={() => void runSubscriptionAction('revoke_pro')} disabled={actionLoading}>
                               Revoke Pro
+                            </button>
+                          </div>
+                          <div className="cta-row">
+                            <button
+                              className="secondary-cta"
+                              onClick={() => void runSubscriptionAction('lock_basic')}
+                              disabled={actionLoading || selectedUser.billingOverride === 'force_basic'}
+                            >
+                              Lock to Free
+                            </button>
+                            <button
+                              className="secondary-cta"
+                              onClick={() => void runSubscriptionAction('clear_override')}
+                              disabled={actionLoading || selectedUser.billingOverride !== 'force_basic'}
+                            >
+                              Clear lock
                             </button>
                             {extension.billingProvider === 'patreon' ? (
                               <button className="secondary-cta" onClick={() => void runSubscriptionAction('refresh_patreon')} disabled={actionLoading}>
