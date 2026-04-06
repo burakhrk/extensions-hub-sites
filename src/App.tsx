@@ -69,6 +69,7 @@ type AdminAnalyticsResponse = {
   topEvents?: Array<{ eventName: string; count: number }>
   screenCounts?: Array<{ screen: string; count: number }>
   promoCodes?: string[]
+  lastRefreshedAt?: number
   users?: Array<{
     appId?: string
     clientId: string
@@ -2686,6 +2687,12 @@ function AdminPage() {
                   <strong>App ID:</strong>
                   <span>{selectedAppId}</span>
                 </div>
+                {data?.lastRefreshedAt ? (
+                  <div className="info-inline-card">
+                    <strong>Last refresh:</strong>
+                    <span>{new Date(data.lastRefreshedAt).toLocaleString()}</span>
+                  </div>
+                ) : null}
                 <div className="cta-row">
                   <button className="button-cta inline-cta" onClick={() => void loadAnalytics()} disabled={loading}>
                     {loading ? 'Loading...' : 'Refresh workspace'}
