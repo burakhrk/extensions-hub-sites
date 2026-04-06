@@ -2010,6 +2010,13 @@ function AdminPage() {
   const [data, setData] = useState<AdminAnalyticsResponse | null>(null)
   const [selectedUserKey, setSelectedUserKey] = useState<string | null>(null)
 
+  useEffect(() => {
+    const storedPasscode = localStorage.getItem('admin-passcode')
+    const storedAuth = localStorage.getItem('admin-authenticated')
+    if (storedPasscode) setPasscode(storedPasscode)
+    if (storedAuth === 'true') setIsAuthenticated(true)
+  }, [])
+
   const extension = extensionMap.get(selectedSlug) || extensions[0]
   const selectedAppId = extension.adminAnalyticsAppId || extension.appId
   const dateRange = useMemo(() => getDatePresetRange(datePreset, customDate), [datePreset, customDate])
@@ -2055,11 +2062,14 @@ function AdminPage() {
       const payload = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(payload.error || 'Admin analytics could not be loaded.')
       setIsAuthenticated(true)
+      localStorage.setItem('admin-authenticated', 'true')
+      localStorage.setItem('admin-passcode', passcode.trim())
       if (!authenticateOnly) {
         setData(payload as AdminAnalyticsResponse)
       }
     } catch (err) {
       setIsAuthenticated(false)
+      localStorage.removeItem('admin-authenticated')
       setError(err instanceof Error ? err.message : 'Admin analytics could not be loaded.')
       setData(null)
     } finally {
@@ -2077,6 +2087,8 @@ function AdminPage() {
     setData(null)
     setError(null)
     setActionStatus(null)
+    localStorage.removeItem('admin-authenticated')
+    localStorage.removeItem('admin-passcode')
   }
 
   const isWithinRange = (timestamp?: number | null) => {
@@ -2722,221 +2734,220 @@ function AdminPage() {
               </div>
 
               {adminSection === 'overview' ? (
-              <>
-              <section className="admin-visual-grid">
-                <section className="info-card compact-info-card">
-                  <div className="section-label">New users</div>
-                  <div className="visual-stat-row">
-                    <div>
-                      <strong className="visual-stat-value">{newUsersInRange}</strong>
-                      <p className="muted-copy">First-time users in {dateRange.label}.</p>
-                    </div>
-                    <div className="mini-kpi-pill">users</div>
-                  </div>
-                  {activityBars.length ? (
-                    <div className="mini-chart-grid">
-                      {activityBars.slice(-10).map((bar) => (
-                        <div key={`users-${bar.label}`} className="mini-chart-col" title={`${bar.shortLabel}: ${bar.newUsers} new users`}>
-                          <span className="mini-chart-value">{bar.newUsers}</span>
-                          <div className="mini-chart-track">
-                            <div className="mini-chart-fill tone-users" style={{ height: `${bar.userHeight}%` }} />
-                          </div>
-                          <span>{bar.shortLabel}</span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="muted-copy">Switch from all-time to a preset range to see daily new-user movement.</p>
-                  )}
-                </section>
-                <section className="info-card compact-info-card">
-                  <div className="section-label">Event activity</div>
-                  <div className="visual-stat-row">
-                    <div>
-                      <strong className="visual-stat-value">{filteredRecentEvents.length}</strong>
-                      <p className="muted-copy">Tracked events for the current range.</p>
-                    </div>
-                    <div className="mini-kpi-pill tone-accent">events</div>
-                  </div>
-                  {activityBars.length ? (
-                    <div className="mini-chart-grid">
-                      {activityBars.slice(-10).map((bar) => (
-                        <div key={`events-${bar.label}`} className="mini-chart-col" title={`${bar.shortLabel}: ${bar.eventCount} events`}>
-                          <span className="mini-chart-value">{bar.eventCount}</span>
-                          <div className="mini-chart-track">
-                            <div className="mini-chart-fill tone-events" style={{ height: `${bar.eventHeight}%` }} />
-                          </div>
-                          <span>{bar.shortLabel}</span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="muted-copy">Switch from all-time to a preset range to see event volume over time.</p>
-                  )}
-                </section>
-                <section className="info-card compact-info-card">
-                  <div className="section-label">Current focus</div>
-                  <div className="focus-stack">
-                    <div className="focus-row">
-                      <span>Selected user</span>
-                      <strong>{selectedUser?.label || 'All users'}</strong>
-                    </div>
-                    <div className="focus-row">
-                      <span>Support tickets</span>
-                      <strong>{selectedUser ? selectedUserSupportRequests.length : filteredSupportRequests.length}</strong>
-                    </div>
-                    <div className="focus-row">
-                      <span>Uninstall signals</span>
-                      <strong>{selectedUser ? selectedUserFeedback.length : filteredUninstallFeedback.length}</strong>
-                    </div>
-                    <div className="focus-row">
-                      <span>Checkout intent</span>
-                      <strong>{derivedFunnel.find((item) => item.key === 'checkoutUsers')?.count || 0}</strong>
-                    </div>
-                  </div>
-                </section>
-              </section>
-
-              {adminSection === 'users' ? (
-              <section className="admin-user-workspace admin-user-workspace-priority">
-                <section className="info-card">
-                  <div className="section-label">Users</div>
-                  <p className="muted-copy">Google-linked users should appear here with email, user id, client id, plan state, and recent activity.</p>
-                  <div className="user-list">
-                    {derivedUsers.map((user) => (
-                      <button
-                        key={user.userKey}
-                        className={`user-row-card ${selectedUser?.userKey === user.userKey ? 'is-active' : ''}`}
-                        onClick={() => setSelectedUserKey(user.userKey)}
-                      >
-                        <div className="user-row-head">
-                          <strong>{user.label}</strong>
-                          <span>{user.totalEvents} events</span>
-                        </div>
-                        <div className="user-row-meta">
-                          <span>{user.accountEmail || user.accountId || user.clientId || 'No id yet'}</span>
-                          <span>{user.currentPlan} / {user.subscriptionKind}</span>
-                        </div>
-                        <div className="user-row-foot">
-                          <span>Last seen {new Date(user.lastSeen).toLocaleString()}</span>
-                          <span>{user.activeDays} active days</span>
-                        </div>
-                      </button>
-                    ))}
-                    {!derivedUsers.length ? <p className="muted-copy">No users found yet. Once sign-in and product events start, the list will populate here first.</p> : null}
-                  </div>
-                </section>
-                <section className="info-card">
-                  <div className="section-label">Selected user</div>
-                  {selectedUser ? (
-                    <div className="stack-md">
-                      <div className="selected-user-hero">
+                <>
+                  <section className="admin-visual-grid">
+                    <section className="info-card compact-info-card">
+                      <div className="section-label">New users</div>
+                      <div className="visual-stat-row">
                         <div>
-                          <h3>{selectedUser.label}</h3>
-                          <p>{selectedUser.accountEmail || selectedUser.accountId || selectedUser.clientId || 'Anonymous identity'}</p>
+                          <strong className="visual-stat-value">{newUsersInRange}</strong>
+                          <p className="muted-copy">First-time users in {dateRange.label}.</p>
                         </div>
-                        <div className={`admin-plan-badge tone-${selectedUser.currentPlan === 'pro' || selectedUser.subscriptionKind !== 'basic' ? 'accent' : 'default'}`}>
-                          {selectedUser.currentPlan} / {selectedUser.subscriptionKind}
-                        </div>
+                        <div className="mini-kpi-pill">users</div>
                       </div>
-                      <div className="selected-user-grid">
-                        <div className="mini-detail-card">
-                          <span>User ID</span>
-                          <strong>{selectedUser.accountId || 'No account id yet'}</strong>
-                        </div>
-                        <div className="mini-detail-card">
-                          <span>Client ID</span>
-                          <strong>{selectedUser.clientId || 'No client id'}</strong>
-                        </div>
-                        <div className="mini-detail-card">
-                          <span>Last event</span>
-                          <strong>{selectedUser.lastEventName || 'No recent event'}</strong>
-                        </div>
-                        <div className="mini-detail-card">
-                          <span>AI requests</span>
-                          <strong>{selectedUser.aiRequests}</strong>
-                        </div>
-                      </div>
-                      {selectedJourney ? (
-                        <div className="mini-detail-card">
-                          <span>Journey snapshot</span>
-                          <strong>{selectedJourney.path.slice(0, 4).join(' -> ')}</strong>
-                        </div>
-                      ) : null}
-                      {selectedUserTimeline.length ? (
-                        <div className="mini-detail-card">
-                          <span>Detailed journey</span>
-                          <div className="journey-timeline">
-                            {selectedUserTimeline.map((event) => (
-                              <div key={`${event.eventName}-${event.timestamp}`} className="journey-timeline-row">
-                                <div>
-                                  <strong>{event.eventName}</strong>
-                                  {event.properties?.screen ? <span>{String(event.properties.screen)}</span> : null}
-                                </div>
-                                <small>{new Date(event.timestamp).toLocaleString()}</small>
+                      {activityBars.length ? (
+                        <div className="mini-chart-grid">
+                          {activityBars.slice(-10).map((bar) => (
+                            <div key={`users-${bar.label}`} className="mini-chart-col" title={`${bar.shortLabel}: ${bar.newUsers} new users`}>
+                              <span className="mini-chart-value">{bar.newUsers}</span>
+                              <div className="mini-chart-track">
+                                <div className="mini-chart-fill tone-users" style={{ height: `${bar.userHeight}%` }} />
                               </div>
-                            ))}
-                          </div>
+                              <span>{bar.shortLabel}</span>
+                            </div>
+                          ))}
                         </div>
-                      ) : null}
-                      {supportsSubscriptionActions ? (
-                        <div className="admin-action-panel">
-                          <div>
-                            <div className="section-label">Quick actions</div>
-                            <p className="muted-copy">Grant or revoke Pro using the selected Google-linked account or client identity.</p>
-                            {selectedUser.billingOverride === 'force_basic' ? (
-                              <p className="muted-copy">Billing is locked to Free for this user.</p>
-                            ) : null}
-                          </div>
-                          <div className="cta-row">
-                            <button className="button-cta inline-cta" onClick={() => void runSubscriptionAction('grant_pro')} disabled={actionLoading}>
-                              {actionLoading ? 'Working...' : 'Grant Pro'}
-                            </button>
-                            <button className="secondary-cta" onClick={() => void runSubscriptionAction('revoke_pro')} disabled={actionLoading}>
-                              Revoke Pro
-                            </button>
-                          </div>
-                          <div className="cta-row">
-                            <button
-                              className="secondary-cta"
-                              onClick={() => void runSubscriptionAction('lock_basic')}
-                              disabled={actionLoading || selectedUser.billingOverride === 'force_basic'}
-                            >
-                              Lock to Free
-                            </button>
-                            <button
-                              className="secondary-cta"
-                              onClick={() => void runSubscriptionAction('clear_override')}
-                              disabled={actionLoading || selectedUser.billingOverride !== 'force_basic'}
-                            >
-                              Clear lock
-                            </button>
-                            {extension.billingProvider === 'patreon' ? (
-                              <button className="secondary-cta" onClick={() => void runSubscriptionAction('refresh_patreon')} disabled={actionLoading}>
-                                Refresh Patreon
-                              </button>
-                            ) : null}
-                          </div>
-                          {actionStatus ? <p className="muted-copy">{actionStatus}</p> : null}
+                      ) : (
+                        <p className="muted-copy">Switch from all-time to a preset range to see daily new-user movement.</p>
+                      )}
+                    </section>
+                    <section className="info-card compact-info-card">
+                      <div className="section-label">Event activity</div>
+                      <div className="visual-stat-row">
+                        <div>
+                          <strong className="visual-stat-value">{filteredRecentEvents.length}</strong>
+                          <p className="muted-copy">Tracked events for the current range.</p>
                         </div>
-                      ) : null}
-                    </div>
-                  ) : (
-                    <p className="muted-copy">Select a user from the list to inspect their journey.</p>
-                  )}
-                </section>
-              </section>
+                        <div className="mini-kpi-pill tone-accent">events</div>
+                      </div>
+                      {activityBars.length ? (
+                        <div className="mini-chart-grid">
+                          {activityBars.slice(-10).map((bar) => (
+                            <div key={`events-${bar.label}`} className="mini-chart-col" title={`${bar.shortLabel}: ${bar.eventCount} events`}>
+                              <span className="mini-chart-value">{bar.eventCount}</span>
+                              <div className="mini-chart-track">
+                                <div className="mini-chart-fill tone-events" style={{ height: `${bar.eventHeight}%` }} />
+                              </div>
+                              <span>{bar.shortLabel}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="muted-copy">Switch from all-time to a preset range to see event volume over time.</p>
+                      )}
+                    </section>
+                    <section className="info-card compact-info-card">
+                      <div className="section-label">Current focus</div>
+                      <div className="focus-stack">
+                        <div className="focus-row">
+                          <span>Selected user</span>
+                          <strong>{selectedUser?.label || 'All users'}</strong>
+                        </div>
+                        <div className="focus-row">
+                          <span>Support tickets</span>
+                          <strong>{selectedUser ? selectedUserSupportRequests.length : filteredSupportRequests.length}</strong>
+                        </div>
+                        <div className="focus-row">
+                          <span>Uninstall signals</span>
+                          <strong>{selectedUser ? selectedUserFeedback.length : filteredUninstallFeedback.length}</strong>
+                        </div>
+                        <div className="focus-row">
+                          <span>Checkout intent</span>
+                          <strong>{derivedFunnel.find((item) => item.key === 'checkoutUsers')?.count || 0}</strong>
+                        </div>
+                      </div>
+                    </section>
+                  </section>
+                  <section className="admin-overview-grid">
+                    {overviewCards.map((card) => (
+                      <div key={card.label} className={`overview-card tone-${card.tone}`}>
+                        <span>{card.label}</span>
+                        <strong>{card.value}</strong>
+                      </div>
+                    ))}
+                  </section>
+                </>
               ) : null}
 
-              <section className="admin-overview-grid">
-                {overviewCards.map((card) => (
-                  <div key={card.label} className={`overview-card tone-${card.tone}`}>
-                    <span>{card.label}</span>
-                    <strong>{card.value}</strong>
-                  </div>
-                ))}
-              </section>
-              </>
+              {adminSection === 'users' ? (
+                <section className="admin-user-workspace admin-user-workspace-priority">
+                  <section className="info-card">
+                    <div className="section-label">Users</div>
+                    <p className="muted-copy">Google-linked users should appear here with email, user id, client id, plan state, and recent activity.</p>
+                    <div className="user-list">
+                      {derivedUsers.map((user) => (
+                        <button
+                          key={user.userKey}
+                          className={`user-row-card ${selectedUser?.userKey === user.userKey ? 'is-active' : ''}`}
+                          onClick={() => setSelectedUserKey(user.userKey)}
+                        >
+                          <div className="user-row-head">
+                            <strong>{user.label}</strong>
+                            <span>{user.totalEvents} events</span>
+                          </div>
+                          <div className="user-row-meta">
+                            <span>{user.accountEmail || user.accountId || user.clientId || 'No id yet'}</span>
+                            <span>{user.currentPlan} / {user.subscriptionKind}</span>
+                          </div>
+                          <div className="user-row-foot">
+                            <span>Last seen {new Date(user.lastSeen).toLocaleString()}</span>
+                            <span>{user.activeDays} active days</span>
+                          </div>
+                        </button>
+                      ))}
+                      {!derivedUsers.length ? <p className="muted-copy">No users found yet. Once sign-in and product events start, the list will populate here first.</p> : null}
+                    </div>
+                  </section>
+                  <section className="info-card">
+                    <div className="section-label">Selected user</div>
+                    {selectedUser ? (
+                      <div className="stack-md">
+                        <div className="selected-user-hero">
+                          <div>
+                            <h3>{selectedUser.label}</h3>
+                            <p>{selectedUser.accountEmail || selectedUser.accountId || selectedUser.clientId || 'Anonymous identity'}</p>
+                          </div>
+                          <div className={`admin-plan-badge tone-${selectedUser.currentPlan === 'pro' || selectedUser.subscriptionKind !== 'basic' ? 'accent' : 'default'}`}>
+                            {selectedUser.currentPlan} / {selectedUser.subscriptionKind}
+                          </div>
+                        </div>
+                        <div className="selected-user-grid">
+                          <div className="mini-detail-card">
+                            <span>User ID</span>
+                            <strong>{selectedUser.accountId || 'No account id yet'}</strong>
+                          </div>
+                          <div className="mini-detail-card">
+                            <span>Client ID</span>
+                            <strong>{selectedUser.clientId || 'No client id'}</strong>
+                          </div>
+                          <div className="mini-detail-card">
+                            <span>Last event</span>
+                            <strong>{selectedUser.lastEventName || 'No recent event'}</strong>
+                          </div>
+                          <div className="mini-detail-card">
+                            <span>AI requests</span>
+                            <strong>{selectedUser.aiRequests}</strong>
+                          </div>
+                        </div>
+                        {selectedJourney ? (
+                          <div className="mini-detail-card">
+                            <span>Journey snapshot</span>
+                            <strong>{selectedJourney.path.slice(0, 4).join(' -> ')}</strong>
+                          </div>
+                        ) : null}
+                        {selectedUserTimeline.length ? (
+                          <div className="mini-detail-card">
+                            <span>Detailed journey</span>
+                            <div className="journey-timeline">
+                              {selectedUserTimeline.map((event) => (
+                                <div key={`${event.eventName}-${event.timestamp}`} className="journey-timeline-row">
+                                  <div>
+                                    <strong>{event.eventName}</strong>
+                                    {event.properties?.screen ? <span>{String(event.properties.screen)}</span> : null}
+                                  </div>
+                                  <small>{new Date(event.timestamp).toLocaleString()}</small>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : null}
+                        {supportsSubscriptionActions ? (
+                          <div className="admin-action-panel">
+                            <div>
+                              <div className="section-label">Quick actions</div>
+                              <p className="muted-copy">Grant or revoke Pro using the selected Google-linked account or client identity.</p>
+                              {selectedUser.billingOverride === 'force_basic' ? (
+                                <p className="muted-copy">Billing is locked to Free for this user.</p>
+                              ) : null}
+                            </div>
+                            <div className="cta-row">
+                              <button className="button-cta inline-cta" onClick={() => void runSubscriptionAction('grant_pro')} disabled={actionLoading}>
+                                {actionLoading ? 'Working...' : 'Grant Pro'}
+                              </button>
+                              <button className="secondary-cta" onClick={() => void runSubscriptionAction('revoke_pro')} disabled={actionLoading}>
+                                Revoke Pro
+                              </button>
+                            </div>
+                            <div className="cta-row">
+                              <button
+                                className="secondary-cta"
+                                onClick={() => void runSubscriptionAction('lock_basic')}
+                                disabled={actionLoading || selectedUser.billingOverride === 'force_basic'}
+                              >
+                                Lock to Free
+                              </button>
+                              <button
+                                className="secondary-cta"
+                                onClick={() => void runSubscriptionAction('clear_override')}
+                                disabled={actionLoading || selectedUser.billingOverride !== 'force_basic'}
+                              >
+                                Clear lock
+                              </button>
+                              {extension.billingProvider === 'patreon' ? (
+                                <button className="secondary-cta" onClick={() => void runSubscriptionAction('refresh_patreon')} disabled={actionLoading}>
+                                  Refresh Patreon
+                                </button>
+                              ) : null}
+                            </div>
+                            {actionStatus ? <p className="muted-copy">{actionStatus}</p> : null}
+                          </div>
+                        ) : null}
+                      </div>
+                    ) : (
+                      <p className="muted-copy">Select a user from the list to inspect their journey.</p>
+                    )}
+                  </section>
+                </section>
               ) : null}
 
               {adminSection === 'website' ? (
@@ -3043,6 +3054,7 @@ function AdminPage() {
               ) : null}
 
               {adminSection === 'events' ? (
+              <>
               <section className="admin-detail-grid">
                 {data?.summary ? <MetricGrid title="Summary" data={data.summary} /> : null}
                 {data?.aiUsage ? <MetricGrid title="AI usage" data={data.aiUsage} /> : null}
@@ -3182,6 +3194,7 @@ function AdminPage() {
                   </div>
                 </section>
               ) : null}
+              </>
               ) : null}
             </div>
           </section>
