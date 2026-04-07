@@ -1,0 +1,7 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="256" height="256" rx="56" fill="#0D2033"/>
+  <circle cx="128" cy="120" r="68" fill="#E7FBF7"/>
+  <circle cx="180" cy="76" r="18" fill="#6EE0D3"/>
+  <text x="128" y="150" text-anchor="middle" font-family="Arial, sans-serif" font-size="72" font-weight="700" fill="#0D2033">QS</text>
+  <rect x="84" y="172" width="88" height="14" rx="7" fill="#6EE0D3"/>
+</svg>

@@ -267,6 +267,49 @@ function getExtensionCopy(extension: ExtensionDefinition): ExtensionCopy {
     }
   }
 
+  if (extension.slug === 'quiz-solver') {
+    return {
+      heroBestFor: 'Hızlı soru çözümü ve tekrar',
+      heroPrimaryPill: 'Çözülen soru',
+      heroPrimaryTags: ['Adım adım', 'Özet', 'İpucu'],
+      heroTertiaryBody: "Web üzerinden Pro'ya geç, aynı hesapla geri dön.",
+      productStoryLabel: 'Quiz Solver AI ne yapar',
+      reviewFacts: [
+        { title: 'Kullanım', strong: 'Öğrenci odaklı hızlı çözüm', body: 'Soruyu gönder, adım adım çözümü ve kısa özeti gör.' },
+        { title: 'Giriş', strong: 'Aynı hesap her yerde', body: 'Google hesabı ile giriş yapıldığında web ve uzantı aynı hesapta kalır.' },
+        { title: 'Kontrol', strong: 'Senin hızında öğrenme', body: "Kaydet, tekrar et, istediğinde Pro'ya yükselt." },
+      ],
+      proIntro: 'Pro, daha yoğun çalışma ve detaylı açıklama isteyen öğrenciler içindir.',
+      pricingLead: "Ücretsiz başla, daha detaylı çözümler ve sınırsız kullanım için Pro'ya geç.",
+      pricingPreviewBody: 'Bir soruyu gönder, adım adım çözümle birlikte kısa bir özet al.',
+      pricingPreviewTags: ['Adımlar', 'Özet', 'Konu'],
+      examplesTitle: 'Örnek kullanım',
+      examples: [
+        { pill: 'Matematik', colorClass: 'tone-mint', title: 'Fonksiyon sorusu', body: 'Soruyu gönder, çözüm adımlarını ve sonucu tek ekranda gör.', tags: ['Adım adım', 'Özet'] },
+        { pill: 'Fen', colorClass: 'tone-sky', title: 'Kimya denge', body: 'Kısa özet ve temel kavramlar ile konuyu hızlıca hatırla.', tags: ['Kavram', 'Hatırlatma'] },
+        { pill: 'Sınav modu', colorClass: 'tone-ink', title: 'Hızlı tekrar', body: 'Zor soruları kaydet, tekrar ederek netlerini artır.', tags: ['Tekrar', 'Pro'] },
+      ],
+      beforeInstall: [
+        { title: 'Soruyu seç ve gönder', body: 'Metin ya da görsel olarak sorunu gönderip çözümü anında al.' },
+        { title: 'Aynı hesabı kullan', body: 'Giriş yaparsan web ve uzantı aynı hesapta kalır.' },
+        { title: 'Gizlilik webde net', body: 'Gizlilik, ödeme ve destek sayfaları bu sitede açıkça listelenir.' },
+      ],
+      paymentTitle: "Quiz Solver AI Pro'ya geç.",
+      paymentSubtitle: "Google ile giriş yap, Patreon'u bağla ve Pro erişimi aynı hesapta aç.",
+      paymentCardTitle: 'Quiz Solver AI Pro',
+      paymentCardBody: 'Detaylı adımlar, konu özetleri ve sınırsız çözüm.',
+      paymentCardTags: ['Adım adım', 'Özet', 'Sınırsız'],
+      paymentPreviewCard: {
+        pill: 'Çözülen soru',
+        colorClass: 'tone-mint',
+        title: 'Matematik sorusu net çözüm',
+        body: 'Adım adım çözümü gör, sonucu ve yöntemi birlikte öğren.',
+      },
+      paymentWithProBullets: ['Detaylı açıklamalar', 'Konu özetleri', 'Tek hesapta Pro'],
+      sharedFooterLabel: 'Quiz Solver AI ile paylaşıldı',
+    }
+  }
+
   // Deep Note (default) copy
   return {
     heroBestFor: 'Saving useful things fast',
@@ -308,6 +351,10 @@ function getExtensionCopy(extension: ExtensionDefinition): ExtensionCopy {
     paymentWithProBullets: ['Ask across your saved notes', 'Sort faster with suggestions', 'Keep one account everywhere'],
     sharedFooterLabel: 'Shared from Deep Note',
   }
+}
+
+function t(extension: ExtensionDefinition, en: string, tr: string): string {
+  return extension.locale === 'tr' ? tr : en
 }
 
 const WEBSITE_ANALYTICS_PAGE_MAP: Partial<Record<PageKey, WebsiteTrackedPage>> = {
@@ -728,6 +775,7 @@ const GLOBAL_TERMS_SECTIONS: PolicySection[] = [
 function AppShell({ children, extension, page }: { children: ReactNode; extension: ExtensionDefinition | null; page: PageKey }) {
   const auth = useWebsiteAuthState()
   const brandHref = extension ? `/${extension.slug}` : '/'
+  const tr = (en: string, trText: string) => (extension ? t(extension, en, trText) : en)
 
   useEffect(() => {
     const trackedPage = WEBSITE_ANALYTICS_PAGE_MAP[page]
@@ -772,13 +820,13 @@ function AppShell({ children, extension, page }: { children: ReactNode; extensio
             <img className="brand-mark-image" src="/harika-extensions-icon.png" alt="Harika Extensions" />
             <div>
               <div className="brand-title">Extensions Hub</div>
-              <div className="brand-subtitle">{extension ? `${extension.name} on the web` : 'Discover browser tools built for real workflows'}</div>
+              <div className="brand-subtitle">{extension ? tr(`${extension.name} on the web`, `${extension.name} webde`) : 'Discover browser tools built for real workflows'}</div>
             </div>
           </a>
           <nav className="topnav">
             {extension ? (
               <>
-                <a className={page === 'product' ? 'is-active' : ''} href={`/${extension.slug}`}>Home</a>
+                <a className={page === 'product' ? 'is-active' : ''} href={`/${extension.slug}`}>{tr('Home', 'Ana sayfa')}</a>
                 {!auth.user ? (
                   <button
                     className={`topnav-button ${page === 'login' ? 'is-active' : ''}`}
@@ -786,7 +834,7 @@ function AppShell({ children, extension, page }: { children: ReactNode; extensio
                       void startWebsiteGoogleSignIn(extension, 'topnav')
                     }}
                   >
-                    Login
+                    {tr('Login', 'Giriş')}
                   </button>
                 ) : null}
                 <a
@@ -802,7 +850,7 @@ function AppShell({ children, extension, page }: { children: ReactNode; extensio
                     })
                   }}
                 >
-                  Upgrade to Pro
+                  {tr('Upgrade to Pro', "Pro'ya geç")}
                 </a>
                 {auth.user ? (
                   <button
@@ -811,7 +859,7 @@ function AppShell({ children, extension, page }: { children: ReactNode; extensio
                       void signOutOnWebsite()
                     }}
                   >
-                    Log out
+                    {tr('Log out', 'Çıkış')}
                   </button>
                 ) : null}
               </>
@@ -825,14 +873,14 @@ function AppShell({ children, extension, page }: { children: ReactNode; extensio
         ) : null}
         <main className="main-content">{children}</main>
         <footer className="footer">
-          <span>{extension ? `${extension.name} stays scoped to its own route.` : 'One domain, many extensions.'}</span>
+          <span>{extension ? tr(`${extension.name} stays scoped to its own route.`, `${extension.name} kendi sayfasında ayrı tutulur.`) : 'One domain, many extensions.'}</span>
           {extension ? (
             <span className="footer-links">
-              <a href={`/${extension.slug}/privacy`}>Privacy</a>
-              <a href={`/${extension.slug}/terms`}>Terms</a>
-              <a href={`/${extension.slug}/support`}>Support</a>
+              <a href={`/${extension.slug}/privacy`}>{tr('Privacy', 'Gizlilik')}</a>
+              <a href={`/${extension.slug}/terms`}>{tr('Terms', 'Kullanım şartları')}</a>
+              <a href={`/${extension.slug}/support`}>{tr('Support', 'Destek')}</a>
             </span>
-          ) : <span>Each product keeps its own website, support flow, and account handoff.</span>}
+          ) : <span>{tr('Each product keeps its own website, support flow, and account handoff.', 'Her ürün kendi web sayfası, destek akışı ve hesap eşleşmesiyle çalışır.')}</span>}
         </footer>
       </div>
     </div>
@@ -868,6 +916,7 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
   const [state, setState] = useState<BillingState | null>(null)
   const [loading, setLoading] = useState(Boolean(extension.apiBase && auth.user?.id))
   const copy = useMemo(() => getExtensionCopy(extension), [extension])
+  const tr = (en: string, trText: string) => t(extension, en, trText)
 
   useEffect(() => {
     let cancelled = false
@@ -931,7 +980,7 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
                     })
                   }}
                 >
-                  Install extension
+                  {tr('Install extension', 'Uzantıyı yükle')}
                 </a>
               ) : null}
               {!auth.user ? (
@@ -941,7 +990,7 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
                     void startWebsiteGoogleSignIn(extension, 'product-hero')
                   }}
                 >
-                  Login
+                  {tr('Login', 'Giriş')}
                 </button>
               ) : null}
               <a
@@ -958,20 +1007,20 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
                   })
                 }}
               >
-                Upgrade to Pro
+                {tr('Upgrade to Pro', "Pro'ya geç")}
               </a>
             </div>
             <div className="hero-meta-row">
               <div className="hero-meta-pill">
-                <span>Status</span>
-                <strong>{auth.user ? 'Account connected' : 'Guest browsing'}</strong>
+                <span>{tr('Status', 'Durum')}</span>
+                <strong>{auth.user ? tr('Account connected', 'Hesap bağlı') : tr('Guest browsing', 'Misafir')}</strong>
               </div>
               <div className="hero-meta-pill">
-                <span>Plan</span>
-                <strong>{loading ? 'Checking...' : state?.plan === 'pro' ? 'Pro' : 'Free'}</strong>
+                <span>{tr('Plan', 'Plan')}</span>
+                <strong>{loading ? tr('Checking...', 'Kontrol ediliyor...') : state?.plan === 'pro' ? tr('Pro', 'Pro') : tr('Free', 'Ücretsiz')}</strong>
               </div>
               <div className="hero-meta-pill">
-                <span>Best for</span>
+                <span>{tr('Best for', 'En iyi kullanım')}</span>
                 <strong>{copy.heroBestFor}</strong>
               </div>
             </div>
@@ -989,22 +1038,22 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
               </div>
             </div>
             <div className="hero-preview-note hero-preview-note-secondary">
-              <div className="section-label">Why it works</div>
+              <div className="section-label">{tr('Why it works', 'Neden işe yarar')}</div>
               <ul className="simple-list feature-list">
                 {extension.callouts.slice(0, 2).map((item) => <li key={`hero-${item}`}>{item}</li>)}
               </ul>
             </div>
             <div className="hero-preview-note hero-preview-note-tertiary">
-              <div className="section-label">Pro</div>
+              <div className="section-label">{tr('Pro', 'Pro')}</div>
               <p>{copy.heroTertiaryBody}</p>
             </div>
           </div>
         </div>
         {auth.user ? (
           <div className="plan-strip">
-            <span>Signed in as <strong>{auth.user.email || auth.user.id}</strong></span>
+            <span>{tr('Signed in as', 'Giriş yapan')} <strong>{auth.user.email || auth.user.id}</strong></span>
             <span>
-              Current plan: <strong>{loading ? 'Checking...' : state?.plan === 'pro' ? 'Pro' : 'Free'}</strong>
+              {tr('Current plan', 'Mevcut plan')}: <strong>{loading ? tr('Checking...', 'Kontrol ediliyor...') : state?.plan === 'pro' ? tr('Pro', 'Pro') : tr('Free', 'Ücretsiz')}</strong>
               {state?.source ? ` via ${state.source}` : ''}
             </span>
           </div>
@@ -1029,14 +1078,14 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
           <div className="highlight-grid">
             {extension.callouts.map((item) => (
               <article key={item} className="highlight-card">
-                <div className="section-label">Highlight</div>
+                <div className="section-label">{tr('Highlight', 'Öne çıkan')}</div>
                 <p>{item}</p>
               </article>
             ))}
           </div>
         </div>
         <div className="editorial-section compact-editorial-section story-panel story-panel-accent">
-          <div className="section-label">What Pro adds</div>
+          <div className="section-label">{tr('What Pro adds', 'Pro neler ekler')}</div>
           <div className="editorial-copy">
             <p>{copy.proIntro}</p>
           </div>
@@ -1065,23 +1114,23 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
       </section>
       <section className="section-stack">
         <div className="section-heading-block">
-          <div className="section-label">Choose your plan</div>
-          <h2>Start free. Upgrade when you want more.</h2>
-          <p>Use the core workflow for free, then move to Pro if the extra AI workflow feels worth it.</p>
+          <div className="section-label">{tr('Choose your plan', 'Planını seç')}</div>
+          <h2>{tr('Start free. Upgrade when you want more.', "Ücretsiz başla. İstediğinde Pro'ya geç.")}</h2>
+          <p>{tr('Use the core workflow for free, then move to Pro if the extra AI workflow feels worth it.', "Temel akışı ücretsiz kullan, daha fazla özellik istediğinde Pro'ya geç.")}</p>
         </div>
       <section className="plan-compare-grid">
         <div className="plan-compare-card">
-          <div className="section-label">Free</div>
-          <h3>Start using the extension right away.</h3>
+          <div className="section-label">{tr('Free', 'Ücretsiz')}</div>
+          <h3>{tr('Start using the extension right away.', 'Hemen kullanmaya başla.')}</h3>
           <ul className="simple-list feature-list">
-            <li>Core capture and product workflow inside the extension.</li>
-            <li>Website sign-in to keep the same account connected.</li>
-            <li>Basic access while you decide whether Pro is worth it for you.</li>
+            <li>{tr('Core capture and product workflow inside the extension.', 'Uzantı içinde temel çalışma akışı.')}</li>
+            <li>{tr('Website sign-in to keep the same account connected.', 'Aynı hesabı web ve uzantıda kullan.')}</li>
+            <li>{tr('Basic access while you decide whether Pro is worth it for you.', "Pro'yu sonra açabilirsin.")}</li>
           </ul>
         </div>
         <div className="plan-compare-card plan-compare-card-accent">
-          <div className="section-label">Pro</div>
-          <h3>Unlock the premium workflow for {extension.name}.</h3>
+          <div className="section-label">{tr('Pro', 'Pro')}</div>
+          <h3>{tr(`Unlock the premium workflow for ${extension.name}.`, `${extension.name} Pro ile daha fazlasını aç.`)}</h3>
           <ul className="simple-list feature-list">
             {extension.proFeatures.map((feature) => <li key={`pro-${feature}`}>{feature}</li>)}
           </ul>
@@ -1089,7 +1138,7 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
       </section>
       </section>
       <section className="editorial-section story-panel">
-        <div className="section-label">How people use {extension.name}</div>
+        <div className="section-label">{tr(`How people use ${extension.name}`, `${extension.name} nasıl kullanılıyor`)}</div>
         <ol className="step-list editorial-steps">
           {extension.steps.map((step, index) => (
             <li key={step}>
@@ -1100,7 +1149,7 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
         </ol>
       </section>
       <section className="editorial-section story-panel story-panel-accent">
-        <div className="section-label">Before you install</div>
+        <div className="section-label">{tr('Before you install', 'Yüklemeden önce')}</div>
         <div className="submission-checklist">
           {copy.beforeInstall.map((item) => (
             <div key={item.title} className="submission-check-card">
@@ -1111,10 +1160,10 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
         </div>
       </section>
       <section className="editorial-section products-footer-section">
-        <div className="section-label">Our products</div>
+        <div className="section-label">{tr('Our products', 'Ürünlerimiz')}</div>
         <div className="products-footer-head">
-          <p>Want to explore the rest of the Harika Extensions lineup? You can stay inside this product flow or jump back to the main landing page.</p>
-          <a className="secondary-cta inline-cta" href="/">Open hub landing</a>
+          <p>{tr('Want to explore the rest of the Harika Extensions lineup? You can stay inside this product flow or jump back to the main landing page.', 'Diğer Harika Extensions ürünlerine de göz atmak ister misin? Bu sayfada kalabilir ya da ana sayfaya dönebilirsin.')}</p>
+          <a className="secondary-cta inline-cta" href="/">{tr('Open hub landing', 'Ana sayfaya git')}</a>
         </div>
         <div className="products-footer-grid">
           {otherProducts.map((item) => (
@@ -1137,6 +1186,7 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
   const patreonStatus = params.get('patreon')
   const [identity] = useState(() => readWebsiteHandoff(extension, 'pricing'))
   const copy = useMemo(() => getExtensionCopy(extension), [extension])
+  const tr = (en: string, trText: string) => t(extension, en, trText)
   const auth = useWebsiteAuthState()
   const [state, setState] = useState<BillingState | null>(null)
   const [authError, setAuthError] = useState<string | null>(null)
@@ -1177,38 +1227,38 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
   const isSyncedUser = Boolean(auth.user && identity.accountId && auth.user.id === identity.accountId)
   const isDifferentUser = Boolean(auth.user && identity.accountId && auth.user.id !== identity.accountId)
   const isPatreonBilling = extension.billingProvider === 'patreon'
-  const planLabel = loading ? 'Checking...' : state?.plan === 'pro' ? 'Pro active' : 'Free plan'
-  const patreonStatusLabel = state?.patreonConnected ? 'Linked' : 'Not linked'
+  const planLabel = loading ? tr('Checking...', 'Kontrol ediliyor...') : state?.plan === 'pro' ? tr('Pro active', 'Pro aktif') : tr('Free plan', 'Ücretsiz plan')
+  const patreonStatusLabel = state?.patreonConnected ? tr('Linked', 'Bağlı') : tr('Not linked', 'Bağlı değil')
 
   return (
       <div className="stack-lg">
         <section className="hero-card pricing-hero-card">
           <div className="pricing-hero-grid">
             <div className="pricing-hero-copy">
-              <div className="pill">{extension.name} pricing</div>
+              <div className="pill">{tr(`${extension.name} pricing`, `${extension.name} fiyatlandırma`)}</div>
               <h1>{extension.pricingTitle}</h1>
               <p>{copy.pricingLead}</p>
               <div className="pricing-hero-inline">
                 <div className="hero-meta-pill">
-                  <span>Current plan</span>
+                  <span>{tr('Current plan', 'Mevcut plan')}</span>
                   <strong>{planLabel}</strong>
                 </div>
                 <div className="hero-meta-pill">
-                  <span>Patreon</span>
+                  <span>{tr('Patreon', 'Patreon')}</span>
                   <strong>{patreonStatusLabel}</strong>
                 </div>
                 <div className="hero-meta-pill">
-                  <span>Price</span>
+                  <span>{tr('Price', 'Fiyat')}</span>
                   <strong>{extension.priceLabel || '$5 / month'}</strong>
                 </div>
               </div>
             </div>
             <div className="pricing-preview-card" aria-hidden="true">
               <div className="pricing-preview-top">
-                <span className="mini-pill">Pro preview</span>
+                <span className="mini-pill">{tr('Pro preview', 'Pro önizleme')}</span>
                 <span className="hero-preview-dot" />
               </div>
-              <strong>What Pro feels like</strong>
+              <strong>{tr('What Pro feels like', 'Pro nasıl hissettirir')}</strong>
               <p>{copy.pricingPreviewBody}</p>
               <div className="pricing-preview-tags">
                 {copy.pricingPreviewTags.map((tag) => <span key={`pricing-tag-${tag}`}>{tag}</span>)}
@@ -1219,13 +1269,13 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
         <section className="two-col pricing-layout pricing-system-grid">
           <div className="stack-md">
             <section className="story-panel pricing-panel">
-              <div className="section-label">Account</div>
-              <p><strong>Google account:</strong> {auth.user?.email || identityEmail || 'Sign in from the extension first'}</p>
-              {identity.source ? <p><strong>Opened from:</strong> {identity.source}</p> : null}
-              {auth.loading ? <p>Checking website session...</p> : null}
+              <div className="section-label">{tr('Account', 'Hesap')}</div>
+              <p><strong>{tr('Google account', 'Google hesabı')}:</strong> {auth.user?.email || identityEmail || tr('Sign in from the extension first', 'Önce uzantıdan giriş yap')}</p>
+              {identity.source ? <p><strong>{tr('Opened from', 'Nereden açıldı')}:</strong> {identity.source}</p> : null}
+              {auth.loading ? <p>{tr('Checking website session...', 'Oturum kontrol ediliyor...')}</p> : null}
               {auth.configured && !auth.user ? (
                 <div className="auth-inline-box">
-                  <p>Sign in with the same Google account you use in the extension.</p>
+                  <p>{tr('Sign in with the same Google account you use in the extension.', 'Uzantıda kullandığın Google hesabıyla giriş yap.')}</p>
                   <button
                     className="button-cta inline-cta"
                     onClick={() => {
@@ -1233,20 +1283,20 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
                       void startWebsiteGoogleSignIn(extension, 'pricing-account').catch((err) => setAuthError(err instanceof Error ? err.message : 'Website sign-in failed.'))
                     }}
                   >
-                    Sign in with Google
+                    {tr('Sign in with Google', 'Google ile giriş yap')}
                   </button>
                 </div>
               ) : null}
               {auth.user ? (
                 <div className={`sync-status-card ${isDifferentUser ? 'is-warning' : 'is-success'}`}>
-                  <strong>{isDifferentUser ? 'Different account detected' : isSyncedUser ? 'Website and extension are synced' : 'Website session active'}</strong>
+                  <strong>{isDifferentUser ? tr('Different account detected', 'Farklı hesap algılandı') : isSyncedUser ? tr('Website and extension are synced', 'Site ve uzantı aynı hesapta') : tr('Website session active', 'Site oturumu açık')}</strong>
                   <p>
                     {isDifferentUser
-                      ? `Website: ${auth.user.email || auth.user.id} | Extension: ${identityEmail || identity.accountId}`
+                      ? `${tr('Website', 'Web')}: ${auth.user.email || auth.user.id} | ${tr('Extension', 'Uzantı')}: ${identityEmail || identity.accountId}`
                       : auth.user.email || auth.user.id}
                   </p>
                   <div className="cta-row compact-cta-row">
-                    <button className="secondary-cta" onClick={() => void signOutOnWebsite().catch((err) => setAuthError(err instanceof Error ? err.message : 'Sign out failed.'))}>Sign out</button>
+                    <button className="secondary-cta" onClick={() => void signOutOnWebsite().catch((err) => setAuthError(err instanceof Error ? err.message : 'Sign out failed.'))}>{tr('Sign out', 'Çıkış yap')}</button>
                   </div>
                 </div>
               ) : null}
@@ -1254,19 +1304,19 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
             </section>
 
             <section className="story-panel pricing-panel">
-              <div className="section-label">How it works</div>
+              <div className="section-label">{tr('How it works', 'Nasıl çalışır')}</div>
               <ol className="step-list pricing-step-list">
                 <li>
                   <span>1</span>
-                  <p>Sign in with the same Google account you use in the extension.</p>
+                  <p>{tr('Sign in with the same Google account you use in the extension.', 'Uzantıda kullandığın Google hesabıyla giriş yap.')}</p>
                 </li>
                 <li>
                   <span>2</span>
-                  <p>Open payment and connect the Patreon account with your membership.</p>
+                  <p>{tr('Open payment and connect the Patreon account with your membership.', 'Ödeme sayfasına geçip Patreon hesabını bağla.')}</p>
                 </li>
                 <li>
                   <span>3</span>
-                  <p>Return to the extension with Pro already linked.</p>
+                  <p>{tr('Return to the extension with Pro already linked.', 'Uzantıya dön ve Pro otomatik bağlı olsun.')}</p>
                 </li>
               </ol>
             </section>
@@ -1274,35 +1324,35 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
 
           <div className="stack-md">
             <section className="story-panel story-panel-accent pricing-panel pricing-panel-accent">
-              <div className="section-label">Plans</div>
+              <div className="section-label">{tr('Plans', 'Planlar')}</div>
               <div className="compact-plan-hero">
                 <div className="plan-compare-card">
-                  <div className="section-label">Free</div>
-                  <h3>Use the core workflow.</h3>
+                  <div className="section-label">{tr('Free', 'Ücretsiz')}</div>
+                  <h3>{tr('Use the core workflow.', 'Temel akışı kullan.')}</h3>
                   <ul className="simple-list feature-list">
-                    <li>Use the core experience inside the extension.</li>
-                    <li>Keep the same account connected across extension and website.</li>
-                    <li>Upgrade later only if you want more Pro features.</li>
+                    <li>{tr('Use the core experience inside the extension.', 'Uzantı içinde temel kullanım.')}</li>
+                    <li>{tr('Keep the same account connected across extension and website.', 'Aynı hesabı web ve uzantıda kullan.')}</li>
+                    <li>{tr('Upgrade later only if you want more Pro features.', "Daha fazlası gerektiğinde Pro'ya geç.")}</li>
                   </ul>
                 </div>
                 <div className="plan-compare-card plan-compare-card-accent">
-                  <div className="section-label">Pro</div>
+                  <div className="section-label">{tr('Pro', 'Pro')}</div>
                   <h3>{extension.priceLabel || '$5 / month'}</h3>
                   <ul className="simple-list feature-list">
                     {extension.proFeatures.map((item) => <li key={item}>{item}</li>)}
                   </ul>
                 </div>
               </div>
-              {loading ? <p>Loading billing state...</p> : null}
+              {loading ? <p>{tr('Loading billing state...', 'Faturalama durumu yükleniyor...')}</p> : null}
               {error ? <p className="warning">{error}</p> : null}
-              {patreonStatus === 'connected' ? <p className="success"><strong>Patreon connected.</strong> Your membership was synced back to this extension account.</p> : null}
-              {patreonStatus === 'failed' ? <p className="warning">Patreon connection did not complete. Try again from this page.</p> : null}
-              {!loading && state?.source === 'promo' ? <p><strong>Promo active.</strong> {trialEndsLabel ? ` Pro access ends ${trialEndsLabel}.` : ' Pro access lasts 30 days from redemption.'}</p> : null}
-              {!loading && state?.isTrialActive ? <p><strong>Trial active.</strong> {trialEndsLabel ? ` Ends ${trialEndsLabel}.` : ''}</p> : null}
-              {state?.patreonConnected ? <p><strong>Connected Patreon:</strong> {state.patreonUserId || 'Connected'}</p> : null}
-              {state?.patreonTierIds?.length ? <p><strong>Entitled tiers:</strong> {state.patreonTierIds.join(', ')}</p> : null}
-              {patreonLastSyncedLabel ? <p><strong>Last Patreon sync:</strong> {patreonLastSyncedLabel}</p> : null}
-              {isPatreonBilling ? <p className="muted-copy">Membership access refreshes automatically about every 6 hours, so billing changes may take a little time to appear.</p> : null}
+              {patreonStatus === 'connected' ? <p className="success"><strong>{tr('Patreon connected.', 'Patreon bağlandı.')}</strong> {tr('Your membership was synced back to this extension account.', 'Üyelik bu hesaba eşlendi.')}</p> : null}
+              {patreonStatus === 'failed' ? <p className="warning">{tr('Patreon connection did not complete. Try again from this page.', 'Patreon bağlantısı tamamlanmadı. Bu sayfadan tekrar deneyebilirsin.')}</p> : null}
+              {!loading && state?.source === 'promo' ? <p><strong>{tr('Promo active.', 'Promosyon aktif.')}</strong> {trialEndsLabel ? tr(` Pro access ends ${trialEndsLabel}.`, ` Pro erişimi ${trialEndsLabel} tarihinde biter.`) : tr(' Pro access lasts 30 days from redemption.', ' Pro erişimi 30 gün sürer.')}</p> : null}
+              {!loading && state?.isTrialActive ? <p><strong>{tr('Trial active.', 'Deneme aktif.')}</strong> {trialEndsLabel ? tr(` Ends ${trialEndsLabel}.`, ` ${trialEndsLabel} tarihinde biter.`) : ''}</p> : null}
+              {state?.patreonConnected ? <p><strong>{tr('Connected Patreon', 'Bağlı Patreon')}:</strong> {state.patreonUserId || tr('Connected', 'Bağlı')}</p> : null}
+              {state?.patreonTierIds?.length ? <p><strong>{tr('Entitled tiers', 'Yetkili paketler')}:</strong> {state.patreonTierIds.join(', ')}</p> : null}
+              {patreonLastSyncedLabel ? <p><strong>{tr('Last Patreon sync', 'Son Patreon senkronu')}:</strong> {patreonLastSyncedLabel}</p> : null}
+              {isPatreonBilling ? <p className="muted-copy">{tr('Membership access refreshes automatically about every 6 hours, so billing changes may take a little time to appear.', 'Üyelik güncellemeleri yaklaşık 6 saatte bir görünür, değişikliklerin yansıması biraz zaman alabilir.')}</p> : null}
               <div className="cta-row compact-cta-row">
                 <a
                   className="button-cta inline-cta"
@@ -1319,12 +1369,12 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
                     })
                   }}
                 >
-                  {state?.patreonConnected ? 'View Pro access' : 'Open upgrade page'}
+                  {state?.patreonConnected ? tr('View Pro access', 'Pro erişimini gör') : tr('Open upgrade page', 'Yükseltme sayfasını aç')}
                 </a>
               </div>
             </section>
             <div className="pricing-inline-note">
-              <span>Current access</span>
+              <span>{tr('Current access', 'Mevcut erişim')}</span>
               <strong>{planLabel}</strong>
             </div>
           </div>
@@ -1336,24 +1386,25 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
 function LoginPage({ extension }: { extension: ExtensionDefinition }) {
   const [identity] = useState(() => readWebsiteHandoff(extension, 'login'))
   const auth = useWebsiteAuthState()
+  const tr = (en: string, trText: string) => t(extension, en, trText)
   const [authError, setAuthError] = useState<string | null>(null)
   const isSyncedUser = Boolean(auth.user && identity.accountId && auth.user.id === identity.accountId)
   const isDifferentUser = Boolean(auth.user && identity.accountId && auth.user.id !== identity.accountId)
 
     return (
       <section className="article-card">
-        <div className="pill">Google sign-in</div>
-        <h1>{extension.name} login</h1>
-        <p className="article-intro">Use the same Google account you use in the extension so website access and billing stay tied to the right {extension.name} account.</p>
+        <div className="pill">{tr('Google sign-in', 'Google giriş')}</div>
+        <h1>{tr(`${extension.name} login`, `${extension.name} giriş`)}</h1>
+        <p className="article-intro">{tr(`Use the same Google account you use in the extension so website access and billing stay tied to the right ${extension.name} account.`, `Web ve ödeme aynı hesaba bağlı kalsın diye uzantıda kullandığın Google hesabıyla giriş yap.`)}</p>
         <div className="editorial-section compact-editorial-section">
           <div className="stack-sm content-flow">
-            <p><strong>Website session:</strong> {auth.loading ? 'Checking...' : auth.user?.email || 'Not signed in'}</p>
+            <p><strong>{tr('Website session', 'Web oturumu')}:</strong> {auth.loading ? tr('Checking...', 'Kontrol ediliyor...') : auth.user?.email || tr('Not signed in', 'Giriş yapılmadı')}</p>
             {auth.user ? (
               <div className={`sync-status-card ${isDifferentUser ? 'is-warning' : 'is-success'}`}>
-              <strong>{isDifferentUser ? 'This is not the same account as the extension handoff' : isSyncedUser ? 'Same account on website and extension' : 'Website session active'}</strong>
+              <strong>{isDifferentUser ? tr('This is not the same account as the extension handoff', 'Uzantıdan gelen hesapla aynı değil') : isSyncedUser ? tr('Same account on website and extension', 'Site ve uzantı aynı hesapta') : tr('Website session active', 'Site oturumu açık')}</strong>
               <p>
                 {isDifferentUser
-                  ? `Website: ${auth.user.email || auth.user.id} | Extension: ${identity.email || identity.accountId}`
+                  ? `${tr('Website', 'Web')}: ${auth.user.email || auth.user.id} | ${tr('Extension', 'Uzantı')}: ${identity.email || identity.accountId}`
                   : auth.user.email || auth.user.id}
               </p>
             </div>
@@ -1367,7 +1418,7 @@ function LoginPage({ extension }: { extension: ExtensionDefinition }) {
                   void signOutOnWebsite().catch((err) => setAuthError(err instanceof Error ? err.message : 'Website sign-out failed.'))
                 }}
               >
-                Sign out on website
+                {tr('Sign out on website', 'Webden çıkış yap')}
               </button>
             ) : (
               <button
@@ -1378,19 +1429,19 @@ function LoginPage({ extension }: { extension: ExtensionDefinition }) {
                 }}
                 disabled={!auth.configured}
               >
-                Sign in with Google
+                {tr('Sign in with Google', 'Google ile giriş yap')}
               </button>
             )}
             </div>
-            {!auth.configured ? <p className="warning">Supabase website auth is not configured yet. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` on this site.</p> : null}
+            {!auth.configured ? <p className="warning">{tr('Supabase website auth is not configured yet. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` on this site.', 'Supabase web girişi yapılandırılmadı. Bu sitede `VITE_SUPABASE_URL` ve `VITE_SUPABASE_ANON_KEY` eklemelisin.')}</p> : null}
             {authError ? <p className="warning">{authError}</p> : null}
           </div>
         </div>
         {identity.email || identity.accountId ? (
           <div className="editorial-section compact-editorial-section">
-            <p><strong>Detected account:</strong> {identity.email || identity.accountId}</p>
-            <p>This matches the account context passed from the extension.</p>
-            {identity.source ? <p><strong>Opened from:</strong> {identity.source}</p> : null}
+            <p><strong>{tr('Detected account', 'Algılanan hesap')}:</strong> {identity.email || identity.accountId}</p>
+            <p>{tr('This matches the account context passed from the extension.', 'Bu, uzantıdan gelen hesap bilgisiyle eşleşiyor.')}</p>
+            {identity.source ? <p><strong>{tr('Opened from', 'Nereden açıldı')}:</strong> {identity.source}</p> : null}
           </div>
         ) : null}
         <div className="editorial-section">
@@ -1399,7 +1450,7 @@ function LoginPage({ extension }: { extension: ExtensionDefinition }) {
           </div>
         </div>
         <div className="cta-row">
-          {extension.installUrl ? <a className="primary-cta" href={extension.installUrl} target="_blank" rel="noreferrer">Install extension</a> : null}
+          {extension.installUrl ? <a className="primary-cta" href={extension.installUrl} target="_blank" rel="noreferrer">{tr('Install extension', 'Uzantıyı yükle')}</a> : null}
           <a
             className="primary-cta"
             href={`/${extension.slug}/payment`}
@@ -1414,7 +1465,7 @@ function LoginPage({ extension }: { extension: ExtensionDefinition }) {
               })
             }}
           >
-            Open upgrade page
+            {tr('Open upgrade page', 'Yükseltme sayfasını aç')}
           </a>
       </div>
     </section>
@@ -1427,6 +1478,7 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
   const paymentReason = params.get('reason')
   const [identity] = useState(() => readWebsiteHandoff(extension, 'payment'))
   const copy = useMemo(() => getExtensionCopy(extension), [extension])
+  const tr = (en: string, trText: string) => t(extension, en, trText)
   const auth = useWebsiteAuthState()
   const [state, setState] = useState<BillingState | null>(null)
   const [loading, setLoading] = useState(Boolean(extension.apiBase && (identity.clientId || auth.user?.id)))
@@ -1489,13 +1541,13 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
   const effectiveEmail = identity.email || auth.user?.email || ''
   const isSyncedUser = Boolean(auth.user && identity.accountId && auth.user.id === identity.accountId)
   const isDifferentUser = Boolean(auth.user && identity.accountId && auth.user.id !== identity.accountId)
-  const planLabel = loading ? 'Checking...' : state?.plan === 'pro' ? 'Pro active' : 'Free plan'
-  const patreonStatusLabel = state?.patreonConnected ? 'Linked' : 'Not linked'
+  const planLabel = loading ? tr('Checking...', 'Kontrol ediliyor...') : state?.plan === 'pro' ? tr('Pro active', 'Pro aktif') : tr('Free plan', 'Ücretsiz plan')
+  const patreonStatusLabel = state?.patreonConnected ? tr('Linked', 'Bağlı') : tr('Not linked', 'Bağlı değil')
   const canConnectPatreon = Boolean(auth.user && !isDifferentUser)
 
   const handleConnectPatreon = async () => {
     if (!extension.apiBase || !effectiveClientId || !effectiveAccountId) {
-      setError('Sign in with the same Google account first so Patreon can be linked to the right extension account.')
+      setError(tr('Sign in with the same Google account first so Patreon can be linked to the right extension account.', 'Patreon bağlamak için önce doğru Google hesabıyla giriş yap.'))
       return
     }
     setError(null)
@@ -1536,11 +1588,11 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
         <div className="payment-header">
           <div className="payment-header-copy">
             <h1>{copy.paymentTitle}</h1>
-            <p>{extension.priceLabel || '$5 / month'} billed through Patreon. {copy.paymentSubtitle}</p>
+            <p>{extension.priceLabel || '$5 / month'} {tr('billed through Patreon.', 'Patreon üzerinden ücretlendirilir.') } {copy.paymentSubtitle}</p>
             <div className="payment-confidence-row">
-              <span>Same Google account on extension and website</span>
-              <span>Patreon handles billing</span>
-              <span>Pro syncs back automatically</span>
+              <span>{tr('Same Google account on extension and website', 'Uzantı ve sitede aynı Google hesabı')}</span>
+              <span>{tr('Patreon handles billing', 'Patreon ödemeyi yönetir')}</span>
+              <span>{tr('Pro syncs back automatically', 'Pro erişim otomatik senkron olur')}</span>
             </div>
           </div>
           <div className="payment-price-card payment-price-card-preview">
@@ -1560,7 +1612,7 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
                 <p>{copy.paymentPreviewCard.body}</p>
               </div>
               <div className="payment-preview-card payment-preview-card-secondary">
-                <div className="section-label">With Pro</div>
+                <div className="section-label">{tr('With Pro', 'Pro ile')}</div>
                 <ul className="simple-list feature-list">
                   {copy.paymentWithProBullets.map((bullet) => <li key={`with-pro-${bullet}`}>{bullet}</li>)}
                 </ul>
@@ -1568,32 +1620,32 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
             </div>
           </div>
         </div>
-        {paymentStatus === 'connected' ? <p className="success"><strong>Patreon connected.</strong> Your membership is now linked back to this extension account.</p> : null}
+        {paymentStatus === 'connected' ? <p className="success"><strong>{tr('Patreon connected.', 'Patreon bağlandı.')}</strong> {tr('Your membership is now linked back to this extension account.', 'Üyeliğin bu hesaba eşlendi.')}</p> : null}
         {paymentStatus === 'failed' ? (
           <p className="warning">
-            Patreon connection did not complete. You can retry from this page.
-            {paymentReason ? <span className="inline-note">Reason: {paymentReason}</span> : null}
+            {tr('Patreon connection did not complete. You can retry from this page.', 'Patreon bağlantısı tamamlanmadı. Bu sayfadan tekrar deneyebilirsin.')}
+            {paymentReason ? <span className="inline-note">{tr('Reason', 'Sebep')}: {paymentReason}</span> : null}
           </p>
         ) : null}
         <div className="two-col payment-layout">
           <div className="payment-column stack-md">
             <section className="payment-panel">
-              <div className="section-label">Account</div>
-              <p><strong>Website account:</strong> {auth.loading ? 'Checking...' : auth.user?.email || 'Not signed in'}</p>
+              <div className="section-label">{tr('Account', 'Hesap')}</div>
+              <p><strong>{tr('Website account', 'Web hesabı')}:</strong> {auth.loading ? tr('Checking...', 'Kontrol ediliyor...') : auth.user?.email || tr('Not signed in', 'Giriş yapılmadı')}</p>
               {auth.user ? (
                 <div className={`sync-status-card ${isDifferentUser ? 'is-warning' : 'is-success'}`}>
-                  <strong>{isDifferentUser ? 'Different account detected' : isSyncedUser ? 'Website and extension are synced' : 'Website session active'}</strong>
+                  <strong>{isDifferentUser ? tr('Different account detected', 'Farklı hesap algılandı') : isSyncedUser ? tr('Website and extension are synced', 'Site ve uzantı aynı hesapta') : tr('Website session active', 'Site oturumu açık')}</strong>
                   <p>
                     {isDifferentUser
-                      ? `Website: ${auth.user.email || auth.user.id} | Extension: ${identity.email || identity.accountId}`
+                      ? `${tr('Website', 'Web')}: ${auth.user.email || auth.user.id} | ${tr('Extension', 'Uzantı')}: ${identity.email || identity.accountId}`
                       : auth.user.email || auth.user.id}
                   </p>
                 </div>
               ) : null}
-              {!auth.user ? <p className="muted-copy">Sign in first so the Patreon membership attaches to the correct {extension.name} account.</p> : null}
+              {!auth.user ? <p className="muted-copy">{tr(`Sign in first so the Patreon membership attaches to the correct ${extension.name} account.`, `Patreon üyeliği doğru ${extension.name} hesabına bağlansın diye önce giriş yap.`)}</p> : null}
               {!auth.user && auth.configured ? (
                 <div className="auth-inline-box">
-                  <p>Use the same Google account you use inside the extension before you continue to Patreon.</p>
+                  <p>{tr('Use the same Google account you use inside the extension before you continue to Patreon.', "Patreon'a geçmeden önce uzantıda kullandığın Google hesabıyla giriş yap.")}</p>
                   <button
                     className="button-cta inline-cta"
                     onClick={() => {
@@ -1601,7 +1653,7 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
                       void startWebsiteGoogleSignIn(extension, 'payment-account').catch((err) => setAuthError(err instanceof Error ? err.message : 'Website sign-in failed.'))
                     }}
                   >
-                    Sign in with Google
+                    {tr('Sign in with Google', 'Google ile giriş yap')}
                   </button>
                 </div>
               ) : null}
@@ -1614,72 +1666,70 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
                       void signOutOnWebsite().catch((err) => setAuthError(err instanceof Error ? err.message : 'Sign out failed.'))
                     }}
                   >
-                    Sign out on website
+                    {tr('Sign out on website', 'Webden çıkış yap')}
                   </button>
                 </div>
               ) : null}
-              {!auth.configured ? <p className="warning">Supabase website auth is not configured yet. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` on this site.</p> : null}
+              {!auth.configured ? <p className="warning">{tr('Supabase website auth is not configured yet. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` on this site.', 'Supabase web girişi yapılandırılmadı. Bu sitede `VITE_SUPABASE_URL` ve `VITE_SUPABASE_ANON_KEY` eklemelisin.')}</p> : null}
               {authError ? <p className="warning">{authError}</p> : null}
             </section>
 
             <section className="payment-panel">
-              <div className="section-label">Current access</div>
-              {loading ? <p>Loading payment options...</p> : null}
+              <div className="section-label">{tr('Current access', 'Mevcut erişim')}</div>
+              {loading ? <p>{tr('Loading payment options...', 'Ödeme seçenekleri yükleniyor...')}</p> : null}
               {error ? <p className="warning">{error}</p> : null}
               {state ? (
                 <div className="payment-state-grid">
                   <div className="mini-detail-card">
-                    <span>Plan</span>
-                    <strong>{state.plan === 'pro' ? 'Pro' : 'Free'}</strong>
+                    <span>{tr('Plan', 'Plan')}</span>
+                    <strong>{state.plan === 'pro' ? tr('Pro', 'Pro') : tr('Free', 'Ücretsiz')}</strong>
                   </div>
                   <div className="mini-detail-card">
-                    <span>Access source</span>
+                    <span>{tr('Access source', 'Erişim kaynağı')}</span>
                     <strong>{state.source}</strong>
                   </div>
                   <div className="mini-detail-card">
-                    <span>Billing</span>
+                    <span>{tr('Billing', 'Ödeme')}</span>
                     <strong>{state.billingProvider || 'website'}</strong>
                   </div>
                   <div className="mini-detail-card">
-                    <span>Patreon</span>
-                    <strong>{state.patreonConnected ? 'Linked' : 'Not linked'}</strong>
+                    <span>{tr('Patreon', 'Patreon')}</span>
+                    <strong>{state.patreonConnected ? tr('Linked', 'Bağlı') : tr('Not linked', 'Bağlı değil')}</strong>
                   </div>
                 </div>
               ) : null}
-              {state?.source === 'promo' && state.trialEndsAt ? <p><strong>Promo ends:</strong> {new Date(state.trialEndsAt).toLocaleString()}</p> : null}
-              {state?.isTrialActive && state.trialEndsAt ? <p><strong>Trial ends:</strong> {new Date(state.trialEndsAt).toLocaleString()}</p> : null}
-              {patreonLastSyncedLabel ? <p><strong>Last Patreon sync:</strong> {patreonLastSyncedLabel}</p> : null}
+              {state?.source === 'promo' && state.trialEndsAt ? <p><strong>{tr('Promo ends', 'Promosyon biter')}:</strong> {new Date(state.trialEndsAt).toLocaleString()}</p> : null}
+              {state?.isTrialActive && state.trialEndsAt ? <p><strong>{tr('Trial ends', 'Deneme biter')}:</strong> {new Date(state.trialEndsAt).toLocaleString()}</p> : null}
+              {patreonLastSyncedLabel ? <p><strong>{tr('Last Patreon sync', 'Son Patreon senkronu')}:</strong> {patreonLastSyncedLabel}</p> : null}
             </section>
           </div>
 
           <div className="payment-column stack-md">
             <section className="payment-panel payment-panel-accent">
-              <div className="section-label">Upgrade</div>
-              <h2>{state?.patreonConnected ? 'Refresh your Pro access' : 'Link Patreon to unlock Pro'}</h2>
+              <div className="section-label">{tr('Upgrade', 'Yükselt')}</div>
+              <h2>{state?.patreonConnected ? tr('Refresh your Pro access', 'Pro erişimini yenile') : tr('Link Patreon to unlock Pro', "Pro için Patreon'u bağla")}</h2>
               <p className="payment-lead-copy">
                 {state?.patreonConnected
-                  ? 'This account is already linked. Refresh if your membership changed.'
-                  : `Pro is ${extension.priceLabel || '$5 / month'}. Link Patreon once and this account comes back with Pro unlocked.`}
+                  ? tr('This account is already linked. Refresh if your membership changed.', 'Bu hesap zaten bağlı. Üyeliğin değiştiyse yenileyebilirsin.')
+                  : tr(`Pro is ${extension.priceLabel || '$5 / month'}. Link Patreon once and this account comes back with Pro unlocked.`, `Pro ücreti ${extension.priceLabel || '$5 / month'}. Patreon'u bir kez bağla, Pro bu hesaba açılır.`)}
               </p>
-              {isPatreonBilling ? <p className="muted-copy">Membership changes usually appear on the next sync window.</p> : null}
+              {isPatreonBilling ? <p className="muted-copy">{tr('Membership changes usually appear on the next sync window.', 'Üyelik değişiklikleri genelde bir sonraki senkron penceresinde görünür.')}</p> : null}
               {!canConnectPatreon ? (
                 <div className="payment-checklist-card">
-                  <strong>Before you continue</strong>
+                  <strong>{tr('Before you continue', 'Devam etmeden önce')}</strong>
                   <ul className="simple-list feature-list">
-                    <li>Sign in on the website with the same Google account you use in the extension.</li>
-                    <li>Make sure the website and extension are using the same account before connecting Patreon.</li>
+                    <li>{tr('Sign in on the website with the same Google account you use in the extension.', 'Web sitesinde uzantıda kullandığın Google hesabıyla giriş yap.')}</li>
+                    <li>{tr('Make sure the website and extension are using the same account before connecting Patreon.', 'Patreon bağlamadan önce web ve uzantıda aynı hesabı kullandığından emin ol.')}</li>
                   </ul>
                 </div>
               ) : null}
               <ul className="payment-feature-list">
-                <li>AI summaries and smart tags</li>
-                <li>Folder suggestions and knowledge chat</li>
-                <li>Same account across extension and website</li>
+                {extension.proFeatures.slice(0, 3).map((feature) => <li key={`payment-feature-${feature}`}>{feature}</li>)}
               </ul>
               <div className="cta-row">
                 {isPatreonBilling ? (
                   <button className="button-cta payment-primary-cta" onClick={() => void handleConnectPatreon()} disabled={patreonLoading || !canConnectPatreon}>
-                    {patreonLoading ? 'Opening Patreon...' : 'Link Patreon to Pro'}
+                    {patreonLoading ? tr('Opening Patreon...', 'Patreon açılıyor...') : tr('Link Patreon to Pro', "Patreon'u bağla")}
                   </button>
                 ) : null}
                 {state?.billingProvider === 'website' && state?.checkoutUrl ? (
@@ -1699,7 +1749,7 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
                       })
                     }}
                   >
-                    Open checkout
+                    {tr('Open checkout', 'Ödemeyi aç')}
                   </a>
                 ) : null}
                 {state?.portalUrl && state?.plan === 'pro' ? (
@@ -1719,18 +1769,18 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
                       })
                     }}
                   >
-                    {isPatreonBilling ? 'Open Patreon membership' : 'Open billing portal'}
+                    {isPatreonBilling ? tr('Open Patreon membership', 'Patreon üyeliğini aç') : tr('Open billing portal', 'Faturalama portalını aç')}
                   </a>
                 ) : null}
               </div>
-              {!canConnectPatreon ? <p className="muted-copy">The button unlocks once the correct website account is signed in.</p> : null}
+              {!canConnectPatreon ? <p className="muted-copy">{tr('The button unlocks once the correct website account is signed in.', 'Doğru hesapla giriş yapınca buton açılır.')}</p> : null}
               <div className="payment-status-strip">
                 <div>
-                  <span>Current access</span>
+                  <span>{tr('Current access', 'Mevcut erişim')}</span>
                   <strong>{planLabel}</strong>
                 </div>
                 <div>
-                  <span>Patreon</span>
+                  <span>{tr('Patreon', 'Patreon')}</span>
                   <strong>{patreonStatusLabel}</strong>
                 </div>
               </div>
@@ -1738,7 +1788,7 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
           </div>
         </div>
         <div className="payment-footer-link">
-          <a href={`/${extension.slug}`}>Back to {extension.name}</a>
+          <a href={`/${extension.slug}`}>{tr(`Back to ${extension.name}`, `${extension.name} sayfasına dön`)}</a>
         </div>
     </section>
   )
@@ -1749,7 +1799,11 @@ function ArticlePage({ extension, title, eyebrow, items }: { extension: Extensio
     <LegalDocument
       eyebrow={eyebrow}
       title={title}
-      intro={`${extension.name} stays separate from the other extensions on this domain. This page applies only to ${extension.name} and its product-specific data flows, account handling, and billing behavior.`}
+      intro={t(
+        extension,
+        `${extension.name} stays separate from the other extensions on this domain. This page applies only to ${extension.name} and its product-specific data flows, account handling, and billing behavior.`,
+        `${extension.name} bu domaindeki diğer uzantılardan ayrı tutulur. Bu sayfa yalnızca ${extension.name} ve ona ait veri akışları, hesap yönetimi ve ödeme davranışı için geçerlidir.`,
+      )}
       items={items}
     />
   )
@@ -1758,6 +1812,7 @@ function ArticlePage({ extension, title, eyebrow, items }: { extension: Extensio
 function SupportPage({ extension }: { extension: ExtensionDefinition }) {
   const [identity] = useState(() => readWebsiteHandoff(extension, 'login'))
   const auth = useWebsiteAuthState()
+  const tr = (en: string, trText: string) => t(extension, en, trText)
   const [category, setCategory] = useState('billing')
   const [subject, setSubject] = useState('')
   const [message, setMessage] = useState('')
@@ -1778,13 +1833,13 @@ function SupportPage({ extension }: { extension: ExtensionDefinition }) {
 
     if (!extension.apiBase || !clientId) {
       setStatus('error')
-      setStatusMessage('Sign in with the same Google account first so support can be tied to the right extension account.')
+      setStatusMessage(tr('Sign in with the same Google account first so support can be tied to the right extension account.', 'Destek talebinin doğru hesapla eşleşmesi için önce Google hesabıyla giriş yap.'))
       return
     }
 
     if (!subject.trim() || !message.trim()) {
       setStatus('error')
-      setStatusMessage('Add a subject and message before sending your support request.')
+      setStatusMessage(tr('Add a subject and message before sending your support request.', 'Destek talebi göndermeden önce konu ve mesaj yaz.'))
       return
     }
 
@@ -1806,7 +1861,7 @@ function SupportPage({ extension }: { extension: ExtensionDefinition }) {
         }),
       })
       const data = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(data.error || 'Support request could not be sent.')
+      if (!res.ok) throw new Error(data.error || tr('Support request could not be sent.', 'Destek talebi gönderilemedi.'))
       void trackWebsiteEvent({
         extension,
         page: 'support',
@@ -1816,79 +1871,79 @@ function SupportPage({ extension }: { extension: ExtensionDefinition }) {
         properties: { category },
       })
       setStatus('done')
-      setStatusMessage('Support request sent. It is now visible in the admin workspace for this extension.')
+      setStatusMessage(tr('Support request sent. It is now visible in the admin workspace for this extension.', 'Destek talebi gönderildi. Bu uzantı için yönetim panelinde görünür.'))
       setSubject('')
       setMessage('')
     } catch (err) {
       setStatus('error')
-      setStatusMessage(err instanceof Error ? err.message : 'Support request could not be sent.')
+      setStatusMessage(err instanceof Error ? err.message : tr('Support request could not be sent.', 'Destek talebi gönderilemedi.'))
     }
   }
 
     return (
       <section className="article-card">
-        <div className="pill">Support</div>
-        <h1>{extension.name} support</h1>
+        <div className="pill">{tr('Support', 'Destek')}</div>
+        <h1>{tr(`${extension.name} support`, `${extension.name} destek`)}</h1>
         <p className="article-intro">{extension.supportBody}</p>
         <div className="stack-md">
           <section className="support-readiness-grid">
             <article className="support-readiness-card">
-              <div className="section-label">Best for</div>
-              <strong>Billing, login, and product issues</strong>
-              <p>Use this route for install problems, billing questions, Patreon access issues, or product bugs.</p>
+              <div className="section-label">{tr('Best for', 'En iyi kullanım')}</div>
+              <strong>{tr('Billing, login, and product issues', 'Ödeme, giriş ve ürün sorunları')}</strong>
+              <p>{tr('Use this route for install problems, billing questions, Patreon access issues, or product bugs.', 'Kurulum sorunları, ödeme soruları, Patreon erişimi veya ürün hataları için bu yolu kullan.')}</p>
             </article>
             <article className="support-readiness-card">
-              <div className="section-label">What to include</div>
-              <strong>Enough context to reproduce it</strong>
-              <p>Include the page you were on, what you clicked, what account you used, and what happened.</p>
+              <div className="section-label">{tr('What to include', 'Neleri yazmalı')}</div>
+              <strong>{tr('Enough context to reproduce it', 'Sorunu tekrar edebileceğimiz detaylar')}</strong>
+              <p>{tr('Include the page you were on, what you clicked, what account you used, and what happened.', 'Hangi sayfada olduğunu, neye tıkladığını, hangi hesabı kullandığını ve ne olduğunu yaz.')}</p>
             </article>
             <article className="support-readiness-card">
-              <div className="section-label">Account matching</div>
-              <strong>Same Google account helps</strong>
-              <p>Using the same account as the extension makes support and billing checks easier.</p>
+              <div className="section-label">{tr('Account matching', 'Hesap eşleşmesi')}</div>
+              <strong>{tr('Same Google account helps', 'Aynı Google hesabı işimizi kolaylaştırır')}</strong>
+              <p>{tr('Using the same account as the extension makes support and billing checks easier.', 'Uzantıyla aynı hesabı kullanmak destek ve ödeme kontrolünü kolaylaştırır.')}</p>
             </article>
           </section>
           <section className="content-panel compact-support-panel">
-            <div className="section-label">Send a support request</div>
+            <div className="section-label">{tr('Send a support request', 'Destek talebi gönder')}</div>
             <div className="stack-md support-form-stack">
-              <p className="muted-copy">Use the same Google account you use in the extension when possible. That makes it easier to match your request to billing, login, and product activity for this extension only.</p>
+              <p className="muted-copy">{tr('Use the same Google account you use in the extension when possible. That makes it easier to match your request to billing, login, and product activity for this extension only.', 'Mümkünse uzantıda kullandığın Google hesabını kullan. Bu sayede talebin ödeme, giriş ve ürün aktiviteleriyle daha kolay eşleşir.')}</p>
             <div className="support-form-grid">
               <label className="field">
-                <span>Category</span>
+                <span>{tr('Category', 'Kategori')}</span>
                 <select value={category} onChange={(event) => setCategory(event.target.value)}>
-                  <option value="billing">Billing or Patreon</option>
-                  <option value="login">Login or account sync</option>
-                  <option value="bug">Bug report</option>
-                  <option value="feedback">Product feedback</option>
-                  <option value="other">Other</option>
+                  <option value="billing">{tr('Billing or Patreon', 'Ödeme veya Patreon')}</option>
+                  <option value="login">{tr('Login or account sync', 'Giriş veya hesap eşleşmesi')}</option>
+                  <option value="bug">{tr('Bug report', 'Hata bildirimi')}</option>
+                  <option value="feedback">{tr('Product feedback', 'Ürün geri bildirimi')}</option>
+                  <option value="other">{tr('Other', 'Diğer')}</option>
                 </select>
               </label>
               <label className="field">
-                <span>Reply email</span>
+                <span>{tr('Reply email', 'Geri dönüş e-postası')}</span>
                 <input type="email" value={replyEmail} onChange={(event) => setReplyEmail(event.target.value)} placeholder="you@example.com" />
               </label>
             </div>
             <label className="field">
-              <span>Subject</span>
-              <input type="text" value={subject} onChange={(event) => setSubject(event.target.value)} placeholder={`What do you need help with in ${extension.name}?`} />
+              <span>{tr('Subject', 'Konu')}</span>
+              <input type="text" value={subject} onChange={(event) => setSubject(event.target.value)} placeholder={tr(`What do you need help with in ${extension.name}?`, `${extension.name} içinde ne konuda yardıma ihtiyacın var?`)} />
             </label>
             <label className="field">
-              <span>Message</span>
-              <textarea className="support-textarea" rows={6} value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Include what you were trying to do, what happened, and what account or browser context might help us reproduce it." />
+              <span>{tr('Message', 'Mesaj')}</span>
+              <textarea className="support-textarea" rows={6} value={message} onChange={(event) => setMessage(event.target.value)} placeholder={tr('Include what you were trying to do, what happened, and what account or browser context might help us reproduce it.', 'Ne yapmak istediğini, ne olduğunu ve hangi hesap/ortam bilgisinin yardımcı olacağını yaz.')} />
             </label>
             <div className="cta-row">
               <button className="button-cta" onClick={() => void submit()} disabled={status === 'sending'}>
-                {status === 'sending' ? 'Sending...' : 'Send support request'}
+                {status === 'sending' ? tr('Sending...', 'Gönderiliyor...') : tr('Send support request', 'Destek talebini gönder')}
               </button>
-              <a className="secondary-cta" href={`/${extension.slug}/login`}>Login help</a>
+              <a className="secondary-cta" href={`/${extension.slug}/login`}>{tr('Login help', 'Giriş yardımı')}</a>
               </div>
               {statusMessage ? <p className={status === 'done' ? 'success' : 'warning'}>{statusMessage}</p> : null}
             </div>
           </section>
           <div className="editorial-section">
             <div className="editorial-copy">
-              <p>Use support for install issues, account sync problems, billing questions, and product-specific bugs.</p>
-              <p>If you only need to reconnect your account or continue with payment, use the login or payment routes from this same product page.</p>
+              <p>{tr('Use support for install issues, account sync problems, billing questions, and product-specific bugs.', 'Kurulum sorunları, hesap eşleşmesi, ödeme soruları ve ürün hataları için destek kullan.')}</p>
+              <p>{tr('If you only need to reconnect your account or continue with payment, use the login or payment routes from this same product page.', 'Sadece hesabını bağlamak ya da ödemeye devam etmek istiyorsan bu sayfadaki giriş veya ödeme sayfasını kullan.')}</p>
             </div>
           </div>
         </div>
@@ -1991,24 +2046,35 @@ function LeavePage({ extension }: { extension: ExtensionDefinition }) {
   const clientId = identity.clientId
   const accountId = identity.accountId
   const accountEmail = identity.email
+  const tr = (en: string, trText: string) => t(extension, en, trText)
   const [reason, setReason] = useState<LeaveFeedbackReason>('too-noisy')
   const [details, setDetails] = useState('')
   const [status, setStatus] = useState<'idle' | 'sending' | 'done' | 'error'>('idle')
   const [message, setMessage] = useState('')
-  const reasons: Array<{ value: LeaveFeedbackReason; label: string }> = [
-    { value: 'too-noisy', label: 'It felt distracting' },
-    { value: 'missing-feature', label: 'It missed something I needed' },
-    { value: 'too-buggy', label: 'It felt buggy' },
-    { value: 'too-expensive', label: 'Pricing was the issue' },
-    { value: 'using-something-else', label: 'I use another tool' },
-    { value: 'temporary-break', label: 'Just taking a break' },
-    { value: 'other', label: 'Something else' },
-  ]
+  const reasons: Array<{ value: LeaveFeedbackReason; label: string }> = extension.locale === 'tr'
+    ? [
+        { value: 'too-noisy', label: 'Dikkat dağıtıyordu' },
+        { value: 'missing-feature', label: 'Eksik özellik vardı' },
+        { value: 'too-buggy', label: 'Hatalı çalışıyordu' },
+        { value: 'too-expensive', label: 'Ücret çok geldi' },
+        { value: 'using-something-else', label: 'Başka araç kullanıyorum' },
+        { value: 'temporary-break', label: 'Şimdilik ara veriyorum' },
+        { value: 'other', label: 'Başka bir sebep' },
+      ]
+    : [
+        { value: 'too-noisy', label: 'It felt distracting' },
+        { value: 'missing-feature', label: 'It missed something I needed' },
+        { value: 'too-buggy', label: 'It felt buggy' },
+        { value: 'too-expensive', label: 'Pricing was the issue' },
+        { value: 'using-something-else', label: 'I use another tool' },
+        { value: 'temporary-break', label: 'Just taking a break' },
+        { value: 'other', label: 'Something else' },
+      ]
 
   const submit = async () => {
     if (!extension.apiBase || !clientId) {
       setStatus('error')
-      setMessage('Connect an uninstall feedback endpoint for this extension to collect responses here.')
+      setMessage(tr('Connect an uninstall feedback endpoint for this extension to collect responses here.', 'Bu uzantı için kaldırma geri bildirimi uç noktasını bağla.'))
       return
     }
     setStatus('sending')
@@ -2022,19 +2088,19 @@ function LeavePage({ extension }: { extension: ExtensionDefinition }) {
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data.error || 'Feedback could not be sent.')
       setStatus('done')
-      setMessage('Thanks. Your feedback was sent.')
+      setMessage(tr('Thanks. Your feedback was sent.', 'Teşekkürler. Geri bildirimin gönderildi.'))
     } catch (err) {
       setStatus('error')
-      setMessage(err instanceof Error ? err.message : 'Feedback could not be sent.')
+      setMessage(err instanceof Error ? err.message : tr('Feedback could not be sent.', 'Geri bildirim gönderilemedi.'))
     }
   }
 
   return (
     <section className="article-card compact-card">
-      <div className="pill">Quick feedback</div>
-      <h1>Why are you leaving {extension.name}?</h1>
-      <p className="article-intro">A quick answer helps improve {extension.name} without turning this into a long exit survey.</p>
-      {identity.email ? <p className="muted-copy">Signed-in account: {identity.email}</p> : null}
+      <div className="pill">{tr('Quick feedback', 'Kısa geri bildirim')}</div>
+      <h1>{tr(`Why are you leaving ${extension.name}?`, `${extension.name} neden bırakılıyor?`)}</h1>
+      <p className="article-intro">{tr(`A quick answer helps improve ${extension.name} without turning this into a long exit survey.`, `Kısa bir cevap, uzun bir anket olmadan ${extension.name} ürününü geliştirmemize yardımcı olur.`)}</p>
+      {identity.email ? <p className="muted-copy">{tr('Signed-in account', 'Giriş yapan hesap')}: {identity.email}</p> : null}
       <div className="reason-grid">
         {reasons.map((item) => (
           <button key={item.value} className={`reason-card ${reason === item.value ? 'is-selected' : ''}`} onClick={() => setReason(item.value)}>
@@ -2042,10 +2108,10 @@ function LeavePage({ extension }: { extension: ExtensionDefinition }) {
           </button>
         ))}
       </div>
-      <textarea className="feedback-box" rows={3} value={details} onChange={(event) => setDetails(event.target.value)} placeholder="Optional note" />
+      <textarea className="feedback-box" rows={3} value={details} onChange={(event) => setDetails(event.target.value)} placeholder={tr('Optional note', 'İsteğe bağlı not')} />
       <div className="cta-row">
-        <button className="button-cta" disabled={status === 'sending' || status === 'done'} onClick={() => void submit()}>{status === 'sending' ? 'Sending...' : status === 'done' ? 'Sent' : 'Send'}</button>
-        <a className="secondary-cta" href={`/${extension.slug}`}>Back</a>
+        <button className="button-cta" disabled={status === 'sending' || status === 'done'} onClick={() => void submit()}>{status === 'sending' ? tr('Sending...', 'Gönderiliyor...') : status === 'done' ? tr('Sent', 'Gönderildi') : tr('Send', 'Gönder')}</button>
+        <a className="secondary-cta" href={`/${extension.slug}`}>{tr('Back', 'Geri dön')}</a>
       </div>
       {message ? <p className={status === 'error' ? 'warning' : 'success'}>{message}</p> : null}
     </section>
@@ -3310,8 +3376,22 @@ export default function App() {
       {route.page === 'login' && route.extension ? <LoginPage extension={route.extension} /> : null}
       {route.page === 'pricing' && route.extension ? <PricingPage extension={route.extension} /> : null}
       {route.page === 'payment' && route.extension ? <PaymentPage extension={route.extension} /> : null}
-      {route.page === 'privacy' && route.extension ? <ArticlePage extension={route.extension} title={`${route.extension.name} privacy`} eyebrow="Privacy" items={route.extension.privacySummary} /> : null}
-      {route.page === 'terms' && route.extension ? <ArticlePage extension={route.extension} title={`${route.extension.name} terms`} eyebrow="Terms" items={route.extension.termsSummary} /> : null}
+      {route.page === 'privacy' && route.extension ? (
+        <ArticlePage
+          extension={route.extension}
+          title={t(route.extension, `${route.extension.name} privacy`, `${route.extension.name} gizlilik`)}
+          eyebrow={t(route.extension, 'Privacy', 'Gizlilik')}
+          items={route.extension.privacySummary}
+        />
+      ) : null}
+      {route.page === 'terms' && route.extension ? (
+        <ArticlePage
+          extension={route.extension}
+          title={t(route.extension, `${route.extension.name} terms`, `${route.extension.name} kullanım şartları`)}
+          eyebrow={t(route.extension, 'Terms', 'Kullanım şartları')}
+          items={route.extension.termsSummary}
+        />
+      ) : null}
       {route.page === 'global-privacy' ? <GlobalPolicyPage title="Harika Extensions privacy" eyebrow="Privacy" items={GLOBAL_PRIVACY_SECTIONS} /> : null}
       {route.page === 'global-terms' ? <GlobalPolicyPage title="Harika Extensions terms of service" eyebrow="Terms" items={GLOBAL_TERMS_SECTIONS} /> : null}
       {route.page === 'support' && route.extension ? <SupportPage extension={route.extension} /> : null}

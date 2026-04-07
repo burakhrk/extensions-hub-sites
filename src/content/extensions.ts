@@ -1,4 +1,4 @@
-export type ExtensionSlug = 'deep-note' | 'sketch-party'
+export type ExtensionSlug = 'deep-note' | 'sketch-party' | 'quiz-solver'
 
 export type ExtensionRequiredPage = {
   key: 'landing' | 'login' | 'pricing' | 'payment' | 'privacy' | 'terms' | 'support' | 'leave'
@@ -18,6 +18,7 @@ export type ExtensionDefinition = {
   appId: string
   name: string
   category: string
+  locale?: 'en' | 'tr'
   tagline: string
   summary: string
   iconPath: string
@@ -185,6 +186,112 @@ export const extensions: ExtensionDefinition[] = [
     adminAnalyticsPath: '/api/admin/analytics',
     adminAnalyticsAppId: 'deep-note',
     adminSubscriptionPath: '/api/admin/subscription',
+  },
+  {
+    slug: 'quiz-solver',
+    appId: 'quiz-solver',
+    name: 'Quiz Solver AI',
+    category: 'Chrome uzantısı',
+    locale: 'tr',
+    tagline: 'Soruları hızlı çöz, adım adım öğren.',
+    summary: 'Quiz Solver AI, öğrenciler için hızlı çözüm ve açıklamalar sunar. Soruyu metin ya da görsel olarak gönder, kısa özet ve adım adım çözümü gör.',
+    iconPath: '/products/quiz-solver/icon.svg',
+    heroBadge: 'Hızlı çöz. Net öğren.',
+    heroTitle: 'Quiz Solver AI için sade ve güvenilir bir web sayfası.',
+    heroBody:
+      'Quiz Solver AI, hızlı cevap vermekten çok doğru yolu göstermeye odaklanır. Her soru için adım adım çözüm ve kısa özet alırsın.',
+    callouts: [
+      'Soruyu metin veya ekran görüntüsü olarak gönder.',
+      'Adım adım çözüm, kısa özet ve ipuçları al.',
+      'Zor soruları kaydet, sonra tekrar et.',
+    ],
+    steps: [
+      'Soruyu seç, metin yapıştır veya ekran görüntüsü ekle.',
+      'Çözümü adım adım takip et ve önemli noktaları öğren.',
+      'Benzer sorularla pratik yaparak konuyu pekiştir.',
+    ],
+    pricingTitle: 'Quiz Solver AI Ücretsiz ve Pro',
+    priceLabel: '$5 / ay',
+    pricingBody:
+      'Ücretsiz plan temel çözüm için yeterli. Pro ile daha detaylı açıklamalar ve yoğun kullanım desteği alırsın.',
+    proFeatures: [
+      'Daha detaylı adım adım çözümler.',
+      'Konu özetleri ve benzer soru önerileri.',
+      'Sınırsız çözüm ve öncelikli işlem.',
+    ],
+    supportBody:
+      'Kurulum, giriş, ödeme veya içerik sorunları için Quiz Solver AI desteğine buradan ulaş.',
+    privacySummary: [
+      {
+        title: 'İşlenen içerikler',
+        body: [
+          'Quiz Solver AI, çözüm istediğin soru metnini veya görselini, seçtiğin ders bilgilerini ve oluşturduğun notları işler. Bu veri yalnızca çözüm üretmek ve açıklama sunmak için kullanılır.',
+          'Varsayılan kullanımda sorular ve notlar uzantı içinde saklanabilir; hesap bağlantısı yapılmadığı sürece bulut yedekleme zorunlu değildir.',
+        ],
+      },
+      {
+        title: 'Hesap ve giriş akışı',
+        body: [
+          'Google ile giriş yapıldığında hesap kimliği, ödeme ve destek süreçlerinin doğru kullanıcıyla eşleşmesi için kullanılır.',
+          'Quiz Solver AI, kullanıcı verilerini reklam amacıyla satmaz veya paylaşmaz.',
+        ],
+      },
+      {
+        title: 'Ödeme ve Pro erişim',
+        body: [
+          'Pro erişim Patreon üzerinden yönetilir ve yalnızca yetkilendirme için gerekli üyelik bilgileri kullanılır.',
+          'Giriş ve ödeme bilgileri sadece Quiz Solver AI hesabı için geçerlidir.',
+        ],
+      },
+    ],
+    termsSummary: [
+      {
+        title: 'Kullanım kuralları',
+        body: [
+          'Quiz Solver AI, öğrencilerin öğrenmesini desteklemek için tasarlanmıştır. Uzantı, kötüye kullanım, spam veya başkalarının haklarını ihlal edecek şekilde kullanılamaz.',
+          'Kullanıcılar paylaştıkları içerikten sorumludur.',
+        ],
+      },
+      {
+        title: 'Özellikler ve ücretli plan',
+        body: [
+          'Ücretli özellikler, fiyatlandırma ve plan içerikleri zaman içinde güncellenebilir.',
+          'Pro erişim, ödeme sağlayıcısındaki üyelik durumuna göre aktif veya pasif olabilir.',
+        ],
+      },
+      {
+        title: 'Sorumluluk sınırı',
+        body: [
+          'Quiz Solver AI, sağlanan çözümlerin doğruluğunu garanti etmez ve oluşabilecek sonuçlardan sorumlu tutulamaz.',
+          'Hizmet, mevcut haliyle sunulur ve kesintisiz çalışma garantisi verilmez.',
+        ],
+      },
+    ],
+    loginBody: [
+      'Uzantıda kullandığın Google hesabı ile giriş yapman önerilir.',
+      'Ödeme ve Pro erişim bu hesap üzerinden eşleştirilir.',
+      'Giriş, yalnızca Quiz Solver AI için geçerlidir.',
+    ],
+    paymentBody: [
+      'Ödeme işlemleri uzantı dışında, web sitesinde yapılır.',
+      'Google hesabın Pro erişimi doğru şekilde bağlamak için kullanılır.',
+      'Patreon bağlantısı tamamlandığında Pro erişim otomatik senkron olur.',
+    ],
+    requiredPages: buildRequiredPages('quiz-solver'),
+    features: {
+      leavePage: true,
+      websiteBilling: true,
+      loginPage: true,
+      paymentPage: true,
+      adminAnalytics: true,
+    },
+    apiBase: deepNoteApi,
+    billingProvider: 'patreon',
+    adminApiBase: deepNoteApi,
+    adminAnalyticsPath: '/api/admin/analytics',
+    adminAnalyticsAppId: 'quiz-solver',
+    adminSubscriptionPath: '/api/admin/subscription',
+    installUrl: 'https://chromewebstore.google.com/detail/quiz-solver-ai/ijlpijnplhhbggppiebkfakonpjdikhl?hl=en-US&utm_source=ext_sidebar',
   },
   {
     slug: 'sketch-party',
