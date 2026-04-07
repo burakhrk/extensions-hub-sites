@@ -199,6 +199,117 @@ type WebsitePendingAction = {
   location: string
 }
 
+type ExtensionCopy = {
+  heroBestFor: string
+  heroPrimaryPill: string
+  heroPrimaryTags: string[]
+  heroTertiaryBody: string
+  productStoryLabel: string
+  reviewFacts: Array<{ title: string; strong: string; body: string }>
+  proIntro: string
+  pricingLead: string
+  pricingPreviewBody: string
+  pricingPreviewTags: string[]
+  examplesTitle: string
+  examples: Array<{ pill: string; colorClass: string; title: string; body: string; tags: string[] }>
+  beforeInstall: Array<{ title: string; body: string }>
+  paymentTitle: string
+  paymentSubtitle: string
+  paymentCardTitle: string
+  paymentCardBody: string
+  paymentCardTags: string[]
+  paymentPreviewCard: { pill: string; colorClass: string; title: string; body: string }
+  paymentWithProBullets: string[]
+  sharedFooterLabel: string
+}
+
+function getExtensionCopy(extension: ExtensionDefinition): ExtensionCopy {
+  if (extension.slug === 'sketch-party') {
+    return {
+      heroBestFor: 'Playful live drawing with friends',
+      heroPrimaryPill: 'Live effect',
+      heroPrimaryTags: ['Live canvas', 'Party code', 'Surprise toggle'],
+      heroTertiaryBody: 'Upgrade on the web to unlock shared canvas, premium effects, and priority relay.',
+      productStoryLabel: 'What Sketch Party does',
+      reviewFacts: [
+        { title: 'Works in', strong: 'Chrome extension social drawing', body: 'Send drawings or effects to friends on the page they are viewing, with optional shared canvas mode.' },
+        { title: 'Billing', strong: 'Handled on the website', body: 'Upgrade via Patreon on the website; entitlement syncs back to the extension account you signed in with.' },
+        { title: 'Controls', strong: 'User-controlled surprises', body: 'Toggle surprises, appear offline, and approve friends before they can send you anything.' },
+      ],
+      proIntro: 'Pro is for people who want shared live drawing, premium effects, and higher limits.',
+      pricingLead: 'Use Sketch Party free, then upgrade via Patreon for shared canvas, premium effects, and better relay limits.',
+      pricingPreviewBody: 'Start a session, drop a lightning effect, and keep the canvas in sync. Patreon-backed Pro unlocks premium effects and shared drawing mode.',
+      pricingPreviewTags: ['Live canvas', 'Pro effects', 'Patreon'],
+      examplesTitle: 'What people do in Sketch Party',
+      examples: [
+        { pill: 'Quick effect', colorClass: 'tone-mint', title: 'Send a confetti pop', body: "Drop a quick effect on a friend's current page without opening a full session.", tags: ['Effects', 'Real-time'] },
+        { pill: 'Live drawing', colorClass: 'tone-sky', title: 'Sketch together', body: 'Use shared canvas mode to draw on the same page with low-latency relay.', tags: ['Live', 'Canvas'] },
+        { pill: 'Pro pack', colorClass: 'tone-ink', title: 'Premium effects', body: 'Unlock lightning, heartburst, sticker slap, and other pro-only visuals.', tags: ['Pro', 'Patreon'] },
+      ],
+      beforeInstall: [
+        { title: 'Play with friends', body: 'Send drawings or effects only to people you approve. You stay in control.' },
+        { title: 'Sign in when ready', body: 'Use Google sign-in for account-linked access; guest mode stays available.' },
+        { title: 'Control surprises', body: 'Toggle surprise effects, appear offline, or disconnect anytime.' },
+      ],
+      paymentTitle: 'Upgrade to Sketch Party Pro.',
+      paymentSubtitle: 'Billed through Patreon. Sign in with Google, link Patreon, and unlock Pro on the same Sketch Party account.',
+      paymentCardTitle: 'Sketch Party Pro',
+      paymentCardBody: 'Shared canvas, premium effects, and priority relay for smoother sessions.',
+      paymentCardTags: ['Live canvas', 'Pro effects', 'Patreon'],
+      paymentPreviewCard: {
+        pill: 'Live effect',
+        colorClass: 'tone-mint',
+        title: 'Lightning across their page',
+        body: "Send premium effects that animate on your friend's active tab.",
+      },
+      paymentWithProBullets: ['Shared canvas drawing', 'Premium effect packs', 'Account-linked restore'],
+      sharedFooterLabel: 'Shared from Sketch Party',
+    }
+  }
+
+  // Deep Note (default) copy
+  return {
+    heroBestFor: 'Saving useful things fast',
+    heroPrimaryPill: 'Captured note',
+    heroPrimaryTags: ['Summary', 'Folders', 'AI help'],
+    heroTertiaryBody: 'Upgrade on the web and return with the right plan already linked.',
+    productStoryLabel: 'What Deep Note does',
+    reviewFacts: [
+      { title: 'Works in', strong: 'Chrome extension workflow', body: 'Capture while browsing, then come back later to review and organize what you saved.' },
+      { title: 'Billing', strong: 'Handled on the website', body: 'Upgrade on the website so the same signed-in account can carry the right plan back into the extension.' },
+      { title: 'Data style', strong: 'Local-first with account features', body: 'Core notes stay local by default. Account-linked features handle sync, billing, sharing, and support.' },
+    ],
+    proIntro: 'Pro is for people who want faster organization and better recall from what they save.',
+    pricingLead: 'Use Deep Note for free, then upgrade to Pro for faster organization and note-based AI help.',
+    pricingPreviewBody: 'Save a note, summarize it fast, and come back later with less cleanup and less searching.',
+    pricingPreviewTags: ['AI summary', 'Tags', 'Folders'],
+    examplesTitle: 'What people actually save',
+    examples: [
+      { pill: 'Quick capture', colorClass: 'tone-mint', title: 'Interesting paragraph from an article', body: 'Save the line now, add your own thought, and come back later with a short summary already attached.', tags: ['Research', 'Summary'] },
+      { pill: 'Organized note', colorClass: 'tone-sky', title: 'Saved into the right folder', body: 'Turn scattered captures into a clean note stack with folders, tags, and a clearer place to revisit them.', tags: ['Folders', 'Review later'] },
+      { pill: 'Pro workflow', colorClass: 'tone-ink', title: 'Ask AI across your saved notes', body: 'Use Pro to summarize what you saved, suggest structure, and chat across notes without rebuilding context each time.', tags: ['AI help', 'Knowledge chat'] },
+    ],
+    beforeInstall: [
+      { title: 'Capture while browsing', body: 'Save useful text, screenshots, or quick thoughts from the page you are on.' },
+      { title: 'Sign in only when needed', body: 'Google sign-in is for account-linked restore, website billing, and support context.' },
+      { title: 'Get help quickly', body: 'Privacy, terms, support, and payment pages stay on this site so those flows are easy to find.' },
+    ],
+    paymentTitle: 'Upgrade to Deep Note Pro.',
+    paymentSubtitle: 'Billed through Patreon. Sign in, link Patreon, and unlock Pro on the same Deep Note account.',
+    paymentCardTitle: 'Deep Note Pro',
+    paymentCardBody: 'AI summaries, smart organization, and knowledge chat across your saved notes.',
+    paymentCardTags: ['Summaries', 'Folders', 'Knowledge chat'],
+    paymentPreviewCard: {
+      pill: 'Saved note',
+      colorClass: 'tone-mint',
+      title: 'Article insight saved cleanly',
+      body: 'Keep the key quote, add your own thought, and revisit it later with a generated summary.',
+    },
+    paymentWithProBullets: ['Ask across your saved notes', 'Sort faster with suggestions', 'Keep one account everywhere'],
+    sharedFooterLabel: 'Shared from Deep Note',
+  }
+}
+
 const WEBSITE_ANALYTICS_PAGE_MAP: Partial<Record<PageKey, WebsiteTrackedPage>> = {
   product: 'product',
   pricing: 'pricing',
@@ -579,7 +690,7 @@ const GLOBAL_PRIVACY_SECTIONS: PolicySection[] = [
     title: 'How shared account context is used',
     body: [
       'When a user signs in on the website, the goal is to keep the same account in sync with the related extension. Depending on the product, this may include Google-based account identity, Patreon-linked entitlement checks, support requests, and analytics about product usage.',
-      'Sensitive freeform content such as private notes, drawings, or personal messages should only be processed when a specific product feature requires it and that product’s own policy allows it.',
+      "Sensitive freeform content such as private notes, drawings, or personal messages should only be processed when a specific product feature requires it and that product's own policy allows it.",
     ],
   },
   {
@@ -601,7 +712,7 @@ const GLOBAL_TERMS_SECTIONS: PolicySection[] = [
   {
     title: 'Acceptable use',
     body: [
-      'Users agree not to misuse the website, shared OAuth handoff flows, or extension-specific routes for abuse, impersonation, automated scraping, credential misuse, or attempts to access another user’s extension data.',
+      "Users agree not to misuse the website, shared OAuth handoff flows, or extension-specific routes for abuse, impersonation, automated scraping, credential misuse, or attempts to access another user's extension data.",
       'Product-specific features, eligibility, and subscription logic may vary by extension and may change over time as products evolve.',
     ],
   },
@@ -756,6 +867,7 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
   const otherProducts = extensions.filter((item) => item.slug !== extension.slug)
   const [state, setState] = useState<BillingState | null>(null)
   const [loading, setLoading] = useState(Boolean(extension.apiBase && auth.user?.id))
+  const copy = useMemo(() => getExtensionCopy(extension), [extension])
 
   useEffect(() => {
     let cancelled = false
@@ -860,22 +972,20 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
               </div>
               <div className="hero-meta-pill">
                 <span>Best for</span>
-                <strong>Saving useful things fast</strong>
+                <strong>{copy.heroBestFor}</strong>
               </div>
             </div>
           </div>
           <div className="hero-preview-shell" aria-hidden="true">
             <div className="hero-preview-note hero-preview-note-primary">
               <div className="hero-preview-top">
-                <span className="mini-pill">Captured note</span>
+                <span className="mini-pill">{copy.heroPrimaryPill}</span>
                 <span className="hero-preview-dot" />
               </div>
               <strong>{extension.tagline}</strong>
               <p>{extension.callouts[0]}</p>
               <div className="hero-preview-tags">
-                <span>Summary</span>
-                <span>Folders</span>
-                <span>AI help</span>
+                {copy.heroPrimaryTags.map((tag) => <span key={tag}>{tag}</span>)}
               </div>
             </div>
             <div className="hero-preview-note hero-preview-note-secondary">
@@ -886,7 +996,7 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
             </div>
             <div className="hero-preview-note hero-preview-note-tertiary">
               <div className="section-label">Pro</div>
-              <p>Upgrade on the web and return with the right plan already linked.</p>
+              <p>{copy.heroTertiaryBody}</p>
             </div>
           </div>
         </div>
@@ -902,27 +1012,19 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
       </section>
       <section className="two-col product-story-grid">
         <div className="editorial-section compact-editorial-section story-panel">
-          <div className="section-label">What Deep Note does</div>
+          <div className="section-label">{copy.productStoryLabel}</div>
           <div className="editorial-copy">
             <p>{extension.summary}</p>
             <p>{extension.heroBody}</p>
           </div>
           <div className="review-facts-grid">
-            <article className="review-fact-card">
-              <span>Works in</span>
-              <strong>Chrome extension workflow</strong>
-              <p>Capture while browsing, then come back later to review and organize what you saved.</p>
-            </article>
-            <article className="review-fact-card">
-              <span>Billing</span>
-              <strong>Handled on the website</strong>
-              <p>Upgrade on the website so the same signed-in account can carry the right plan back into the extension.</p>
-            </article>
-            <article className="review-fact-card">
-              <span>Data style</span>
-              <strong>Local-first with account features</strong>
-              <p>Core notes stay local by default. Account-linked features handle sync, billing, sharing, and support.</p>
-            </article>
+            {copy.reviewFacts.map((fact) => (
+              <article key={fact.title} className="review-fact-card">
+                <span>{fact.title}</span>
+                <strong>{fact.strong}</strong>
+                <p>{fact.body}</p>
+              </article>
+            ))}
           </div>
           <div className="highlight-grid">
             {extension.callouts.map((item) => (
@@ -936,7 +1038,7 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
         <div className="editorial-section compact-editorial-section story-panel story-panel-accent">
           <div className="section-label">What Pro adds</div>
           <div className="editorial-copy">
-            <p>Pro is for people who want faster organization and better recall from what they save.</p>
+            <p>{copy.proIntro}</p>
           </div>
           <ul className="simple-list feature-list">
             {extension.proFeatures.map((feature) => <li key={feature}>{feature}</li>)}
@@ -944,44 +1046,21 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
         </div>
       </section>
       <section className="editorial-section story-panel">
-        <div className="section-label">What people actually save</div>
+        <div className="section-label">{copy.examplesTitle}</div>
         <div className="examples-grid">
-          <article className="example-note-card">
-            <div className="example-note-top">
-              <span className="mini-pill">Quick capture</span>
-              <span className="example-note-color tone-mint" />
-            </div>
-            <strong>Interesting paragraph from an article</strong>
-            <p>Save the line now, add your own thought, and come back later with a short summary already attached.</p>
-            <div className="example-note-tags">
-              <span>Research</span>
-              <span>Summary</span>
-            </div>
-          </article>
-          <article className="example-note-card">
-            <div className="example-note-top">
-              <span className="mini-pill">Organized note</span>
-              <span className="example-note-color tone-sky" />
-            </div>
-            <strong>Saved into the right folder</strong>
-            <p>Turn scattered captures into a clean note stack with folders, tags, and a clearer place to revisit them.</p>
-            <div className="example-note-tags">
-              <span>Folders</span>
-              <span>Review later</span>
-            </div>
-          </article>
-          <article className="example-note-card example-note-card-accent">
-            <div className="example-note-top">
-              <span className="mini-pill">Pro workflow</span>
-              <span className="example-note-color tone-ink" />
-            </div>
-            <strong>Ask AI across your saved notes</strong>
-            <p>Use Pro to summarize what you saved, suggest structure, and chat across notes without rebuilding context each time.</p>
-            <div className="example-note-tags">
-              <span>AI help</span>
-              <span>Knowledge chat</span>
-            </div>
-          </article>
+          {copy.examples.map((example) => (
+            <article key={example.title} className={`example-note-card ${example.colorClass === 'tone-ink' ? 'example-note-card-accent' : ''}`}>
+              <div className="example-note-top">
+                <span className="mini-pill">{example.pill}</span>
+                <span className={`example-note-color ${example.colorClass}`} />
+              </div>
+              <strong>{example.title}</strong>
+              <p>{example.body}</p>
+              <div className="example-note-tags">
+                {example.tags.map((tag) => <span key={`${example.title}-${tag}`}>{tag}</span>)}
+              </div>
+            </article>
+          ))}
         </div>
       </section>
       <section className="section-stack">
@@ -1023,18 +1102,12 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
       <section className="editorial-section story-panel story-panel-accent">
         <div className="section-label">Before you install</div>
         <div className="submission-checklist">
-          <div className="submission-check-card">
-            <strong>Capture while browsing</strong>
-            <p>Save useful text, screenshots, or quick thoughts from the page you are on.</p>
-          </div>
-          <div className="submission-check-card">
-            <strong>Sign in only when needed</strong>
-            <p>Google sign-in is for account-linked restore, website billing, and support context.</p>
-          </div>
-          <div className="submission-check-card">
-            <strong>Get help quickly</strong>
-            <p>Privacy, terms, support, and payment pages stay on this site so those flows are easy to find.</p>
-          </div>
+          {copy.beforeInstall.map((item) => (
+            <div key={item.title} className="submission-check-card">
+              <strong>{item.title}</strong>
+              <p>{item.body}</p>
+            </div>
+          ))}
         </div>
       </section>
       <section className="editorial-section products-footer-section">
@@ -1063,6 +1136,7 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
   const params = new URLSearchParams(window.location.search)
   const patreonStatus = params.get('patreon')
   const [identity] = useState(() => readWebsiteHandoff(extension, 'pricing'))
+  const copy = useMemo(() => getExtensionCopy(extension), [extension])
   const auth = useWebsiteAuthState()
   const [state, setState] = useState<BillingState | null>(null)
   const [authError, setAuthError] = useState<string | null>(null)
@@ -1113,7 +1187,7 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
             <div className="pricing-hero-copy">
               <div className="pill">{extension.name} pricing</div>
               <h1>{extension.pricingTitle}</h1>
-              <p>Use Deep Note for free, then upgrade to Pro for faster organization and note-based AI help.</p>
+              <p>{copy.pricingLead}</p>
               <div className="pricing-hero-inline">
                 <div className="hero-meta-pill">
                   <span>Current plan</span>
@@ -1135,11 +1209,9 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
                 <span className="hero-preview-dot" />
               </div>
               <strong>What Pro feels like</strong>
-              <p>Save a note, summarize it fast, and come back later with less cleanup and less searching.</p>
+              <p>{copy.pricingPreviewBody}</p>
               <div className="pricing-preview-tags">
-                <span>AI summary</span>
-                <span>Smart tags</span>
-                <span>Folder suggestions</span>
+                {copy.pricingPreviewTags.map((tag) => <span key={`pricing-tag-${tag}`}>{tag}</span>)}
               </div>
             </div>
           </div>
@@ -1208,9 +1280,9 @@ function PricingPage({ extension }: { extension: ExtensionDefinition }) {
                   <div className="section-label">Free</div>
                   <h3>Use the core workflow.</h3>
                   <ul className="simple-list feature-list">
-                    <li>Save and organize notes inside the extension.</li>
+                    <li>Use the core experience inside the extension.</li>
                     <li>Keep the same account connected across extension and website.</li>
-                    <li>Upgrade later only if you want more AI help.</li>
+                    <li>Upgrade later only if you want more Pro features.</li>
                   </ul>
                 </div>
                 <div className="plan-compare-card plan-compare-card-accent">
@@ -1272,7 +1344,7 @@ function LoginPage({ extension }: { extension: ExtensionDefinition }) {
       <section className="article-card">
         <div className="pill">Google sign-in</div>
         <h1>{extension.name} login</h1>
-        <p className="article-intro">Use the same Google account you use in the extension so website access and billing stay tied to the right Deep Note account.</p>
+        <p className="article-intro">Use the same Google account you use in the extension so website access and billing stay tied to the right {extension.name} account.</p>
         <div className="editorial-section compact-editorial-section">
           <div className="stack-sm content-flow">
             <p><strong>Website session:</strong> {auth.loading ? 'Checking...' : auth.user?.email || 'Not signed in'}</p>
@@ -1354,6 +1426,7 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
   const paymentStatus = params.get('status')
   const paymentReason = params.get('reason')
   const [identity] = useState(() => readWebsiteHandoff(extension, 'payment'))
+  const copy = useMemo(() => getExtensionCopy(extension), [extension])
   const auth = useWebsiteAuthState()
   const [state, setState] = useState<BillingState | null>(null)
   const [loading, setLoading] = useState(Boolean(extension.apiBase && (identity.clientId || auth.user?.id)))
@@ -1462,8 +1535,8 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
       <section className="article-card payment-shell">
         <div className="payment-header">
           <div className="payment-header-copy">
-            <h1>Upgrade to Deep Note Pro.</h1>
-            <p>{extension.priceLabel || '$5 / month'} billed through Patreon. Sign in, link Patreon, and unlock Pro on the same Deep Note account.</p>
+            <h1>{copy.paymentTitle}</h1>
+            <p>{extension.priceLabel || '$5 / month'} billed through Patreon. {copy.paymentSubtitle}</p>
             <div className="payment-confidence-row">
               <span>Same Google account on extension and website</span>
               <span>Patreon handles billing</span>
@@ -1471,29 +1544,25 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
             </div>
           </div>
           <div className="payment-price-card payment-price-card-preview">
-            <span>Deep Note Pro</span>
+            <span>{copy.paymentCardTitle}</span>
             <strong>{extension.priceLabel || '$5 / month'}</strong>
-            <p>AI summaries, smart organization, and knowledge chat across your saved notes.</p>
+            <p>{copy.paymentCardBody}</p>
             <div className="payment-visual-tags">
-              <span>Summaries</span>
-              <span>Folders</span>
-              <span>Knowledge chat</span>
+              {copy.paymentCardTags.map((tag) => <span key={`pay-tag-${tag}`}>{tag}</span>)}
             </div>
             <div className="payment-preview-stack">
               <div className="payment-preview-card">
                 <div className="payment-preview-top">
-                  <span className="mini-pill">Saved note</span>
-                  <span className="example-note-color tone-mint" />
+                  <span className="mini-pill">{copy.paymentPreviewCard.pill}</span>
+                  <span className={`example-note-color ${copy.paymentPreviewCard.colorClass}`} />
                 </div>
-                <strong>Article insight saved cleanly</strong>
-                <p>Keep the key quote, add your own thought, and revisit it later with a generated summary.</p>
+                <strong>{copy.paymentPreviewCard.title}</strong>
+                <p>{copy.paymentPreviewCard.body}</p>
               </div>
               <div className="payment-preview-card payment-preview-card-secondary">
                 <div className="section-label">With Pro</div>
                 <ul className="simple-list feature-list">
-                  <li>Ask across your saved notes</li>
-                  <li>Sort faster with suggestions</li>
-                  <li>Keep one account everywhere</li>
+                  {copy.paymentWithProBullets.map((bullet) => <li key={`with-pro-${bullet}`}>{bullet}</li>)}
                 </ul>
               </div>
             </div>
@@ -1521,7 +1590,7 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
                   </p>
                 </div>
               ) : null}
-              {!auth.user ? <p className="muted-copy">Sign in first so the Patreon membership attaches to the correct Deep Note account.</p> : null}
+              {!auth.user ? <p className="muted-copy">Sign in first so the Patreon membership attaches to the correct {extension.name} account.</p> : null}
               {!auth.user && auth.configured ? (
                 <div className="auth-inline-box">
                   <p>Use the same Google account you use inside the extension before you continue to Patreon.</p>
@@ -1831,6 +1900,7 @@ function SharedNotePage({ extension, slug }: { extension: ExtensionDefinition; s
   const [note, setNote] = useState<SharedNote | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const copy = useMemo(() => getExtensionCopy(extension), [extension])
 
   useEffect(() => {
     let cancelled = false
@@ -1908,7 +1978,7 @@ function SharedNotePage({ extension, slug }: { extension: ExtensionDefinition; s
 
           <div className="shared-note-footer">
             {note.url ? <a className="secondary-cta inline-cta" href={note.url} target="_blank" rel="noreferrer">Source link</a> : <span />}
-            <span className="muted-copy">Shared from Deep Note</span>
+            <span className="muted-copy">{copy.sharedFooterLabel}</span>
           </div>
         </div>
       </article>
