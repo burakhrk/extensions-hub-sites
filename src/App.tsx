@@ -1544,6 +1544,16 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
   const planLabel = loading ? tr('Checking...', 'Kontrol ediliyor...') : state?.plan === 'pro' ? tr('Pro active', 'Pro aktif') : tr('Free plan', 'Ücretsiz plan')
   const patreonStatusLabel = state?.patreonConnected ? tr('Linked', 'Bağlı') : tr('Not linked', 'Bağlı değil')
   const canConnectPatreon = Boolean(auth.user && !isDifferentUser)
+  const patreonMembershipUrl = state?.portalUrl || state?.checkoutUrl || null
+  const paymentSteps = state?.patreonConnected ? [
+    { id: 1, label: tr('Sign in with Google', 'Google ile giriş yap'), done: Boolean(auth.user) },
+    { id: 2, label: tr('Patreon linked', 'Patreon bağlandı'), done: true },
+    { id: 3, label: tr('Manage membership on Patreon', 'Patreon üyeliğini yönet'), active: Boolean(patreonMembershipUrl) },
+  ] : [
+    { id: 1, label: tr('Sign in with Google', 'Google ile giriş yap'), done: Boolean(auth.user) },
+    { id: 2, label: tr('Link Patreon to Pro', "Patreon'u bağla"), active: canConnectPatreon },
+    { id: 3, label: tr('Return to extension', 'Uzantıya geri dön'), active: !canConnectPatreon && Boolean(auth.user) },
+  ]
 
   const handleConnectPatreon = async () => {
     if (!extension.apiBase || !effectiveClientId || !effectiveAccountId) {
@@ -1589,11 +1599,6 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
           <div className="payment-header-copy">
             <h1>{copy.paymentTitle}</h1>
             <p>{extension.priceLabel || '$5 / month'} {tr('billed through Patreon.', 'Patreon üzerinden ücretlendirilir.') } {copy.paymentSubtitle}</p>
-            <div className="payment-confidence-row">
-              <span>{tr('Same Google account on extension and website', 'Uzantı ve sitede aynı Google hesabı')}</span>
-              <span>{tr('Patreon handles billing', 'Patreon ödemeyi yönetir')}</span>
-              <span>{tr('Pro syncs back automatically', 'Pro erişim otomatik senkron olur')}</span>
-            </div>
           </div>
           <div className="payment-price-card payment-price-card-preview">
             <span>{copy.paymentCardTitle}</span>
@@ -1700,19 +1705,58 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
               ) : null}
               {state?.source === 'promo' && state.trialEndsAt ? <p><strong>{tr('Promo ends', 'Promosyon biter')}:</strong> {new Date(state.trialEndsAt).toLocaleString()}</p> : null}
               {state?.isTrialActive && state.trialEndsAt ? <p><strong>{tr('Trial ends', 'Deneme biter')}:</strong> {new Date(state.trialEndsAt).toLocaleString()}</p> : null}
-              {patreonLastSyncedLabel ? <p><strong>{tr('Last Patreon sync', 'Son Patreon senkronu')}:</strong> {patreonLastSyncedLabel}</p> : null}
+              {patreonLastSyncedLabel ? null : null}
             </section>
           </div>
 
           <div className="payment-column stack-md">
             <section className="payment-panel payment-panel-accent">
               <div className="section-label">{tr('Upgrade', 'Yükselt')}</div>
-              <h2>{state?.patreonConnected ? tr('Refresh your Pro access', 'Pro erişimini yenile') : tr('Link Patreon to unlock Pro', "Pro için Patreon'u bağla")}</h2>
+              <h2>{state?.patreonConnected ? tr('Patreon membership linked', 'Patreon üyeliği bağlı') : tr('Link Patreon to unlock Pro', "Pro için Patreon'u bağla")}</h2>
               <p className="payment-lead-copy">
                 {state?.patreonConnected
-                  ? tr('This account is already linked. Refresh if your membership changed.', 'Bu hesap zaten bağlı. Üyeliğin değiştiyse yenileyebilirsin.')
+                  ? tr('Manage your membership on Patreon. Changes sync back automatically.', 'Üyeliğini Patreon üzerinden yönetebilirsin. Değişiklikler otomatik senkron olur.')
                   : tr(`Pro is ${extension.priceLabel || '$5 / month'}. Link Patreon once and this account comes back with Pro unlocked.`, `Pro ücreti ${extension.priceLabel || '$5 / month'}. Patreon'u bir kez bağla, Pro bu hesaba açılır.`)}
               </p>
+              <div className="payment-cta-top">
+                {isPatreonBilling ? (
+                  state?.patreonConnected ? (
+                    patreonMembershipUrl ? (
+                      <a
+                        className="button-cta payment-primary-cta cta-pulse"
+                        href={patreonMembershipUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={() => {
+                          void trackWebsiteEvent({
+                            extension,
+                            page: 'payment',
+                            eventName: 'Website Patreon Membership Opened',
+                            authUser: auth.user,
+                            identity,
+                            billingState: state,
+                          })
+                        }}
+                      >
+                        {tr('Open Patreon membership', 'Patreon üyeliğini aç')}
+                      </a>
+                    ) : null
+                  ) : (
+                    <button className="button-cta payment-primary-cta cta-pulse" onClick={() => void handleConnectPatreon()} disabled={patreonLoading || !canConnectPatreon}>
+                      {patreonLoading ? tr('Opening Patreon...', 'Patreon açılıyor...') : tr('Link Patreon to Pro', "Patreon'u bağla")}
+                    </button>
+                  )
+                ) : null}
+                {!canConnectPatreon ? <p className="muted-copy">{tr('The button unlocks once the correct website account is signed in.', 'Doğru hesapla giriş yapınca buton açılır.')}</p> : null}
+              </div>
+              <div className="payment-steps">
+                {paymentSteps.map((step) => (
+                  <div key={`pay-step-${step.id}`} className={`payment-step ${step.done ? 'is-done' : ''} ${step.active ? 'is-active' : ''}`}>
+                    <span className="step-num">{step.id}</span>
+                    <span>{step.label}</span>
+                  </div>
+                ))}
+              </div>
               {isPatreonBilling ? <p className="muted-copy">{tr('Membership changes usually appear on the next sync window.', 'Üyelik değişiklikleri genelde bir sonraki senkron penceresinde görünür.')}</p> : null}
               {!canConnectPatreon ? (
                 <div className="payment-checklist-card">
@@ -1727,11 +1771,6 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
                 {extension.proFeatures.slice(0, 3).map((feature) => <li key={`payment-feature-${feature}`}>{feature}</li>)}
               </ul>
               <div className="cta-row">
-                {isPatreonBilling ? (
-                  <button className="button-cta payment-primary-cta" onClick={() => void handleConnectPatreon()} disabled={patreonLoading || !canConnectPatreon}>
-                    {patreonLoading ? tr('Opening Patreon...', 'Patreon açılıyor...') : tr('Link Patreon to Pro', "Patreon'u bağla")}
-                  </button>
-                ) : null}
                 {state?.billingProvider === 'website' && state?.checkoutUrl ? (
                   <a
                     className="secondary-cta"
@@ -1752,7 +1791,7 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
                     {tr('Open checkout', 'Ödemeyi aç')}
                   </a>
                 ) : null}
-                {state?.portalUrl && state?.plan === 'pro' ? (
+                {!isPatreonBilling && state?.portalUrl && state?.plan === 'pro' ? (
                   <a
                     className="secondary-cta"
                     href={state.portalUrl}
@@ -1769,11 +1808,10 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
                       })
                     }}
                   >
-                    {isPatreonBilling ? tr('Open Patreon membership', 'Patreon üyeliğini aç') : tr('Open billing portal', 'Faturalama portalını aç')}
+                    {tr('Open billing portal', 'Faturalama portalını aç')}
                   </a>
                 ) : null}
               </div>
-              {!canConnectPatreon ? <p className="muted-copy">{tr('The button unlocks once the correct website account is signed in.', 'Doğru hesapla giriş yapınca buton açılır.')}</p> : null}
               <div className="payment-status-strip">
                 <div>
                   <span>{tr('Current access', 'Mevcut erişim')}</span>

@@ -707,6 +707,63 @@ button { border: 0; cursor: pointer; }
   line-height: 1.68;
   max-width: 44ch;
 }
+.payment-cta-top {
+  margin-top: 14px;
+  display: grid;
+  gap: 8px;
+  align-items: start;
+}
+.payment-steps {
+  margin-top: 14px;
+  display: grid;
+  gap: 10px;
+}
+.payment-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(205, 220, 225, 0.8);
+  background: rgba(255, 255, 255, 0.7);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.payment-step.is-done {
+  opacity: 0.65;
+}
+.payment-step.is-active {
+  border-color: rgba(20, 184, 166, 0.6);
+  box-shadow: 0 10px 30px rgba(13, 148, 136, 0.12);
+  background: rgba(236, 253, 245, 0.85);
+}
+.payment-step .step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #0f172a;
+  background: rgba(148, 163, 184, 0.2);
+}
+.payment-step.is-active .step-num {
+  background: rgba(20, 184, 166, 0.18);
+  color: #0f766e;
+}
+.cta-pulse {
+  position: relative;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.25);
+  animation: ctaPulse 2.4s ease-in-out infinite;
+}
+@keyframes ctaPulse {
+  0% { transform: translateY(0); box-shadow: 0 16px 36px rgba(15, 23, 42, 0.22); }
+  50% { transform: translateY(-2px); box-shadow: 0 20px 42px rgba(15, 118, 110, 0.26); }
+  100% { transform: translateY(0); box-shadow: 0 16px 36px rgba(15, 23, 42, 0.22); }
+}
 .payment-layout {
   margin-top: 6px;
   align-items: start;
