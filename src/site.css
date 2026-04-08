@@ -592,10 +592,7 @@ button { border: 0; cursor: pointer; }
   font-size: clamp(2.2rem, 4vw, 3.4rem);
 }
 .payment-header {
-  display: grid;
-  grid-template-columns: minmax(0, 1.04fr) minmax(320px, .96fr);
-  gap: 24px;
-  align-items: center;
+  display: block;
   margin-bottom: 22px;
 }
 .payment-header-copy {
@@ -768,6 +765,9 @@ button { border: 0; cursor: pointer; }
   margin-top: 6px;
   align-items: start;
   gap: 20px;
+}
+.payment-secondary-block {
+  margin-top: 24px;
 }
 .payment-column {
   min-width: 0;

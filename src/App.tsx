@@ -1600,30 +1600,6 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
             <h1>{copy.paymentTitle}</h1>
             <p>{extension.priceLabel || '$5 / month'} {tr('billed through Patreon.', 'Patreon üzerinden ücretlendirilir.') } {copy.paymentSubtitle}</p>
           </div>
-          <div className="payment-price-card payment-price-card-preview">
-            <span>{copy.paymentCardTitle}</span>
-            <strong>{extension.priceLabel || '$5 / month'}</strong>
-            <p>{copy.paymentCardBody}</p>
-            <div className="payment-visual-tags">
-              {copy.paymentCardTags.map((tag) => <span key={`pay-tag-${tag}`}>{tag}</span>)}
-            </div>
-            <div className="payment-preview-stack">
-              <div className="payment-preview-card">
-                <div className="payment-preview-top">
-                  <span className="mini-pill">{copy.paymentPreviewCard.pill}</span>
-                  <span className={`example-note-color ${copy.paymentPreviewCard.colorClass}`} />
-                </div>
-                <strong>{copy.paymentPreviewCard.title}</strong>
-                <p>{copy.paymentPreviewCard.body}</p>
-              </div>
-              <div className="payment-preview-card payment-preview-card-secondary">
-                <div className="section-label">{tr('With Pro', 'Pro ile')}</div>
-                <ul className="simple-list feature-list">
-                  {copy.paymentWithProBullets.map((bullet) => <li key={`with-pro-${bullet}`}>{bullet}</li>)}
-                </ul>
-              </div>
-            </div>
-          </div>
         </div>
         {paymentStatus === 'connected' ? <p className="success"><strong>{tr('Patreon connected.', 'Patreon bağlandı.')}</strong> {tr('Your membership is now linked back to this extension account.', 'Üyeliğin bu hesaba eşlendi.')}</p> : null}
         {paymentStatus === 'failed' ? (
@@ -1823,6 +1799,32 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
                 </div>
               </div>
             </section>
+          </div>
+        </div>
+        <div className="payment-secondary-block">
+          <div className="payment-price-card payment-price-card-preview">
+            <span>{copy.paymentCardTitle}</span>
+            <strong>{extension.priceLabel || '$5 / month'}</strong>
+            <p>{copy.paymentCardBody}</p>
+            <div className="payment-visual-tags">
+              {copy.paymentCardTags.map((tag) => <span key={`pay-tag-${tag}`}>{tag}</span>)}
+            </div>
+            <div className="payment-preview-stack">
+              <div className="payment-preview-card">
+                <div className="payment-preview-top">
+                  <span className="mini-pill">{copy.paymentPreviewCard.pill}</span>
+                  <span className={`example-note-color ${copy.paymentPreviewCard.colorClass}`} />
+                </div>
+                <strong>{copy.paymentPreviewCard.title}</strong>
+                <p>{copy.paymentPreviewCard.body}</p>
+              </div>
+              <div className="payment-preview-card payment-preview-card-secondary">
+                <div className="section-label">{tr('With Pro', 'Pro ile')}</div>
+                <ul className="simple-list feature-list">
+                  {copy.paymentWithProBullets.map((bullet) => <li key={`with-pro-${bullet}`}>{bullet}</li>)}
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
         <div className="payment-footer-link">
