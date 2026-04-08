@@ -187,7 +187,7 @@ export const extensions: ExtensionDefinition[] = [
     adminAnalyticsPath: '/api/admin/analytics',
     adminAnalyticsAppId: 'deep-note',
     adminSubscriptionPath: '/api/admin/subscription',
-    patreonPageUrl: 'https://www.patreon.com/harikadev',
+    patreonPageUrl: 'https://www.patreon.com/checkout/harikadev?rid=28253484',
   },
   {
     slug: 'quiz-solver',
@@ -294,7 +294,7 @@ export const extensions: ExtensionDefinition[] = [
     adminAnalyticsAppId: 'quiz-solver',
     adminSubscriptionPath: '/api/admin/subscription',
     installUrl: 'https://chromewebstore.google.com/detail/quiz-solver-ai/ijlpijnplhhbggppiebkfakonpjdikhl?hl=en-US&utm_source=ext_sidebar',
-    patreonPageUrl: 'https://www.patreon.com/harikadev',
+    patreonPageUrl: 'https://www.patreon.com/checkout/harikadev?rid=28253484',
   },
   {
     slug: 'sketch-party',
@@ -408,7 +408,7 @@ export const extensions: ExtensionDefinition[] = [
     billingProvider: 'patreon',
     adminAnalyticsAppId: 'sketch-party',
     installUrl: 'https://chrome.google.com/webstore',
-    patreonPageUrl: 'https://www.patreon.com/harikadev',
+    patreonPageUrl: 'https://www.patreon.com/checkout/harikadev?rid=28253484',
   },
 ]
 
