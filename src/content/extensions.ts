@@ -52,6 +52,7 @@ export type ExtensionDefinition = {
   adminAnalyticsAppId?: string
   adminSubscriptionPath?: string
   installUrl?: string
+  patreonPageUrl?: string
 }
 
 const deepNoteApi = import.meta.env.VITE_DEEP_NOTE_API_URL || 'https://harika-extensions-backend.notetaker-app-burak.workers.dev'
@@ -186,6 +187,7 @@ export const extensions: ExtensionDefinition[] = [
     adminAnalyticsPath: '/api/admin/analytics',
     adminAnalyticsAppId: 'deep-note',
     adminSubscriptionPath: '/api/admin/subscription',
+    patreonPageUrl: 'https://www.patreon.com/harikadev',
   },
   {
     slug: 'quiz-solver',
@@ -292,6 +294,7 @@ export const extensions: ExtensionDefinition[] = [
     adminAnalyticsAppId: 'quiz-solver',
     adminSubscriptionPath: '/api/admin/subscription',
     installUrl: 'https://chromewebstore.google.com/detail/quiz-solver-ai/ijlpijnplhhbggppiebkfakonpjdikhl?hl=en-US&utm_source=ext_sidebar',
+    patreonPageUrl: 'https://www.patreon.com/harikadev',
   },
   {
     slug: 'sketch-party',
@@ -405,6 +408,7 @@ export const extensions: ExtensionDefinition[] = [
     billingProvider: 'patreon',
     adminAnalyticsAppId: 'sketch-party',
     installUrl: 'https://chrome.google.com/webstore',
+    patreonPageUrl: 'https://www.patreon.com/harikadev',
   },
 ]
 

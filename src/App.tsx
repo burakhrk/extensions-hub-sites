@@ -1544,7 +1544,7 @@ function PaymentPage({ extension }: { extension: ExtensionDefinition }) {
   const planLabel = loading ? tr('Checking...', 'Kontrol ediliyor...') : state?.plan === 'pro' ? tr('Pro active', 'Pro aktif') : tr('Free plan', 'Ücretsiz plan')
   const patreonStatusLabel = state?.patreonConnected ? tr('Linked', 'Bağlı') : tr('Not linked', 'Bağlı değil')
   const canConnectPatreon = Boolean(auth.user && !isDifferentUser)
-  const patreonMembershipUrl = state?.portalUrl || state?.checkoutUrl || null
+  const patreonMembershipUrl = extension.patreonPageUrl || state?.portalUrl || state?.checkoutUrl || null
   const paymentSteps = state?.patreonConnected ? [
     { id: 1, label: tr('Sign in with Google', 'Google ile giriş yap'), done: Boolean(auth.user) },
     { id: 2, label: tr('Patreon linked', 'Patreon bağlandı'), done: true },
