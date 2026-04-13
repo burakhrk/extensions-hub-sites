@@ -1060,39 +1060,43 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
         ) : null}
       </section>
       <section className="two-col product-story-grid">
-        <div className="editorial-section compact-editorial-section story-panel">
-          <div className="section-label">{copy.productStoryLabel}</div>
-          <div className="editorial-copy">
-            <p>{extension.summary}</p>
-            <p>{extension.heroBody}</p>
-          </div>
-          <div className="review-facts-grid">
-            {copy.reviewFacts.map((fact) => (
-              <article key={fact.title} className="review-fact-card">
-                <span>{fact.title}</span>
-                <strong>{fact.strong}</strong>
-                <p>{fact.body}</p>
-              </article>
-            ))}
-          </div>
-          <div className="highlight-grid">
-            {extension.callouts.map((item) => (
-              <article key={item} className="highlight-card">
-                <div className="section-label">{tr('Highlight', 'Öne çıkan')}</div>
-                <p>{item}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-        <div className="editorial-section compact-editorial-section story-panel story-panel-accent">
-          <div className="section-label">{tr('What Pro adds', 'Pro neler ekler')}</div>
-          <div className="editorial-copy">
-            <p>{copy.proIntro}</p>
-          </div>
-          <ul className="simple-list feature-list">
-            {extension.proFeatures.map((feature) => <li key={feature}>{feature}</li>)}
-          </ul>
-        </div>
+        {extension.slug !== 'deep-note' ? (
+          <>
+            <div className="editorial-section compact-editorial-section story-panel">
+              <div className="section-label">{copy.productStoryLabel}</div>
+              <div className="editorial-copy">
+                <p>{extension.summary}</p>
+                <p>{extension.heroBody}</p>
+              </div>
+              <div className="review-facts-grid">
+                {copy.reviewFacts.map((fact) => (
+                  <article key={fact.title} className="review-fact-card">
+                    <span>{fact.title}</span>
+                    <strong>{fact.strong}</strong>
+                    <p>{fact.body}</p>
+                  </article>
+                ))}
+              </div>
+              <div className="highlight-grid">
+                {extension.callouts.map((item) => (
+                  <article key={item} className="highlight-card">
+                    <div className="section-label">{tr('Highlight', 'Öne çıkan')}</div>
+                    <p>{item}</p>
+                  </article>
+                ))}
+              </div>
+            </div>
+            <div className="editorial-section compact-editorial-section story-panel story-panel-accent">
+              <div className="section-label">{tr('What Pro adds', 'Pro neler ekler')}</div>
+              <div className="editorial-copy">
+                <p>{copy.proIntro}</p>
+              </div>
+              <ul className="simple-list feature-list">
+                {extension.proFeatures.map((feature) => <li key={feature}>{feature}</li>)}
+              </ul>
+            </div>
+          </>
+        ) : null}
       </section>
       <section className="editorial-section story-panel">
         <div className="section-label">{copy.examplesTitle}</div>
