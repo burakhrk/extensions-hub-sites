@@ -2312,13 +2312,14 @@ function AdminPage() {
     })
   }, [data?.uninstallFeedback, dateRange.end, dateRange.start, selectedAppId])
 
-  const filteredSupportRequests = useMemo(() => {
+  const supportRequestsAllTime = useMemo(() => {
     const items = data?.supportRequests || []
-    return items.filter((item) => {
-      const matchesApp = !item.appId || item.appId === selectedAppId
-      return matchesApp && isWithinRange(item.timestamp)
-    })
-  }, [data?.supportRequests, dateRange.end, dateRange.start, selectedAppId])
+    return items.filter((item) => !item.appId || item.appId === selectedAppId)
+  }, [data?.supportRequests, selectedAppId])
+
+  const filteredSupportRequests = useMemo(() => (
+    supportRequestsAllTime.filter((item) => isWithinRange(item.timestamp))
+  ), [supportRequestsAllTime, dateRange.end, dateRange.start])
 
   const derivedTopScreens = useMemo(() => {
     const counts = new Map<string, number>()
@@ -2527,7 +2528,7 @@ function AdminPage() {
       }
     })
 
-    filteredSupportRequests.forEach((request) => {
+    supportRequestsAllTime.forEach((request) => {
       const key = buildUserKey(request.accountId, request.clientId)
       const existing = byKey.get(key)
       if (!existing) {
@@ -2564,7 +2565,7 @@ function AdminPage() {
     })
 
     return Array.from(byKey.values()).sort((a, b) => b.lastSeen - a.lastSeen)
-  }, [data?.users, filteredRecentEvents, filteredSupportRequests])
+  }, [data?.users, filteredRecentEvents, supportRequestsAllTime])
 
   useEffect(() => {
     if (!derivedUsers.length) {
@@ -2619,15 +2620,15 @@ function AdminPage() {
   }, [filteredUninstallFeedback, selectedUser])
 
   const selectedUserSupportRequests = useMemo(() => {
-    if (!selectedUser) return filteredSupportRequests
-    return filteredSupportRequests.filter((item) => {
+    if (!selectedUser) return supportRequestsAllTime
+    return supportRequestsAllTime.filter((item) => {
       if (selectedUser.accountId && item.accountId && item.accountId === selectedUser.accountId) return true
       if (selectedUser.clientId && item.clientId && item.clientId === selectedUser.clientId) return true
       if (selectedUser.accountEmail && item.accountEmail && item.accountEmail === selectedUser.accountEmail) return true
       if (selectedUser.accountEmail && item.replyEmail && item.replyEmail === selectedUser.accountEmail) return true
       return false
     })
-  }, [filteredSupportRequests, selectedUser])
+  }, [supportRequestsAllTime, selectedUser])
 
   const derivedFunnel = useMemo(() => {
     if (data?.funnels && Object.keys(data.funnels).length) {
@@ -2999,7 +3000,7 @@ function AdminPage() {
                         </div>
                         <div className="focus-row">
                           <span>Support tickets</span>
-                          <strong>{selectedUser ? selectedUserSupportRequests.length : filteredSupportRequests.length}</strong>
+                          <strong>{selectedUser ? selectedUserSupportRequests.length : supportRequestsAllTime.length}</strong>
                         </div>
                         <div className="focus-row">
                           <span>Uninstall signals</span>
@@ -3345,23 +3346,24 @@ function AdminPage() {
                   </div>
                 </section>
               ) : null}
-              {(selectedUser ? selectedUserSupportRequests : filteredSupportRequests).length ? (
-                <section className="info-card">
-                  <div className="section-label">Support requests</div>
-                  <p className="muted-copy">
-                    {selectedUser
-                      ? `Showing ${selectedUserSupportRequests.length} support submissions linked to ${selectedUser.label}.`
-                      : `Showing ${filteredSupportRequests.length} support submissions for app id ${selectedAppId} during ${dateRange.label}.`}
-                  </p>
+              <section className="info-card">
+                <div className="section-label">Support requests</div>
+                <p className="muted-copy">
+                  {supportRequestsAllTime.length
+                    ? `Showing ${supportRequestsAllTime.length} support submissions for app id ${selectedAppId} (all time).`
+                    : `No support submissions yet for app id ${selectedAppId}.`}
+                </p>
+                {supportRequestsAllTime.length ? (
                   <div className="event-feed">
-                    {(selectedUser ? selectedUserSupportRequests : filteredSupportRequests).map((item) => (
+                    {supportRequestsAllTime.map((item) => (
                       <div key={item.id} className="event-card">
                         <div className="event-top">
                           <strong>{item.subject}</strong>
                           <span>{new Date(item.timestamp).toLocaleString()}</span>
                         </div>
                         <div className="event-meta">
-                          <span>{item.accountEmail || item.replyEmail || 'Anonymous user'}</span>
+                          <span>{item.accountEmail || 'Anonymous user'}</span>
+                          {item.replyEmail ? <span>reply: {item.replyEmail}</span> : null}
                           <span>category: {item.category}</span>
                           {item.accountId ? <span>userId: {item.accountId}</span> : null}
                           {item.clientId ? <span>clientId: {item.clientId}</span> : null}
@@ -3371,8 +3373,12 @@ function AdminPage() {
                       </div>
                     ))}
                   </div>
-                </section>
-              ) : null}
+                ) : (
+                  <div className="empty-state">
+                    Support requests will appear here after someone submits the support form on the website or extension.
+                  </div>
+                )}
+              </section>
               {(selectedUser ? selectedUserFeedback : filteredUninstallFeedback).length ? (
                 <section className="info-card">
                   <div className="section-label">Uninstall feedback</div>
