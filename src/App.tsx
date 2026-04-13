@@ -2219,7 +2219,7 @@ function AdminPage() {
     void loadAnalytics()
   }, [isAuthenticated, selectedSlug])
 
-  const loadAnalytics = async (authenticateOnly = false) => {
+  const loadAnalytics = async (authenticateOnly = false, forceRefresh = false) => {
     if (!extension.adminApiBase || !extension.adminAnalyticsPath) {
       setError('This extension does not have an admin analytics endpoint configured yet.')
       setData(null)
@@ -2237,6 +2237,7 @@ function AdminPage() {
     try {
       const query = new URLSearchParams()
       if (selectedAppId) query.set('appId', selectedAppId)
+      if (forceRefresh) query.set('refresh', '1')
       const endpoint = `${extension.adminApiBase}${extension.adminAnalyticsPath}${query.toString() ? `?${query.toString()}` : ''}`
       const res = await fetch(endpoint, {
         headers: {
@@ -2874,7 +2875,7 @@ function AdminPage() {
                   </div>
                 ) : null}
                 <div className="cta-row">
-                  <button className="button-cta inline-cta" onClick={() => void loadAnalytics()} disabled={loading}>
+                  <button className="button-cta inline-cta" onClick={() => void loadAnalytics(false, true)} disabled={loading}>
                     {loading ? 'Loading...' : 'Refresh workspace'}
                   </button>
                   <button className="secondary-cta" onClick={handleSignOut}>Sign out</button>
