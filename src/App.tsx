@@ -980,7 +980,7 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
                     })
                   }}
                 >
-                  {tr('Install extension', 'Uzantıyı yükle')}
+                  {extension.installLabel ?? tr('Install extension', 'Uzantıyı yükle')}
                 </a>
               ) : null}
               {!auth.user ? (

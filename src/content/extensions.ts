@@ -52,6 +52,7 @@ export type ExtensionDefinition = {
   adminAnalyticsAppId?: string
   adminSubscriptionPath?: string
   installUrl?: string
+  installLabel?: string
   patreonPageUrl?: string
 }
 
@@ -95,6 +96,8 @@ export const extensions: ExtensionDefinition[] = [
     priceLabel: '$5 / month',
     pricingBody:
       'Use Deep Note for free, then upgrade to Pro on the website when you want AI-powered organization and a faster review workflow.',
+    installUrl: 'https://chromewebstore.google.com/detail/deep-note/okiljkdbogmgfmfoldegeaejgndeicok?authuser=0&hl=en',
+    installLabel: 'Get it on Chrome',
     proFeatures: [
       'AI summaries, smart tags, and folder suggestions.',
       'Chat across your saved notes.',
