@@ -1410,6 +1410,27 @@ button { border: 0; cursor: pointer; }
 .website-funnel-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
+.website-funnel-card {
+  display: grid;
+  gap: 6px;
+  min-height: 124px;
+  align-content: start;
+}
+.website-funnel-card .funnel-count {
+  font-size: 1.6rem;
+  margin: 6px 0 0;
+}
+.website-funnel-card .funnel-label {
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.25;
+  word-break: break-word;
+}
+.website-funnel-card .funnel-rate {
+  font-size: .8rem;
+  color: var(--muted);
+}
 .source-row {
   display: flex;
   justify-content: space-between;

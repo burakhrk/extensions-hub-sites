@@ -3172,11 +3172,11 @@ function AdminPage() {
                     <div className="section-label">Conversion path</div>
                     <div className="funnel-grid website-funnel-grid">
                       {websiteConversionSteps.map((step, index) => (
-                        <div key={step.key} className="funnel-card">
-                          <div className="funnel-step">{index + 1}</div>
-                          <strong>{step.count}</strong>
-                          <span>{step.label}</span>
-                          <small>{step.rate}</small>
+                        <div key={step.key} className="funnel-card website-funnel-card">
+                          <div className="funnel-step">Step {index + 1}</div>
+                          <strong className="funnel-count">{step.count}</strong>
+                          <span className="funnel-label">{step.label}</span>
+                          <small className="funnel-rate">{step.rate}</small>
                         </div>
                       ))}
                     </div>
