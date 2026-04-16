@@ -1059,10 +1059,8 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
           </div>
         ) : null}
       </section>
-      <section className="two-col product-story-grid">
-        {extension.slug !== 'deep-note' ? (
-          <>
-            <div className="editorial-section compact-editorial-section story-panel">
+      <section className="section-hero-grid">
+            <div className="editorial-section compact-editorial-section story-panel story-panel-hero">
               <div className="section-label">{copy.productStoryLabel}</div>
               <div className="editorial-copy">
                 <p>{extension.summary}</p>
@@ -1086,17 +1084,33 @@ function ProductHome({ extension }: { extension: ExtensionDefinition }) {
                 ))}
               </div>
             </div>
-            <div className="editorial-section compact-editorial-section story-panel story-panel-accent">
-              <div className="section-label">{tr('What Pro adds', 'Pro neler ekler')}</div>
-              <div className="editorial-copy">
-                <p>{copy.proIntro}</p>
+            <div className="section-hero-preview" aria-hidden="true">
+              <div className="section-hero-preview-card">
+                <div className="mini-pill">{copy.heroPrimaryPill}</div>
+                <strong>{extension.callouts[0]}</strong>
+                <p>{copy.examples[0]?.body || extension.callouts[1] || extension.summary}</p>
+                <div className="section-hero-mini-tags">
+                  {copy.heroPrimaryTags.map((tag) => <span key={tag}>{tag}</span>)}
+                </div>
               </div>
-              <ul className="simple-list feature-list">
-                {extension.proFeatures.map((feature) => <li key={feature}>{feature}</li>)}
-              </ul>
+              <div className="section-hero-preview-card section-hero-preview-card-secondary">
+                <div className="section-label">{tr('What Pro adds', 'Pro neler ekler')}</div>
+                <strong>{copy.proIntro}</strong>
+                <p>{copy.heroTertiaryBody}</p>
+              </div>
             </div>
-          </>
-        ) : null}
+      </section>
+      <section className="editorial-section story-panel story-panel-dark">
+        <div className="section-label">{tr('Why it feels organized', 'Neden daha düzenli hissettirir')}</div>
+        <div className="two-col product-story-grid">
+          <div className="editorial-copy">
+            <p>{extension.callouts[1] || extension.summary}</p>
+            <p>{extension.callouts[2] || copy.heroTertiaryBody}</p>
+          </div>
+          <ul className="simple-list feature-list">
+            {extension.steps.map((step) => <li key={`dark-${step}`}>{step}</li>)}
+          </ul>
+        </div>
       </section>
       <section className="editorial-section story-panel">
         <div className="section-label">{copy.examplesTitle}</div>
